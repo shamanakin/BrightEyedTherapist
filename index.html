@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Bright Eyed Therapist - Professional Clinical Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="active">Features</a>
+                <a href="demo.html">Demo</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="feedback.html">Feedback</a>
+            </div>
+            <a href="login.html" class="nav-cta">Sign In</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero container">
+            <div class="early-access-box animate-on-scroll">
+                <span class="badge">Beta Access</span>
+                <span class="early-access-text">Join the Pilot Program for just <strong>$10/month</strong></span>
+            </div>
+            
+            <h1 class="animate-on-scroll delay-100">
+                <span>Clinical</span> <span>tools</span> <span>that</span> <br>
+                <span>restore</span> <span>focus</span>.
+            </h1>
+            
+            <p class="hero-subtitle animate-on-scroll delay-200">
+                Streamline your practice with a modern suite of therapeutic tools designed by a therapist, for therapists. Reduce administrative burden and enhance client engagement.
+            </p>
+            
+            <div class="animate-on-scroll delay-300" style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="register.html" id="hero-cta" class="btn btn-beam">Start Free Trial</a>
+                <a href="about.html" class="btn btn-secondary">Learn More</a>
+            </div>
+            
+            <p id="hero-subtext" class="animate-on-scroll delay-300" style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--col-text-muted);">
+                No credit card required for trial • Cancel anytime
+            </p>
+        </section>
+
+        <!-- Feature Marquee -->
+        <div class="marquee-container" style="padding: 2rem 0; background: #fff; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6;">
+            <div class="marquee-inner" style="display: flex; gap: 4rem; align-items: center; opacity: 0.6;">
+                <span style="font-family: 'Playfair Display'; font-style: italic;">Trusted by Clinicians</span>
+                <span><i class="fa-solid fa-shield-halved"></i> HIPAA Compliant Standards</span>
+                <span><i class="fa-solid fa-bolt"></i> Lightweight & Fast</span>
+                <span><i class="fa-solid fa-lock"></i> Secure Encryption</span>
+                <span><i class="fa-solid fa-code"></i> Developer-Therapist Built</span>
+                <span><i class="fa-solid fa-users"></i> Community Driven</span>
+            </div>
+        </div>
+
+        <section class="services-section container">
+            <h2 class="animate-on-scroll" style="text-align: center; margin-bottom: 2.5rem; font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--col-text-main);">
+                A Growing Suite of Clinical Tools
+            </h2>
+            <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+                <!-- EMDR Suite -->
+                <div class="card flashlight-card animate-on-scroll" style="position: relative;">
+                    <span style="position: absolute; top: 12px; right: 12px; background: #D1FAE5; color: #065F46; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">v1.0</span>
+                    <div class="card-icon">
+                        <i class="fa-regular fa-eye"></i>
+                    </div>
+                    <h3>EMDR Suite</h3>
+                    <p>Customizable bilateral stimulation with shareable client links. Control speed, color, sound, and visual patterns.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Share-to-Client Links
+                    </div>
+                </div>
+
+                <!-- Note Genie -->
+                <div class="card flashlight-card animate-on-scroll delay-100" style="position: relative;">
+                    <span style="position: absolute; top: 12px; right: 12px; background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Alpha</span>
+                    <div class="card-icon" style="background-color: #FEF3C7; color: #92400E;">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <h3>Note Genie</h3>
+                    <p>AI-powered clinical documentation assistant. Generate SOAP, DAP, or BIRP notes in seconds with your own OpenAI key.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> BYOK Privacy Model
+                    </div>
+                </div>
+
+                <!-- Genogram Genie -->
+                <div class="card flashlight-card animate-on-scroll delay-100" style="position: relative;">
+                    <span style="position: absolute; top: 12px; right: 12px; background: #DBEAFE; color: #1E40AF; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Beta</span>
+                    <div class="card-icon accent">
+                        <i class="fa-solid fa-sitemap"></i>
+                    </div>
+                    <h3>Genogram Genie</h3>
+                    <p>Map complex family dynamics with intuitive drag-and-drop tools. Create clinical-grade family trees that visualize patterns.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Exportable Reports
+                    </div>
+                </div>
+
+                <!-- Trauma Timeline -->
+                <div class="card flashlight-card animate-on-scroll delay-200" style="position: relative;">
+                    <span style="position: absolute; top: 12px; right: 12px; background: #DBEAFE; color: #1E40AF; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Beta</span>
+                    <div class="card-icon">
+                        <i class="fa-solid fa-timeline"></i>
+                    </div>
+                    <h3>Trauma Timeline</h3>
+                    <p>Transform case history into a clear visual narrative. Plot life events and trauma markers to see patterns and progress.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Interactive & Collaborative
+                    </div>
+                </div>
+
+                <!-- Guided Clarity -->
+                <div class="card flashlight-card animate-on-scroll delay-200" style="position: relative;">
+                    <span style="position: absolute; top: 12px; right: 12px; background: #DBEAFE; color: #1E40AF; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Beta</span>
+                    <div class="card-icon" style="background-color: #DBEAFE; color: #1E40AF;">
+                        <i class="fa-solid fa-compass"></i>
+                    </div>
+                    <h3>Guided Clarity</h3>
+                    <p>Structured motivational interviewing tool. Guide clients through decision-making and create a printable "Clarity Card" takeaway.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Values-Based Approach
+                    </div>
+                </div>
+
+                <!-- ERP Fear Facer -->
+                <div class="card flashlight-card animate-on-scroll delay-300" style="position: relative;">
+                    <span style="position: absolute; top: 12px; right: 12px; background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Alpha</span>
+                    <div class="card-icon" style="background-color: #FEF3C7; color: #92400E;">
+                        <i class="fa-solid fa-mountain"></i>
+                    </div>
+                    <h3>ERP Fear Facer</h3>
+                    <p>Build fear hierarchies and track exposure therapy sessions. SUDS tracking with printable session summaries for OCD/anxiety work.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Session Logging
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <h4>Bright Eyed Therapist</h4>
+            <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Empowering mental health professionals with digital tools that bring clarity to complex clinical work.
+            </p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025 Bright Eyed Therapist.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Update hero CTA based on auth/subscription status
+        document.addEventListener('DOMContentLoaded', async () => {
+            const heroCta = document.getElementById('hero-cta');
+            const heroSubtext = document.getElementById('hero-subtext');
+            
+            if (!heroCta) return;
+            
+            // Check if user is logged in
+            if (!Auth.getToken()) {
+                // Not logged in - keep default "Start Free Trial"
+                return;
+            }
+            
+            // User has a token - check their status
+            try {
+                const user = await Auth.getCurrentUser();
+                
+                if (!user) {
+                    // Token invalid - keep default
+                    return;
+                }
+                
+                const subscription = user.subscription;
+                const hasAccess = Auth.checkAccess();
+                
+                if (hasAccess) {
+                    // User has active access - show dashboard CTA
+                    heroCta.textContent = 'Go to Dashboard';
+                    heroCta.href = 'dashboard.html';
+                    heroSubtext.textContent = `Welcome back, ${user.firstName || 'there'}!`;
+                } else if (subscription && subscription.status === 'trialing') {
+                    // Trial expired
+                    heroCta.textContent = 'Subscribe Now';
+                    heroCta.href = '#';
+                    heroCta.onclick = async (e) => {
+                        e.preventDefault();
+                        heroCta.textContent = 'Loading...';
+                        try {
+                            await Auth.createCheckoutSession('early_access');
+                        } catch (err) {
+                            heroCta.textContent = 'Subscribe Now';
+                            alert('Unable to start checkout. Please try again.');
+                        }
+                    };
+                    heroSubtext.textContent = 'Your trial has ended. Subscribe to continue.';
+                } else {
+                    // No subscription at all
+                    heroCta.textContent = 'Subscribe Now';
+                    heroCta.href = '#';
+                    heroCta.onclick = async (e) => {
+                        e.preventDefault();
+                        heroCta.textContent = 'Loading...';
+                        try {
+                            await Auth.createCheckoutSession('early_access');
+                        } catch (err) {
+                            heroCta.textContent = 'Subscribe Now';
+                            alert('Unable to start checkout. Please try again.');
+                        }
+                    };
+                    heroSubtext.textContent = 'Get full access for just $10/month.';
+                }
+            } catch (err) {
+                console.error('Error checking user status:', err);
+                // Keep default on error
+            }
+        });
+    </script>
+
+</body>
+</html>

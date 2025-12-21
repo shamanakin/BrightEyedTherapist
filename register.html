@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Start Trial - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 6rem; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 100%; max-width: 500px;">
+            <div class="card flashlight-card animate-on-scroll delay-100" style="padding: 2.5rem;">
+                <h2 style="text-align: center; margin-bottom: 0.5rem;">Create Your Account</h2>
+                <p style="text-align: center; color: var(--col-text-muted); margin-bottom: 2rem; font-size: 0.9rem;">
+                    Join the community of therapists modernizing their practice.
+                </p>
+                
+                <form id="register-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" id="fname" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" id="lname" class="form-input" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="password" class="form-input" required minlength="8">
+                        <small style="color: var(--col-text-muted); font-size: 0.8rem;">Minimum 8 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Plan</label>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <label class="plan-option" style="display: flex; align-items: center; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; cursor: pointer;">
+                                <input type="radio" name="plan" value="trial" checked style="margin-right: 10px;">
+                                <div>
+                                    <span style="font-weight: 600; display: block;">14-Day Free Trial</span>
+                                    <span style="font-size: 0.8rem; color: #666;">Full access, no card required.</span>
+                                </div>
+                            </label>
+                            <label class="plan-option" style="display: flex; align-items: center; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; cursor: pointer;">
+                                <input type="radio" name="plan" value="early_access" style="margin-right: 10px;">
+                                <div>
+                                    <span style="font-weight: 600; display: block;">Early Access Beta ($10/mo)</span>
+                                    <span style="font-size: 0.8rem; color: #666;">Support development & get locked-in pricing.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem; display: flex; align-items: start; gap: 10px;">
+                        <input type="checkbox" id="terms" style="margin-top: 5px;" required>
+                        <label for="terms" style="font-size: 0.85rem; color: var(--col-text-muted);">
+                            By creating an account you confirm that you are a trained mental health professional and, if using the EMDR Suite, that you are appropriately trained in EMDR or equivalent bilateral stimulation. You agree to the 
+                            <a href="terms.html" style="color: var(--col-primary);">Terms of Service</a> and 
+                            <a href="privacy.html" style="color: var(--col-primary);">Privacy Policy</a>.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-beam" style="width: 100%;">Create Account</button>
+                </form>
+            </div>
+            
+            <p class="animate-on-scroll delay-200" style="text-align: center; margin-top: 1.5rem; color: var(--col-text-muted);">
+                Already have an account? <a href="login.html" style="color: var(--col-primary); font-weight: 600; text-decoration: none;">Sign In</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fname = document.getElementById('fname').value.trim();
+            const lname = document.getElementById('lname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const plan = document.querySelector('input[name="plan"]:checked').value;
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+            
+            try {
+                // Register user via API
+                const user = await Auth.register(email, password, fname, lname, plan);
+                
+                // If they chose early access, redirect to Stripe checkout
+                if (plan === 'early_access') {
+                    await Auth.createCheckoutSession('early_access');
+                } else {
+                    // Redirect to dashboard for trial users
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                // Show user-friendly error message
+                let errorMsg = 'Registration failed. ';
+                if (error.message.includes('Email already registered')) {
+                    errorMsg += 'This email is already registered. Please sign in instead.';
+                } else if (error.message.includes('connect to server')) {
+                    errorMsg += 'Unable to connect to server. Please check your connection and try again.';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                alert(errorMsg);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    </script>
+
+</body>
+</html>

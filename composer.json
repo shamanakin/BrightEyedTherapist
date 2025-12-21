@@ -1,0 +1,14 @@
+{
+    "name": "brighteyedtherapist/platform",
+    "description": "Subscription-based therapy tools platform",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "stripe/stripe-php": "^19.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "BET\\": "api/"
+        }
+    }
+}

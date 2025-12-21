@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>See Our Tools in Action - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+    <style>
+        .demo-hero {
+            text-align: center;
+            padding: 4rem 0 3rem;
+        }
+        .demo-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.75rem;
+            color: var(--col-text-main);
+            margin-bottom: 1rem;
+        }
+        .demo-hero p {
+            font-size: 1.1rem;
+            color: var(--col-text-muted);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .tool-showcase {
+            display: grid;
+            gap: 4rem;
+            padding: 2rem 0 4rem;
+        }
+        
+        .tool-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .tool-item:nth-child(even) {
+            direction: rtl;
+        }
+        .tool-item:nth-child(even) > * {
+            direction: ltr;
+        }
+        
+        .tool-preview {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            aspect-ratio: 16/10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .tool-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px 16px 0 0;
+        }
+        .tool-preview-dots {
+            position: absolute;
+            top: 10px;
+            left: 16px;
+            display: flex;
+            gap: 6px;
+        }
+        .tool-preview-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+        .tool-preview-dots span:first-child { background: #ff5f57; }
+        .tool-preview-dots span:nth-child(2) { background: #febc2e; }
+        .tool-preview-dots span:nth-child(3) { background: #28c840; }
+        
+        .tool-preview-content {
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        .tool-preview-content i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        .tool-preview-content .preview-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+        
+        /* EMDR specific preview */
+        .emdr-preview {
+            background: #1a1a1a;
+        }
+        .emdr-dot {
+            width: 40px;
+            height: 40px;
+            background: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+            animation: emdr-move 2s ease-in-out infinite;
+        }
+        @keyframes emdr-move {
+            0%, 100% { transform: translateX(-80px); }
+            50% { transform: translateX(80px); }
+        }
+        
+        .tool-info h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            color: var(--col-text-main);
+            margin-bottom: 0.5rem;
+        }
+        .tool-info .tool-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+        .badge-stable { background: #D1FAE5; color: #065F46; }
+        .badge-beta { background: #DBEAFE; color: #1E40AF; }
+        .badge-alpha { background: #FEF3C7; color: #92400E; }
+        
+        .tool-info p {
+            color: var(--col-text-muted);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        .tool-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem 0;
+        }
+        .tool-info ul li {
+            padding: 0.5rem 0;
+            color: var(--col-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .tool-info ul li i {
+            color: var(--col-accent);
+            width: 20px;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(180deg, transparent, rgba(44, 85, 88, 0.05));
+            border-radius: 24px;
+            margin: 2rem 0 4rem;
+        }
+        .cta-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .cta-section p {
+            color: var(--col-text-muted);
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 900px) {
+            .tool-item,
+            .tool-item:nth-child(even) {
+                grid-template-columns: 1fr;
+                direction: ltr;
+            }
+            .tool-preview {
+                order: -1;
+            }
+            .demo-hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Features</a>
+                <a href="demo.html" class="active">Demo</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="feedback.html">Feedback</a>
+            </div>
+            <a href="login.html" class="nav-cta">Sign In</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="demo-hero animate-on-scroll">
+            <h1>See Our Tools in Action</h1>
+            <p>Explore the clinical suite designed to streamline your practice. Each tool is built with privacy-first principles — your client data stays on your device.</p>
+        </section>
+
+        <div class="tool-showcase">
+            
+            <!-- EMDR Suite -->
+            <div class="tool-item animate-on-scroll">
+                <div class="tool-preview emdr-preview">
+                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
+                    <div class="emdr-dot"></div>
+                </div>
+                <div class="tool-info">
+                    <span class="tool-badge badge-stable">v1.0 Stable</span>
+                    <h3>EMDR Suite</h3>
+                    <p>Professional bilateral stimulation tool with real-time client sharing. Control every aspect of the visual stimulus while your client follows along on their own device.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Adjustable speed, color, and direction</li>
+                        <li><i class="fa-solid fa-check"></i> Dot or lightbar visual modes</li>
+                        <li><i class="fa-solid fa-check"></i> Optional audio bilateral tones</li>
+                        <li><i class="fa-solid fa-check"></i> Share-to-client viewer links</li>
+                        <li><i class="fa-solid fa-check"></i> Session set counter</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Note Genie -->
+            <div class="tool-item animate-on-scroll">
+                <div class="tool-preview" style="background: linear-gradient(135deg, #92400E 0%, #78350f 100%);">
+                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
+                    <div class="tool-preview-content">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <div class="preview-label">AI-Powered Documentation</div>
+                    </div>
+                </div>
+                <div class="tool-info">
+                    <span class="tool-badge badge-alpha">Alpha</span>
+                    <h3>Note Genie</h3>
+                    <p>Transform session notes into professional clinical documentation in seconds. Uses your own API key (BYOK) so your data never touches our servers.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> SOAP, DAP, BIRP note formats</li>
+                        <li><i class="fa-solid fa-check"></i> Bring Your Own Key (OpenAI, Anthropic, etc.)</li>
+                        <li><i class="fa-solid fa-check"></i> 100% local processing</li>
+                        <li><i class="fa-solid fa-check"></i> Copy-to-clipboard export</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Genogram Genie -->
+            <div class="tool-item animate-on-scroll">
+                <div class="tool-preview" style="background: linear-gradient(135deg, var(--col-accent) 0%, #5a9a9d 100%);">
+                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
+                    <div class="tool-preview-content">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <div class="preview-label">Family System Visualization</div>
+                    </div>
+                </div>
+                <div class="tool-info">
+                    <span class="tool-badge badge-beta">Beta</span>
+                    <h3>Genogram Genie</h3>
+                    <p>Build comprehensive family trees that reveal intergenerational patterns. Drag-and-drop interface makes it easy to map complex family systems during sessions.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Standard genogram symbols</li>
+                        <li><i class="fa-solid fa-check"></i> Relationship line types</li>
+                        <li><i class="fa-solid fa-check"></i> Save/load to local files</li>
+                        <li><i class="fa-solid fa-check"></i> Export for documentation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Trauma Timeline -->
+            <div class="tool-item animate-on-scroll">
+                <div class="tool-preview" style="background: linear-gradient(135deg, var(--col-primary) 0%, #1e4a4d 100%);">
+                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
+                    <div class="tool-preview-content">
+                        <i class="fa-solid fa-timeline"></i>
+                        <div class="preview-label">Life Event Mapping</div>
+                    </div>
+                </div>
+                <div class="tool-info">
+                    <span class="tool-badge badge-beta">Beta</span>
+                    <h3>Trauma Timeline</h3>
+                    <p>Create visual narratives of client life histories. Plot significant events, identify patterns, and track therapeutic progress over time.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Chronological event plotting</li>
+                        <li><i class="fa-solid fa-check"></i> Color-coded event categories</li>
+                        <li><i class="fa-solid fa-check"></i> Zoom and pan navigation</li>
+                        <li><i class="fa-solid fa-check"></i> Local file save/load</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Guided Clarity -->
+            <div class="tool-item animate-on-scroll">
+                <div class="tool-preview" style="background: linear-gradient(135deg, #1E40AF 0%, #1e3a8a 100%);">
+                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
+                    <div class="tool-preview-content">
+                        <i class="fa-solid fa-compass"></i>
+                        <div class="preview-label">Decision Support Tool</div>
+                    </div>
+                </div>
+                <div class="tool-info">
+                    <span class="tool-badge badge-beta">Beta</span>
+                    <h3>Guided Clarity</h3>
+                    <p>Structure motivational interviewing conversations with this values-based decision tool. Clients leave with a printable "Clarity Card" summarizing their insights.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Guided question flow</li>
+                        <li><i class="fa-solid fa-check"></i> Values exploration prompts</li>
+                        <li><i class="fa-solid fa-check"></i> Printable Clarity Card output</li>
+                        <li><i class="fa-solid fa-check"></i> Session draft auto-save</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ERP Fear Facer -->
+            <div class="tool-item animate-on-scroll">
+                <div class="tool-preview" style="background: linear-gradient(135deg, #92400E 0%, #78350f 100%);">
+                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
+                    <div class="tool-preview-content">
+                        <i class="fa-solid fa-mountain"></i>
+                        <div class="preview-label">Exposure Therapy Tracker</div>
+                    </div>
+                </div>
+                <div class="tool-info">
+                    <span class="tool-badge badge-alpha">Alpha</span>
+                    <h3>ERP Fear Facer</h3>
+                    <p>Build and track fear hierarchies for exposure and response prevention therapy. Monitor SUDS ratings and celebrate progress with your OCD/anxiety clients.</p>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> Fear hierarchy builder</li>
+                        <li><i class="fa-solid fa-check"></i> SUDS tracking per exposure</li>
+                        <li><i class="fa-solid fa-check"></i> Session logging</li>
+                        <li><i class="fa-solid fa-check"></i> Printable progress summaries</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <section class="cta-section animate-on-scroll">
+            <h2>Ready to Streamline Your Practice?</h2>
+            <p>Start your 14-day free trial today. No credit card required. Cancel anytime.</p>
+            <div class="cta-buttons">
+                <a href="register.html" class="btn btn-beam">Start Free Trial</a>
+                <a href="contact.html" class="btn btn-secondary">Have Questions?</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <h4>Bright Eyed Therapist</h4>
+            <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Empowering mental health professionals with digital tools that bring clarity to complex clinical work.
+            </p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025 Bright Eyed Therapist.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
+
+
+
+
+

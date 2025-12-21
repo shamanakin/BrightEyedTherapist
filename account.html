@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>My Account - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Features</a>
+                <a href="demo.html">Demo</a>
+                <a href="dashboard.html">Apps</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="feedback.html">Feedback</a>
+            </div>
+            <!-- Dedicated sign-out button on account page (not managed by main.js nav-cta logic) -->
+            <a href="#" onclick="Auth.logout()" class="nav-signout" style="background: transparent; color: var(--col-text-muted); border: 1px solid #E5E7EB; padding: 0.5rem 1.25rem; border-radius: 999px; text-decoration: none; font-size: 0.9rem;">
+                Sign Out
+            </a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div class="animate-on-scroll" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1 style="margin: 0;">Account Settings</h1>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <a href="admin/index.html" id="admin-btn" style="display: none; font-size: 0.85rem; color: #6366F1; background: #EEF2FF; padding: 0.5rem 1rem; border-radius: 20px; text-decoration: none; transition: all 0.2s;">
+                        <i class="fa-solid fa-shield-halved" style="margin-right: 0.5rem;"></i>Admin Panel
+                    </a>
+                    <div id="signed-in-as" style="font-size: 0.85rem; color: var(--col-text-muted); background: #F3F4F6; padding: 0.5rem 1rem; border-radius: 20px;">
+                        <i class="fa-solid fa-user-circle" style="margin-right: 0.5rem;"></i>
+                        <span id="signed-in-email">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Profile Info -->
+                <div class="card flashlight-card animate-on-scroll delay-100">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Profile Information</h3>
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" id="acc-name" class="form-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="acc-email" class="form-input" readonly>
+                        <small style="color: var(--col-text-muted); font-size: 0.8rem; display: block; margin-top: 0.5rem;">Account email cannot be changed directly.</small>
+                        
+                        <!-- Email Verification Status -->
+                        <div id="email-verify-status" style="margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem;">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid #E5E7EB; padding-top: 1.5rem;">
+                        <label class="form-label">Clinical Email (Client Facing)</label>
+                        <input type="email" id="acc-clinical-email" class="form-input" placeholder="e.g. therapy@drsmith.com">
+                        <small style="color: var(--col-text-muted); font-size: 0.8rem; display: block; margin-top: 0.5rem;">
+                            Used in "Share with Client" links. If empty, your account email is used.
+                        </small>
+                        <button onclick="saveClinicalEmail()" class="btn btn-secondary" style="margin-top: 0.75rem; font-size: 0.85rem; padding: 0.5rem 1rem;">
+                            <i class="fa-solid fa-floppy-disk" style="margin-right: 0.4rem;"></i>Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Subscription Info -->
+                <div class="card flashlight-card animate-on-scroll delay-200">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem;">Subscription Plan</h3>
+                    <div id="plan-details" style="margin-bottom: 2rem;">
+                        <div style="font-size: 1.5rem; font-weight: 600; color: var(--col-primary); margin-bottom: 0.5rem;" id="plan-name">Loading...</div>
+                        <p style="color: var(--col-text-muted); font-size: 0.9rem;" id="plan-status">Loading...</p>
+                    </div>
+                    
+                    <div id="plan-actions">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card animate-on-scroll delay-300" style="margin-top: 2rem; border-color: #FEE2E2;">
+                <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #991B1B;">
+                    <i class="fa-solid fa-triangle-exclamation" style="margin-right: 0.5rem;"></i>
+                    Danger Zone
+                </h3>
+                <p style="color: var(--col-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                </p>
+                <button onclick="showDeleteModal()" class="btn btn-secondary" style="color: #991B1B; border-color: #FCA5A5; background: #FEF2F2;">
+                    <i class="fa-solid fa-trash"></i> Delete Account
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Delete Account Modal -->
+    <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 450px; width: 90%; text-align: center;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: #991B1B; margin-bottom: 1rem;"></i>
+            <h2 style="margin-bottom: 0.5rem; color: #991B1B;">Delete Your Account?</h2>
+            <p style="color: var(--col-text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                This will permanently delete your account, subscription, and all data. 
+                <strong>This cannot be undone.</strong>
+            </p>
+            <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+                <label class="form-label">Type "delete my account" to confirm:</label>
+                <input type="text" id="delete-confirm-input" class="form-input" placeholder="delete my account" autocomplete="off">
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button onclick="hideDeleteModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="confirmDelete()" class="btn" style="background: #991B1B; color: white;">Delete Forever</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!Auth.getToken()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const user = await Auth.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('acc-name').value = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            document.getElementById('acc-email').value = user.email;
+            document.getElementById('signed-in-email').textContent = user.email;
+            
+            // Show admin button if user is admin
+            if (user.isAdmin) {
+                document.getElementById('admin-btn').style.display = 'inline-flex';
+            }
+            
+            // Load clinical email from localStorage
+            const clinicalEmail = localStorage.getItem('bet_clinical_email') || '';
+            document.getElementById('acc-clinical-email').value = clinicalEmail;
+
+            // Display email verification status
+            const verifyStatusEl = document.getElementById('email-verify-status');
+            if (user.emailVerified) {
+                verifyStatusEl.style.background = '#D1FAE5';
+                verifyStatusEl.style.border = '1px solid #A7F3D0';
+                verifyStatusEl.innerHTML = `
+                    <i class="fa-solid fa-check-circle" style="color: #065F46; margin-right: 0.5rem;"></i>
+                    <span style="color: #065F46;">Email verified</span>
+                `;
+            } else {
+                verifyStatusEl.style.background = '#FEF3C7';
+                verifyStatusEl.style.border = '1px solid #FCD34D';
+                verifyStatusEl.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <i class="fa-solid fa-exclamation-circle" style="color: #92400E; margin-right: 0.5rem;"></i>
+                            <span style="color: #78350F;">Email not verified</span>
+                        </div>
+                        <button onclick="resendVerificationEmail()" id="acc-resend-btn" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.75rem; background: #92400E; color: white; border: none;">
+                            Resend Email
+                        </button>
+                    </div>
+                `;
+            }
+
+            const planName = document.getElementById('plan-name');
+            const planStatus = document.getElementById('plan-status');
+            const planActions = document.getElementById('plan-actions');
+            const subscription = user.subscription;
+
+            if (!subscription) {
+                planName.textContent = 'No Active Plan';
+                planStatus.textContent = 'Subscribe to access premium features.';
+                planActions.innerHTML = `<button onclick="subscribe()" class="btn btn-beam">Subscribe Now</button>`;
+                return;
+            }
+
+            if (subscription.status === 'active') {
+                const planLabel = subscription.plan_name === 'vip' ? 'VIP Tier' : 'Early Access Beta';
+                const amount = subscription.amount || 10;
+                const nextBilling = new Date(subscription.current_period_end).toLocaleDateString();
+                
+                planName.textContent = planLabel;
+                planStatus.textContent = `Active subscription ($${amount}/month). Next billing: ${nextBilling}`;
+                
+                if (subscription.cancel_at_period_end) {
+                    planStatus.textContent += ' (Cancels at period end)';
+                    planActions.innerHTML = `<p style="color: var(--col-text-muted); font-size: 0.9rem;">Your subscription will end on ${nextBilling}.</p>`;
+                } else {
+                    planActions.innerHTML = `<button onclick="cancelSub()" class="btn btn-secondary" style="color: #ef4444; border-color: #ef4444;">Cancel Subscription</button>`;
+                }
+            } else if (subscription.status === 'trialing') {
+                const days = Auth.getDaysLeft();
+                planName.textContent = 'Free Trial';
+                if (days > 0) {
+                    planStatus.textContent = `${days} days remaining.`;
+                    planActions.innerHTML = `
+                        <button onclick="subscribe()" class="btn btn-beam">Start $10/mo Plan</button>
+                        <p style="color: var(--col-text-muted); font-size: 0.8rem; margin-top: 0.75rem;">
+                            <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
+                            Secure checkout via Stripe. Cancel anytime.
+                        </p>
+                    `;
+                } else {
+                    planStatus.textContent = 'Trial expired.';
+                    planName.style.color = '#ef4444';
+                    planActions.innerHTML = `
+                        <button onclick="subscribe()" class="btn btn-beam">Start $10/mo Plan</button>
+                        <p style="color: var(--col-text-muted); font-size: 0.8rem; margin-top: 0.75rem;">
+                            <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
+                            Secure checkout via Stripe. Cancel anytime.
+                        </p>
+                    `;
+                }
+            } else {
+                planName.textContent = 'Inactive';
+                planName.style.color = '#ef4444';
+                planStatus.textContent = 'Your subscription is not active.';
+                planActions.innerHTML = `
+                    <button onclick="subscribe()" class="btn btn-beam">Start $10/mo Plan</button>
+                    <p style="color: var(--col-text-muted); font-size: 0.8rem; margin-top: 0.75rem;">
+                        <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
+                        Secure checkout via Stripe. Cancel anytime.
+                    </p>
+                `;
+            }
+        });
+
+        async function cancelSub() {
+            if (confirm('Are you sure you want to cancel? You will lose access to premium features at the end of your billing period.')) {
+                try {
+                    await Auth.cancelSubscription();
+                    alert('Subscription cancelled successfully.');
+                    location.reload();
+                } catch (error) {
+                    alert('Failed to cancel subscription: ' + error.message);
+                }
+            }
+        }
+
+        async function resendVerificationEmail() {
+            const btn = document.getElementById('acc-resend-btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const result = await Auth.resendVerification();
+                
+                if (result.alreadyVerified) {
+                    // Already verified - update UI
+                    const verifyStatusEl = document.getElementById('email-verify-status');
+                    verifyStatusEl.style.background = '#D1FAE5';
+                    verifyStatusEl.style.border = '1px solid #A7F3D0';
+                    verifyStatusEl.innerHTML = `
+                        <i class="fa-solid fa-check-circle" style="color: #065F46; margin-right: 0.5rem;"></i>
+                        <span style="color: #065F46;">Email verified</span>
+                    `;
+                } else {
+                    btn.textContent = 'Sent!';
+                    btn.style.background = '#065F46';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '#92400E';
+                        btn.disabled = false;
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Resend error:', error);
+                btn.textContent = 'Failed';
+                btn.style.background = '#DC2626';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#92400E';
+                    btn.disabled = false;
+                }, 3000);
+            }
+        }
+
+        function saveClinicalEmail() {
+            const clinicalEmail = document.getElementById('acc-clinical-email').value.trim();
+            localStorage.setItem('bet_clinical_email', clinicalEmail);
+            
+            // Visual feedback
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right: 0.4rem;"></i>Saved!';
+            btn.style.background = '#D1FAE5';
+            btn.style.color = '#065F46';
+            btn.style.borderColor = '#A7F3D0';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }, 2000);
+        }
+
+        async function subscribe() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Redirecting to checkout...';
+            
+            try {
+                await Auth.createCheckoutSession('early_access');
+            } catch (error) {
+                console.error('Checkout error:', error);
+                btn.disabled = false;
+                btn.textContent = originalText;
+                
+                // Show user-friendly error
+                let errorMsg = 'Unable to start checkout. ';
+                if (error.message.includes('verify your email')) {
+                    // Highlight the verification status
+                    const verifyStatusEl = document.getElementById('email-verify-status');
+                    verifyStatusEl.style.animation = 'pulse 0.5s ease-in-out 3';
+                    errorMsg = error.message;
+                } else if (error.message.includes('SDK_MISSING') || error.message.includes('not configured')) {
+                    errorMsg += 'The payment system is being set up. Please try again later or contact support.';
+                } else if (error.message.includes('already have an active subscription')) {
+                    errorMsg = error.message;
+                } else {
+                    errorMsg += 'Please try again. If the problem persists, contact support.';
+                }
+                alert(errorMsg);
+            }
+        }
+
+        function showDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'flex';
+            document.getElementById('delete-confirm-input').value = '';
+            document.getElementById('delete-confirm-input').focus();
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            const confirmation = document.getElementById('delete-confirm-input').value;
+            
+            if (confirmation.toLowerCase().trim() !== 'delete my account') {
+                alert('Please type "delete my account" exactly to confirm.');
+                return;
+            }
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Deleting...';
+            
+            try {
+                await Auth.deleteAccount(confirmation);
+                alert('Your account has been permanently deleted.');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Delete error:', error);
+                btn.disabled = false;
+                btn.textContent = originalText;
+                alert('Failed to delete account: ' + error.message);
+            }
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideDeleteModal();
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('delete-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'delete-modal') {
+                hideDeleteModal();
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
+
+

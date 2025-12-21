@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Sign In - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+</head>
+<body>
+
+    <header class="container">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 4rem; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 100%; max-width: 400px;">
+            <div class="card" style="padding: 2.5rem;">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Welcome Back</h2>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="password" class="form-input" required>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Sign In</button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                    <a href="reset-password.html" style="color: var(--col-primary); text-decoration: none;">Forgot password?</a>
+                </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 1.5rem; color: var(--col-text-muted);">
+                Don't have an account? <a href="register.html" style="color: var(--col-primary); font-weight: 600; text-decoration: none;">Start Free Trial</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing In...';
+            
+            try {
+                // Clear any existing auth data before new login
+                Auth.clearToken();
+                
+                // Login via API
+                const user = await Auth.login(email, password);
+                
+                // Verify the login worked by checking stored data matches
+                const storedUser = Auth.getUser();
+                if (!storedUser || storedUser.email !== email) {
+                    console.error('Login data mismatch - stored:', storedUser?.email, 'expected:', email);
+                    throw new Error('Login verification failed. Please try again.');
+                }
+                
+                // Redirect to dashboard
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                // Show user-friendly error message
+                let errorMsg = 'Login failed. ';
+                if (error.message.includes('Invalid email or password')) {
+                    errorMsg += 'Invalid email or password. Please try again.';
+                } else if (error.message.includes('Unauthorized')) {
+                    errorMsg += 'Invalid credentials. Please check your email and password.';
+                } else if (error.message.includes('connect to server')) {
+                    errorMsg += 'Unable to connect to server. Please check your connection and try again.';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                alert(errorMsg);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    </script>
+
+</body>
+</html>

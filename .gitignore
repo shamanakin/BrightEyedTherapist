@@ -1,0 +1,34 @@
+# Configuration files with sensitive data
+api/config.local.php
+
+# Composer dependencies (regenerated via composer install)
+vendor/
+composer.lock
+composer.phar
+
+# Logs
+api/logs/*.log
+*.log
+
+# Backup directories
+backup_*/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Environment files
+.env
+.env.local
+

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Feedback & Feature Requests - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Features</a>
+                <a href="demo.html">Demo</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="feedback.html" class="active">Feedback</a>
+            </div>
+            <a href="login.html" class="nav-cta">Sign In</a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
+        <div style="max-width: 700px; margin: 0 auto;">
+            <h1 class="animate-on-scroll" style="text-align: center; margin-bottom: 1rem;">
+                <i class="fa-solid fa-lightbulb" style="color: var(--col-primary); margin-right: 0.5rem;"></i>
+                Share Your Feedback
+            </h1>
+            <p class="animate-on-scroll delay-100" style="text-align: center; color: var(--col-text-muted); margin-bottom: 3rem;">
+                Have an idea for a new feature? Found a bug? We'd love to hear from you! Your feedback helps us build better tools for therapists.
+            </p>
+
+            <div class="card flashlight-card animate-on-scroll delay-200">
+                <form id="feedback-form">
+                    <!-- Feedback Type -->
+                    <div class="form-group">
+                        <label class="form-label" for="feedback-type">Type</label>
+                        <div style="display: flex; gap: 1rem;">
+                            <label style="flex: 1; cursor: pointer; padding: 1rem; border: 2px solid #E5E7EB; border-radius: var(--radius-md); text-align: center; transition: all 0.2s;" id="type-feature-label">
+                                <input type="radio" name="feedback-type" id="feedback-type-feature" value="feature_request" checked style="display: none;">
+                                <i class="fa-solid fa-lightbulb" style="display: block; font-size: 1.5rem; color: var(--col-primary); margin-bottom: 0.5rem;"></i>
+                                <div style="font-weight: 600;">Feature Request</div>
+                                <div style="font-size: 0.85rem; color: var(--col-text-muted); margin-top: 0.25rem;">Suggest a new feature</div>
+                            </label>
+                            <label style="flex: 1; cursor: pointer; padding: 1rem; border: 2px solid #E5E7EB; border-radius: var(--radius-md); text-align: center; transition: all 0.2s;" id="type-bug-label">
+                                <input type="radio" name="feedback-type" id="feedback-type-bug" value="bug_report" style="display: none;">
+                                <i class="fa-solid fa-bug" style="display: block; font-size: 1.5rem; color: #ef4444; margin-bottom: 0.5rem;"></i>
+                                <div style="font-weight: 600;">Bug Report</div>
+                                <div style="font-size: 0.85rem; color: var(--col-text-muted); margin-top: 0.25rem;">Report an issue</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label class="form-label" for="feedback-title">Title</label>
+                        <input type="text" id="feedback-title" class="form-input" placeholder="Brief summary of your feedback" required minlength="3" maxlength="255">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label class="form-label" for="feedback-description">Description</label>
+                        <textarea id="feedback-description" class="form-input" rows="6" placeholder="Please provide as much detail as possible. For bug reports, include steps to reproduce the issue." required minlength="10"></textarea>
+                    </div>
+
+                    <!-- App Name (Optional) -->
+                    <div class="form-group">
+                        <label class="form-label" for="feedback-app">Related App (Optional)</label>
+                        <select id="feedback-app" class="form-input">
+                            <option value="">General / All Apps</option>
+                            <option value="emdr">EMDR Suite</option>
+                            <option value="timeline">Trauma Timeline</option>
+                            <option value="genogram">Genogram Genie</option>
+                            <option value="guidedclarity">Guided Clarity</option>
+                            <option value="notegenie">Note Genie</option>
+                            <option value="fearfacer">ERP Fear Facer</option>
+                        </select>
+                    </div>
+
+                    <!-- Priority (Optional, defaults to medium) -->
+                    <div class="form-group">
+                        <label class="form-label" for="feedback-priority">Priority (Optional)</label>
+                        <select id="feedback-priority" class="form-input">
+                            <option value="medium" selected>Medium - Normal priority</option>
+                            <option value="low">Low - Nice to have</option>
+                            <option value="high">High - Important</option>
+                            <option value="critical">Critical - Blocks usage</option>
+                        </select>
+                        <small style="color: var(--col-text-muted); font-size: 0.8rem; display: block; margin-top: 0.5rem;">
+                            Help us prioritize by indicating how important this is to you.
+                        </small>
+                    </div>
+
+                    <button type="submit" id="feedback-submit-btn" class="btn btn-beam" style="width: 100%;">
+                        <i class="fa-solid fa-paper-plane" style="margin-right: 0.5rem;"></i>
+                        Submit Feedback
+                    </button>
+                    <div id="feedback-status" style="margin-top: 1rem; text-align: center; font-weight: 500; min-height: 1.5rem;"></div>
+                </form>
+            </div>
+            
+            <div class="animate-on-scroll delay-300" style="text-align: center; margin-top: 2rem;">
+                <p style="color: var(--col-text-muted); font-size: 0.95rem;">
+                    <i class="fa-solid fa-info-circle" style="color: var(--col-primary); margin-right: 8px;"></i>
+                    All feedback is reviewed regularly. We'll reach out if we need more information.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <h4>Bright Eyed Therapist</h4>
+            <p style="margin-top: 0.5rem;">&copy; 2025 Bright Eyed Therapist.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Pre-fill app from URL parameter
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const appParam = urlParams.get('app');
+            if (appParam) {
+                const appSelect = document.getElementById('feedback-app');
+                if (appSelect) {
+                    // Map URL param to option value
+                    const appMap = {
+                        'emdr': 'emdr',
+                        'timeline': 'timeline',
+                        'genogram': 'genogram',
+                        'guidedclarity': 'guidedclarity',
+                        'notegenie': 'notegenie',
+                        'fearfacer': 'fearfacer'
+                    };
+                    const appValue = appMap[appParam.toLowerCase()];
+                    if (appValue) {
+                        appSelect.value = appValue;
+                    }
+                }
+            }
+        })();
+        
+        // Handle radio button visual feedback
+        document.querySelectorAll('input[name="feedback-type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('type-feature-label').style.borderColor = this.value === 'feature_request' ? 'var(--col-primary)' : '#E5E7EB';
+                document.getElementById('type-feature-label').style.backgroundColor = this.value === 'feature_request' ? 'rgba(44, 85, 88, 0.05)' : 'transparent';
+                document.getElementById('type-bug-label').style.borderColor = this.value === 'bug_report' ? '#ef4444' : '#E5E7EB';
+                document.getElementById('type-bug-label').style.backgroundColor = this.value === 'bug_report' ? 'rgba(239, 68, 68, 0.05)' : 'transparent';
+            });
+        });
+        
+        // Set initial state
+        document.getElementById('type-feature-label').style.borderColor = 'var(--col-primary)';
+        document.getElementById('type-feature-label').style.backgroundColor = 'rgba(44, 85, 88, 0.05)';
+
+        // Handle form submission
+        document.getElementById('feedback-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('feedback-submit-btn');
+            const status = document.getElementById('feedback-status');
+            const type = document.querySelector('input[name="feedback-type"]:checked').value;
+            const title = document.getElementById('feedback-title').value.trim();
+            const description = document.getElementById('feedback-description').value.trim();
+            const appName = document.getElementById('feedback-app').value;
+            const priority = document.getElementById('feedback-priority').value;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>Submitting...';
+            status.textContent = '';
+            status.style.color = 'inherit';
+
+            try {
+                // Get auth token if logged in
+                const token = Auth.getToken();
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch('/api/feedback/submit.php', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ type, title, description, app_name: appName, priority })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    status.textContent = result.message || 'Thank you for your feedback!';
+                    status.style.color = 'var(--col-primary)';
+                    document.getElementById('feedback-form').reset();
+                    // Reset radio button visual state
+                    document.getElementById('type-feature-label').style.borderColor = 'var(--col-primary)';
+                    document.getElementById('type-feature-label').style.backgroundColor = 'rgba(44, 85, 88, 0.05)';
+                    document.getElementById('type-bug-label').style.borderColor = '#E5E7EB';
+                    document.getElementById('type-bug-label').style.backgroundColor = 'transparent';
+                    document.getElementById('feedback-type-feature').checked = true;
+                    // Restore app selection from URL if present
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const appParam = urlParams.get('app');
+                    if (appParam) {
+                        const appMap = {
+                            'emdr': 'emdr',
+                            'timeline': 'timeline',
+                            'genogram': 'genogram',
+                            'guidedclarity': 'guidedclarity',
+                            'notegenie': 'notegenie',
+                            'fearfacer': 'fearfacer'
+                        };
+                        const appValue = appMap[appParam.toLowerCase()];
+                        if (appValue) {
+                            document.getElementById('feedback-app').value = appValue;
+                        }
+                    }
+                } else {
+                    status.textContent = result.error || 'Failed to submit feedback.';
+                    status.style.color = '#ef4444';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                status.textContent = 'An error occurred. Please try again.';
+                status.style.color = '#ef4444';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 0.5rem;"></i>Submit Feedback';
+            }
+        });
+    </script>
+
+</body>
+</html>
+

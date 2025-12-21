@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Contact - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Features</a>
+                <a href="demo.html">Demo</a>
+                <a href="about.html">About</a>
+                <a href="contact.html" class="active">Contact</a>
+                <a href="feedback.html">Feedback</a>
+            </div>
+            <a href="login.html" class="nav-cta">Sign In</a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <h1 class="animate-on-scroll" style="text-align: center; margin-bottom: 1rem;">Get in Touch</h1>
+            <p class="animate-on-scroll delay-100" style="text-align: center; color: var(--col-text-muted); margin-bottom: 3rem;">
+                Have questions about our Early Access program, feature requests, or need support? We'd love to hear from you.
+            </p>
+
+            <div class="card flashlight-card animate-on-scroll delay-200">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label class="form-label" for="contact-name">Name</label>
+                        <input type="text" id="contact-name" class="form-input" placeholder="Dr. Jane Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact-email">Email</label>
+                        <input type="email" id="contact-email" class="form-input" placeholder="jane@practice.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact-message">Message</label>
+                        <textarea id="contact-message" class="form-input" rows="5" placeholder="How can we help you?" required></textarea>
+                    </div>
+                    <button type="submit" id="contact-submit-btn" class="btn btn-beam" style="width: 100%;">Send Message</button>
+                    <div id="contact-status" style="margin-top: 1rem; text-align: center; font-weight: 500; min-height: 1.5rem;"></div>
+                </form>
+            </div>
+            
+            <script>
+                document.getElementById('contact-form').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const btn = document.getElementById('contact-submit-btn');
+                    const status = document.getElementById('contact-status');
+                    const name = document.getElementById('contact-name').value;
+                    const email = document.getElementById('contact-email').value;
+                    const message = document.getElementById('contact-message').value;
+                    
+                    btn.disabled = true;
+                    btn.textContent = 'Sending...';
+                    status.textContent = '';
+                    status.style.color = 'inherit';
+
+                    try {
+                        // Use apiRequest from auth.js if available, or fallback to fetch
+                        const response = await fetch('/api/contact.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ name, email, message })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            status.textContent = result.message || 'Message sent!';
+                            status.style.color = 'var(--col-primary)';
+                            document.getElementById('contact-form').reset();
+                        } else {
+                            status.textContent = result.error || 'Failed to send message.';
+                            status.style.color = '#ef4444';
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        status.textContent = 'An error occurred. Please try again.';
+                        status.style.color = '#ef4444';
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Send Message';
+                    }
+                });
+            </script>
+            
+            <div class="animate-on-scroll delay-300" style="text-align: center; margin-top: 2rem;">
+                <p style="color: var(--col-text-muted); font-size: 0.95rem;">
+                    <i class="fa-solid fa-envelope" style="color: var(--col-primary); margin-right: 8px;"></i>
+                    <a href="mailto:matthew@brighteyedtherapist.com" style="color: var(--col-text-main); text-decoration: none; font-weight: 500;">matthew@brighteyedtherapist.com</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <h4>Bright Eyed Therapist</h4>
+            <p style="margin-top: 0.5rem;">&copy; 2025 Bright Eyed Therapist.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

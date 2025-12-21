@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="../assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="../assets/owl_favicon_mattegray_512.png">
+    <title>Feedback Management - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { background: #F3F4F6; }
+        .admin-header { 
+            background: var(--col-primary); 
+            color: white; 
+            padding: 1.5rem 0; 
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        .admin-header h1 { color: white; margin: 0; }
+        .admin-header a { color: white; text-decoration: none; margin-left: 1rem; }
+        .admin-header a:hover { text-decoration: underline; }
+        
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filters select, .filters input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #E5E7EB;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+        
+        .data-table {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            background: #F9FAFB;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--col-text);
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+            vertical-align: top;
+        }
+        .data-table tr:hover {
+            background: #F9FAFB;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-feature { background: #DBEAFE; color: #1E40AF; }
+        .badge-bug { background: #FEE2E2; color: #991B1B; }
+        .badge-new { background: #FEF3C7; color: #92400E; }
+        .badge-reviewing { background: #DBEAFE; color: #1E40AF; }
+        .badge-planned { background: #DDD6FE; color: #5B21B6; }
+        .badge-in_progress { background: #FED7AA; color: #9A3412; }
+        .badge-completed { background: #D1FAE5; color: #065F46; }
+        .badge-rejected { background: #FEE2E2; color: #991B1B; }
+        .badge-duplicate { background: #E5E7EB; color: #374151; }
+        
+        .badge-priority-low { background: #F3F4F6; color: #6B7280; }
+        .badge-priority-medium { background: #DBEAFE; color: #1E40AF; }
+        .badge-priority-high { background: #FED7AA; color: #9A3412; }
+        .badge-priority-critical { background: #FEE2E2; color: #991B1B; }
+        
+        .feedback-title {
+            font-weight: 600;
+            color: var(--col-text);
+            margin-bottom: 0.25rem;
+        }
+        .feedback-description {
+            color: var(--col-text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            max-width: 500px;
+            white-space: pre-wrap;
+        }
+        .feedback-meta {
+            font-size: 0.85rem;
+            color: var(--col-text-muted);
+            margin-top: 0.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h2 {
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--col-text-muted);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #E5E7EB;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container">
+            <h1>
+                <i class="fa-solid fa-comments"></i> Feedback Management
+                <a href="index.html" style="font-size: 0.9rem; font-weight: normal;">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </h1>
+        </div>
+    </div>
+
+    <main class="container" style="padding-bottom: 4rem;">
+        <!-- Filters -->
+        <div class="filters">
+            <label>
+                <strong>Type:</strong>
+                <select id="filter-type">
+                    <option value="">All Types</option>
+                    <option value="feature_request">Feature Requests</option>
+                    <option value="bug_report">Bug Reports</option>
+                </select>
+            </label>
+            <label>
+                <strong>Status:</strong>
+                <select id="filter-status">
+                    <option value="">All Statuses</option>
+                    <option value="new">New</option>
+                    <option value="reviewing">Reviewing</option>
+                    <option value="planned">Planned</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="duplicate">Duplicate</option>
+                </select>
+            </label>
+            <label>
+                <strong>App:</strong>
+                <select id="filter-app">
+                    <option value="">All Apps</option>
+                    <option value="emdr">EMDR Suite</option>
+                    <option value="timeline">Trauma Timeline</option>
+                    <option value="genogram">Genogram Genie</option>
+                    <option value="guidedclarity">Guided Clarity</option>
+                    <option value="notegenie">Note Genie</option>
+                    <option value="fearfacer">ERP Fear Facer</option>
+                </select>
+            </label>
+            <button onclick="loadFeedback()" class="btn btn-primary" style="margin-left: auto;">
+                <i class="fa-solid fa-refresh"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Feedback Table -->
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Title & Description</th>
+                        <th>User</th>
+                        <th>App</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="feedback-table">
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: var(--col-text-muted);">
+                            Loading feedback...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Feedback</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="edit-status" class="form-select">
+                        <option value="new">New</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="planned">Planned</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="duplicate">Duplicate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Admin Notes</label>
+                    <textarea id="edit-notes" class="form-textarea" placeholder="Add internal notes about this feedback..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../auth.js"></script>
+    <script>
+        const ADMIN_API_BASE = '/api/admin';
+        let allFeedback = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = Auth.getToken();
+            if (!token) {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            // Set up filters
+            document.getElementById('filter-type').addEventListener('change', filterFeedback);
+            document.getElementById('filter-status').addEventListener('change', filterFeedback);
+            document.getElementById('filter-app').addEventListener('change', filterFeedback);
+            
+            // Set up edit form
+            document.getElementById('edit-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await updateFeedback();
+            });
+            
+            await loadFeedback();
+        });
+
+        async function loadFeedback() {
+            try {
+                const token = Auth.getToken();
+                const response = await fetch(`${ADMIN_API_BASE}/feedback.php`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = '../login.html';
+                    return;
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    allFeedback = result.feedback;
+                    filterFeedback();
+                } else {
+                    document.getElementById('feedback-table').innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: #ef4444;">
+                                Error loading feedback: ${result.error || 'Unknown error'}
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading feedback:', error);
+                document.getElementById('feedback-table').innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: #ef4444;">
+                            Failed to load feedback. Please refresh the page.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function filterFeedback() {
+            const typeFilter = document.getElementById('filter-type').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const appFilter = document.getElementById('filter-app').value;
+            
+            const filtered = allFeedback.filter(f => {
+                if (typeFilter && f.type !== typeFilter) return false;
+                if (statusFilter && f.status !== statusFilter) return false;
+                if (appFilter && f.app_name !== appFilter) return false;
+                return true;
+            });
+            
+            renderFeedback(filtered);
+        }
+
+        function renderFeedback(feedback) {
+            const tbody = document.getElementById('feedback-table');
+            
+            if (feedback.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: var(--col-text-muted);">
+                            No feedback found matching your filters.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = feedback.map(f => {
+                const typeBadge = f.type === 'feature_request' 
+                    ? '<span class="badge badge-feature">Feature</span>'
+                    : '<span class="badge badge-bug">Bug</span>';
+                
+                const statusClass = `badge-${f.status}`;
+                const statusBadge = `<span class="badge ${statusClass}">${f.status.replace('_', ' ')}</span>`;
+                
+                const priorityClass = `badge-priority-${f.priority}`;
+                const priorityBadge = `<span class="badge ${priorityClass}">${f.priority}</span>`;
+                
+                const appName = f.app_name ? f.app_name.charAt(0).toUpperCase() + f.app_name.slice(1) : 'General';
+                const userName = f.user_name || f.user_email || 'Anonymous';
+                const date = new Date(f.created_at).toLocaleDateString();
+                
+                return `
+                    <tr>
+                        <td>#${f.id}</td>
+                        <td>${typeBadge}</td>
+                        <td>
+                            <div class="feedback-title">${escapeHtml(f.title)}</div>
+                            <div class="feedback-description">${escapeHtml(f.description.substring(0, 150))}${f.description.length > 150 ? '...' : ''}</div>
+                            ${f.admin_notes ? `<div class="feedback-meta"><strong>Admin Notes:</strong> ${escapeHtml(f.admin_notes)}</div>` : ''}
+                        </td>
+                        <td>${escapeHtml(userName)}</td>
+                        <td>${escapeHtml(appName)}</td>
+                        <td>${priorityBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td>${date}</td>
+                        <td>
+                            <button onclick="openEditModal(${f.id})" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                <i class="fa-solid fa-edit"></i> Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openEditModal(id) {
+            const feedback = allFeedback.find(f => f.id === id);
+            if (!feedback) return;
+            
+            document.getElementById('edit-id').value = feedback.id;
+            document.getElementById('edit-status').value = feedback.status;
+            document.getElementById('edit-notes').value = feedback.admin_notes || '';
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.remove('active');
+        }
+
+        async function updateFeedback() {
+            const id = document.getElementById('edit-id').value;
+            const status = document.getElementById('edit-status').value;
+            const notes = document.getElementById('edit-notes').value;
+            
+            try {
+                const token = Auth.getToken();
+                const response = await fetch(`${ADMIN_API_BASE}/feedback.php`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id, status, admin_notes: notes })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Update local data
+                    const index = allFeedback.findIndex(f => f.id === parseInt(id));
+                    if (index !== -1) {
+                        allFeedback[index].status = status;
+                        allFeedback[index].admin_notes = notes;
+                    }
+                    filterFeedback();
+                    closeModal();
+                } else {
+                    alert('Error updating feedback: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error updating feedback:', error);
+                alert('Failed to update feedback. Please try again.');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

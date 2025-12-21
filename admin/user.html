@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="../assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="../assets/owl_favicon_mattegray_512.png">
+    <title>User Detail - Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../auth.js"></script>
+    <style>
+        body { background: #F3F4F6; }
+        .admin-header { 
+            background: var(--col-primary); 
+            color: white; 
+            padding: 1.5rem 0; 
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        .admin-header h1 { color: white; margin: 0; font-size: 1.5rem; }
+        .admin-header a { color: rgba(255,255,255,0.8); text-decoration: none; }
+        .admin-header a:hover { color: white; }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--col-text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        .back-link:hover { color: var(--col-primary); }
+        
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--col-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        .user-meta h2 { margin: 0 0 0.25rem 0; }
+        .user-meta p { margin: 0; color: var(--col-text-muted); }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 768px) {
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+        
+        .detail-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            box-shadow: var(--shadow-sm);
+        }
+        .detail-card h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            color: var(--col-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .detail-card h3 i { color: var(--col-primary); }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--col-text-muted); font-size: 0.9rem; }
+        .detail-value { font-weight: 500; text-align: right; }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-active { background: #D1FAE5; color: #065F46; }
+        .badge-trial { background: #DBEAFE; color: #1E40AF; }
+        .badge-expired { background: #FEE2E2; color: #991B1B; }
+        .badge-canceled { background: #FEF3C7; color: #92400E; }
+        .badge-none { background: #F3F4F6; color: #6B7280; }
+        .badge-lifetime { background: #E0E7FF; color: #3730A3; }
+        .badge-promo { background: #FEF3C7; color: #92400E; }
+        
+        .data-table {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+        .data-table h3 {
+            margin: 0;
+            padding: 1rem 1.5rem;
+            background: #F9FAFB;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .data-table h3 i { color: var(--col-primary); }
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            background: #F9FAFB;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--col-text);
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 0.85rem;
+        }
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #F3F4F6;
+            font-size: 0.9rem;
+        }
+        .data-table tr:hover { background: #F9FAFB; }
+        .empty-state {
+            padding: 2rem;
+            text-align: center;
+            color: var(--col-text-muted);
+        }
+        
+        .stripe-link {
+            color: #635BFF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .stripe-link:hover { text-decoration: underline; }
+        
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--col-text-muted);
+        }
+        .error {
+            text-align: center;
+            padding: 4rem;
+            color: #991B1B;
+        }
+        
+        /* Admin action buttons */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #E5E7EB;
+        }
+        .btn-action {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 1px solid;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn-extend {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border-color: #93C5FD;
+        }
+        .btn-lifetime {
+            background: #D1FAE5;
+            color: #065F46;
+            border-color: #6EE7B7;
+        }
+        .btn-year {
+            background: #FEF3C7;
+            color: #92400E;
+            border-color: #FCD34D;
+        }
+        .btn-cancel {
+            background: #FED7AA;
+            color: #9A3412;
+            border-color: #FDBA74;
+        }
+        .btn-delete {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-color: #FCA5A5;
+        }
+        .btn-verify {
+            background: #D1FAE5;
+            color: #065F46;
+            border-color: #6EE7B7;
+        }
+        .btn-resend {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border-color: #93C5FD;
+        }
+        .verify-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container">
+            <h1><i class="fa-solid fa-user"></i> User Detail</h1>
+        </div>
+    </div>
+
+    <main class="container" style="padding-bottom: 4rem;">
+        <a href="index.html" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <div id="content">
+            <div class="loading">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>Loading user details...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ADMIN_API_BASE = '/api/admin';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in
+            const token = Auth.getToken();
+            if (!token) {
+                showUnauthorized('You must be logged in to access the admin dashboard.');
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+            
+            if (!userId) {
+                showError('No user ID provided. Please select a user from the dashboard.');
+                return;
+            }
+            
+            await loadUserDetail(userId);
+        });
+        
+        function showUnauthorized(message) {
+            document.getElementById('content').innerHTML = `
+                <div style="text-align: center; padding: 4rem 2rem;">
+                    <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--col-text-muted); margin-bottom: 1rem;"></i>
+                    <h2 style="margin-bottom: 1rem;">Access Denied</h2>
+                    <p style="color: var(--col-text-muted); margin-bottom: 2rem;">${message}</p>
+                    <a href="../login.html" class="btn btn-primary">Sign In</a>
+                </div>
+            `;
+        }
+        
+        async function loadUserDetail(userId) {
+            try {
+                const token = Auth.getToken();
+                const response = await fetch(`${ADMIN_API_BASE}/user.php?id=${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.status === 403) {
+                    showUnauthorized('Your account does not have admin privileges.');
+                    return;
+                }
+                
+                if (response.status === 401) {
+                    showUnauthorized('Your session has expired. Please sign in again.');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    showError(data.error || 'Failed to load user');
+                    return;
+                }
+                
+                renderUserDetail(data);
+            } catch (error) {
+                console.error('Error loading user:', error);
+                showError('Failed to connect to server');
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">
+                    <i class="fa-solid fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>${message}</p>
+                    <a href="index.html" class="btn" style="margin-top: 1rem;">Return to Dashboard</a>
+                </div>
+            `;
+        }
+        
+        function renderUserDetail(data) {
+            const { user, subscription, subscription_flags, payments, app_usage, stats } = data;
+            
+            const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || user.email[0].toUpperCase();
+            const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'No Name';
+            
+            // Format dates
+            const createdAt = new Date(user.created_at).toLocaleString();
+            const updatedAt = user.updated_at ? new Date(user.updated_at).toLocaleString() : 'N/A';
+            const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
+            
+            // Helper function to calculate days remaining
+            function calculateDaysRemaining(endDate) {
+                if (!endDate) return null;
+                const end = new Date(endDate);
+                const now = new Date();
+                const diff = end - now;
+                return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+            }
+            
+            // Plan name mapping
+            const planName = subscription?.plan_name === 'early_access' ? 'Early Access Beta' 
+                           : subscription?.plan_name === 'vip' ? 'VIP Tier' 
+                           : subscription?.plan_name === 'trial' ? 'Free Trial'
+                           : subscription?.plan_name === '1_year_promo' ? '1 Year Promo'
+                           : subscription?.plan_name === 'lifetime' ? 'Lifetime Access'
+                           : subscription?.plan_name || 'None';
+            
+            // Subscription status badge and text
+            let statusBadge = '<span class="badge badge-none">No Subscription</span>';
+            let statusText = 'No active subscription';
+            let daysRemaining = null;
+            
+            if (subscription) {
+                // Special handling for lifetime and promo plans
+                if (subscription.plan_name === 'lifetime') {
+                    statusBadge = '<span class="badge badge-lifetime">Lifetime</span>';
+                    const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'Never';
+                    statusText = `Lifetime access (expires ${periodEnd})`;
+                    daysRemaining = subscription.current_period_end ? calculateDaysRemaining(subscription.current_period_end) : null;
+                } else if (subscription.plan_name === '1_year_promo') {
+                    statusBadge = '<span class="badge badge-promo">1 Year Promo</span>';
+                    const trialEnd = subscription.trial_end ? new Date(subscription.trial_end).toLocaleDateString() : 'N/A';
+                    daysRemaining = subscription.trial_end ? calculateDaysRemaining(subscription.trial_end) : null;
+                    statusText = daysRemaining !== null ? `${daysRemaining} days remaining (expires ${trialEnd})` : `Expires ${trialEnd}`;
+                } else if (subscription_flags.is_active) {
+                    statusBadge = '<span class="badge badge-active">Active</span>';
+                    const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'N/A';
+                    daysRemaining = subscription.current_period_end ? calculateDaysRemaining(subscription.current_period_end) : null;
+                    statusText = daysRemaining !== null ? `Active - ${daysRemaining} days remaining (until ${periodEnd})` : `Active until ${periodEnd}`;
+                } else if (subscription_flags.is_trialing) {
+                    statusBadge = '<span class="badge badge-trial">Trial</span>';
+                    daysRemaining = subscription_flags.trial_days_remaining || (subscription.trial_end ? calculateDaysRemaining(subscription.trial_end) : null);
+                    statusText = daysRemaining !== null ? `${daysRemaining} days remaining` : 'Trial active';
+                } else if (subscription_flags.is_canceled) {
+                    statusBadge = '<span class="badge badge-canceled">Canceled</span>';
+                    statusText = subscription.canceled_at ? `Canceled on ${new Date(subscription.canceled_at).toLocaleDateString()}` : 'Cancels at period end';
+                } else if (subscription_flags.is_expired) {
+                    statusBadge = '<span class="badge badge-expired">Expired</span>';
+                    statusText = 'Trial or subscription expired';
+                } else {
+                    statusBadge = `<span class="badge badge-none">${subscription.status}</span>`;
+                    statusText = subscription.status;
+                }
+            }
+            
+            // Stripe links
+            const stripeCustomerLink = subscription?.stripe_customer_id 
+                ? `<a href="https://dashboard.stripe.com/customers/${subscription.stripe_customer_id}" target="_blank" class="stripe-link">${subscription.stripe_customer_id}</a>`
+                : '<span style="color: var(--col-text-muted);">Not set</span>';
+            
+            const stripeSubLink = subscription?.stripe_subscription_id 
+                ? `<a href="https://dashboard.stripe.com/subscriptions/${subscription.stripe_subscription_id}" target="_blank" class="stripe-link">${subscription.stripe_subscription_id}</a>`
+                : '<span style="color: var(--col-text-muted);">Not set</span>';
+            
+            let html = `
+                <!-- User Header -->
+                <div class="user-header">
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-meta">
+                        <h2>${fullName}</h2>
+                        <p>${user.email}</p>
+                        <p style="margin-top: 0.5rem;">${statusBadge}</p>
+                    </div>
+                </div>
+                
+                <!-- Detail Cards -->
+                <div class="detail-grid">
+                    <!-- Profile Info -->
+                    <div class="detail-card">
+                        <h3><i class="fa-solid fa-user"></i> Profile Information</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">User ID</span>
+                            <span class="detail-value">#${user.id}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">${user.email}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Name</span>
+                            <span class="detail-value">${fullName}</span>
+                        </div>
+                        <div class="detail-row" style="flex-direction: column; align-items: flex-start;">
+                            <div style="display: flex; justify-content: space-between; width: 100%;">
+                                <span class="detail-label">Email Verified</span>
+                                <span class="detail-value">${user.email_verified ? '<i class="fa-solid fa-check-circle" style="color: #10b981;"></i> Yes' : '<i class="fa-solid fa-times-circle" style="color: #ef4444;"></i> No'}</span>
+                            </div>
+                            ${!user.email_verified ? `
+                            <div class="verify-actions">
+                                <button onclick="manualVerify(${user.id})" class="btn-action btn-verify"><i class="fa-solid fa-check"></i> Manual Verify</button>
+                                <button onclick="resendVerification(${user.id})" class="btn-action btn-resend"><i class="fa-solid fa-envelope"></i> Resend Email</button>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ${user.has_verification_token && !user.email_verified ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Verification Pending</span>
+                            <span class="detail-value"><i class="fa-solid fa-exclamation-triangle" style="color: #f59e0b;"></i> Token exists, awaiting click</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <span class="detail-label">Registered</span>
+                            <span class="detail-value">${createdAt}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Account Updated</span>
+                            <span class="detail-value">${updatedAt}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Last Login</span>
+                            <span class="detail-value">${lastLogin}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Subscription Info -->
+                    <div class="detail-card">
+                        <h3><i class="fa-solid fa-credit-card"></i> Subscription</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Status</span>
+                            <span class="detail-value">${statusBadge}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Plan</span>
+                            <span class="detail-value">${planName}</span>
+                        </div>
+                        ${daysRemaining !== null ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Days Remaining</span>
+                            <span class="detail-value"><strong>${daysRemaining}</strong> days</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <span class="detail-label">Amount</span>
+                            <span class="detail-value">${subscription?.amount ? '$' + parseFloat(subscription.amount).toFixed(2) + '/' + (subscription.currency || 'usd') : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Trial Start</span>
+                            <span class="detail-value">${subscription?.trial_start ? new Date(subscription.trial_start).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Trial End</span>
+                            <span class="detail-value">${subscription?.trial_end ? new Date(subscription.trial_end).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Current Period Start</span>
+                            <span class="detail-value">${subscription?.current_period_start ? new Date(subscription.current_period_start).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Current Period End</span>
+                            <span class="detail-value">${subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        ${subscription?.cancel_at_period_end ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Cancel at Period End</span>
+                            <span class="detail-value"><i class="fa-solid fa-exclamation-triangle" style="color: #f59e0b;"></i> Yes (will cancel at period end)</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <span class="detail-label">Subscription Created</span>
+                            <span class="detail-value">${subscription?.created_at ? new Date(subscription.created_at).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Subscription Updated</span>
+                            <span class="detail-value">${subscription?.updated_at ? new Date(subscription.updated_at).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Stripe Customer</span>
+                            <span class="detail-value">${stripeCustomerLink}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Stripe Subscription</span>
+                            <span class="detail-value">${stripeSubLink}</span>
+                        </div>
+                        ${subscription?.stripe_price_id ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Stripe Price ID</span>
+                            <span class="detail-value"><code style="font-size: 0.85em;">${subscription.stripe_price_id}</code></span>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Admin Action Buttons -->
+                        <div class="action-buttons">
+                            <button onclick="extendTrial(${user.id})" class="btn-action btn-extend"><i class="fa-solid fa-clock-rotate-left"></i> Extend Trial</button>
+                            <button onclick="grantLifetime(${user.id})" class="btn-action btn-lifetime"><i class="fa-solid fa-infinity"></i> Grant Lifetime</button>
+                            <button onclick="grantYear(${user.id})" class="btn-action btn-year"><i class="fa-solid fa-calendar-plus"></i> Grant 1 Year</button>
+                            <button onclick="forceCancel(${user.id})" class="btn-action btn-cancel"><i class="fa-solid fa-ban"></i> Force Cancel</button>
+                            <button onclick="deleteUser(${user.id}, '${user.email}')" class="btn-action btn-delete"><i class="fa-solid fa-trash"></i> Delete User</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Usage Stats -->
+                <div class="detail-grid">
+                    <div class="detail-card">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Activity Stats</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Total Sessions</span>
+                            <span class="detail-value">${stats.session_count}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Page Views</span>
+                            <span class="detail-value">${stats.page_view_count}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Payments -->
+                <div class="data-table">
+                    <h3><i class="fa-solid fa-receipt"></i> Recent Payments</h3>
+                    ${payments.length > 0 ? `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Event</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${payments.map(p => `
+                                    <tr>
+                                        <td>${new Date(p.created_at).toLocaleString()}</td>
+                                        <td>${p.event_type || 'N/A'}</td>
+                                        <td>${p.amount ? '$' + parseFloat(p.amount).toFixed(2) : 'N/A'}</td>
+                                        <td><span class="badge ${p.status === 'succeeded' ? 'badge-active' : 'badge-none'}">${p.status || 'N/A'}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="empty-state">No payment events recorded</div>'}
+                </div>
+                
+                <!-- App Usage -->
+                <div class="data-table">
+                    <h3><i class="fa-solid fa-mobile-screen"></i> Recent App Usage</h3>
+                    ${app_usage.length > 0 ? `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>App</th>
+                                    <th>Action</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${app_usage.map(u => `
+                                    <tr>
+                                        <td>${new Date(u.created_at).toLocaleString()}</td>
+                                        <td>${formatAppName(u.app_name)}</td>
+                                        <td>${u.action || 'N/A'}</td>
+                                        <td>${u.session_duration ? formatDuration(u.session_duration) : 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="empty-state">No app usage recorded</div>'}
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+        
+        function formatAppName(name) {
+            const names = {
+                'emdr': 'EMDR Suite',
+                'genogram': 'Genogram Genie',
+                'timeline': 'Trauma Timeline'
+            };
+            return names[name] || name || 'Unknown';
+        }
+        
+        function formatDuration(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+            return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+        }
+        
+        // Admin Action Functions
+        async function adminAction(action, userId, extraData = {}) {
+            try {
+                const response = await Auth.apiRequest('/admin/actions.php', {
+                    method: 'POST',
+                    body: JSON.stringify({ action, user_id: userId, ...extraData })
+                });
+                return response;
+            } catch (error) {
+                throw error;
+            }
+        }
+        
+        async function extendTrial(userId) {
+            const days = prompt('How many days to extend the trial?', '14');
+            if (days === null) return;
+            
+            const numDays = parseInt(days);
+            if (isNaN(numDays) || numDays < 1 || numDays > 365) {
+                alert('Please enter a number between 1 and 365');
+                return;
+            }
+            
+            try {
+                const result = await adminAction('extend_trial', userId, { days: numDays });
+                alert(result.message);
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function grantLifetime(userId) {
+            if (!confirm('Grant LIFETIME access to this user? This cannot be easily undone.')) return;
+            
+            try {
+                const result = await adminAction('grant_lifetime', userId);
+                alert(result.message);
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function grantYear(userId) {
+            if (!confirm('Grant 1 YEAR free access to this user?')) return;
+            
+            try {
+                const result = await adminAction('grant_year', userId);
+                alert(result.message);
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function forceCancel(userId) {
+            if (!confirm('Force cancel this subscription? This will immediately revoke access.')) return;
+            
+            try {
+                const result = await adminAction('cancel_subscription', userId);
+                alert(result.message);
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function deleteUser(userId, email) {
+            const confirmation = prompt(`Type "${email}" to confirm permanent deletion:`);
+            if (confirmation !== email) {
+                if (confirmation !== null) alert('Email did not match. Deletion cancelled.');
+                return;
+            }
+            
+            try {
+                const result = await adminAction('delete_user', userId);
+                alert(result.message);
+                window.location.href = 'index.html';
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function manualVerify(userId) {
+            if (!confirm('Manually verify this user\'s email? Use this only if email delivery issues prevented normal verification.')) return;
+            
+            try {
+                const result = await adminAction('verify_email', userId);
+                alert(result.message);
+                location.reload();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function resendVerification(userId) {
+            if (!confirm('Resend verification email to this user?')) return;
+            
+            try {
+                const result = await adminAction('resend_verification', userId);
+                alert(result.message);
+                if (!result.already_verified) {
+                    alert('Verification email sent! User should check their inbox.');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Firefly Pond - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Quicksand:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', 'Quicksand', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        /* ===== COLOR PALETTE ===== */
+        :root {
+            --sky-deep: #050816;
+            --sky-mid: #0d1a2d;
+            --sky-glow: #1a2d4a;
+            --sky-warm: #2d1a3a;
+            --water-dark: #061018;
+            --water-mid: #0a1a28;
+            --firefly-ready: #a8f0c5;
+            --firefly-charging: #f0c878;
+            --firefly-dim: #8b5a5a;
+            --text-soft: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        #garden-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Revised gradient: 70% sky, 30% water */
+            background: linear-gradient(
+                to bottom,
+                var(--sky-deep) 0%,
+                var(--sky-mid) 40%,
+                var(--sky-glow) 65%,
+                var(--water-dark) 68%,
+                var(--water-mid) 100%
+            );
+            transition: background 3s ease;
+            opacity: 0;
+            animation: fadeInScene 2s ease-out 0.5s forwards;
+        }
+
+        @keyframes fadeInScene {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        #garden-container.warm {
+            background: linear-gradient(
+                to bottom,
+                var(--sky-deep) 0%,
+                var(--sky-warm) 40%,
+                #3a2850 65%,
+                var(--water-dark) 68%,
+                var(--water-mid) 100%
+            );
+        }
+
+        /* Level 4+ Moon radiance */
+        #moon.radiant {
+            box-shadow:
+                0 0 80px rgba(255, 254, 230, 0.9),
+                0 0 160px rgba(200, 220, 200, 0.5),
+                0 0 240px rgba(168, 240, 197, 0.3),
+                0 0 320px rgba(168, 240, 197, 0.15);
+            transition: box-shadow 3s ease;
+        }
+
+        #moon-reflection.radiant {
+            opacity: 1;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 254, 230, 0.2) 0%,
+                rgba(200, 220, 200, 0.12) 50%,
+                transparent 100%);
+            width: 140px;
+            height: 80px;
+            transition: all 3s ease;
+        }
+
+        /* ===== GLOBAL BREATHING EFFECT ===== */
+        #garden-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse at 50% 30%,
+                rgba(168, 240, 197, 0.03) 0%,
+                transparent 40%
+            );
+            animation: globalBreathing 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes globalBreathing {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ===== STARS LAYER ===== */
+        #stars-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%; /* Stars only in sky area */
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInStars 3s ease-out 1s forwards;
+        }
+
+        @keyframes fadeInStars {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.25; /* Dim by default */
+            animation: none; /* No twinkle until level 3 */
+            transition: opacity 2s ease;
+        }
+
+        .star.large {
+            width: 3px;
+            height: 3px;
+            opacity: 0.35;
+        }
+
+        /* Stars begin twinkling at level 3+ */
+        #stars-container.stars-active .star {
+            animation: twinkle var(--twinkle-duration, 3s) ease-in-out infinite;
+            animation-delay: var(--twinkle-delay, 0s);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Level 4+ Plant swaying */
+        @keyframes sway {
+            0%, 100% { transform: rotate(-1.5deg); }
+            50% { transform: rotate(1.5deg); }
+        }
+
+        .reed.swaying, .cattail.swaying {
+            animation: sway 4s ease-in-out infinite;
+        }
+
+        /* Level 5+ Lily pad drifting */
+        @keyframes lilyDrift {
+            0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+            25% { transform: translateX(6px) translateY(-2px) rotate(2deg); }
+            50% { transform: translateX(0) translateY(2px) rotate(0deg); }
+            75% { transform: translateX(-6px) translateY(-1px) rotate(-2deg); }
+        }
+
+        .lilypad.drifting {
+            animation: lilyDrift 10s ease-in-out infinite;
+        }
+
+        /* ===== MOON ===== */
+        #moon {
+            position: absolute;
+            top: 5%;
+            right: 8%;
+            width: 54px;
+            height: 54px;
+            background: radial-gradient(circle at 32% 32%, #fffef5 0%, #faf5de 45%, #e5dfc7 70%, rgba(120,120,120,0) 100%);
+            border-radius: 50%;
+            box-shadow:
+                0 0 55px rgba(255, 254, 230, 0.7),
+                0 0 120px rgba(200, 220, 200, 0.38),
+                0 0 180px rgba(168, 240, 197, 0.18);
+            opacity: 0;
+            pointer-events: none;
+            animation: fadeInMoon 4s ease-out 1.5s forwards;
+            z-index: 1;
+        }
+
+        /* Moon reflection on water - positioned IN the water area (below horizon) */
+        #moon-reflection {
+            position: absolute;
+            right: 6%;
+            top: 70%; /* Water starts at 68%, so reflection is slightly below */
+            width: 100px;
+            height: 60px;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 254, 230, 0.12) 0%,
+                rgba(200, 220, 200, 0.06) 50%,
+                transparent 100%);
+            filter: blur(6px);
+            opacity: 0;
+            pointer-events: none;
+            animation: fadeInMoon 4s ease-out 1.8s forwards;
+            z-index: 1;
+        }
+
+        @keyframes fadeInMoon {
+            0% { opacity: 0; }
+            100% { opacity: 0.9; }
+        }
+
+        /* ===== SHOOTING STAR ===== */
+        .shooting-star {
+            position: absolute;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(-45deg);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes shootingStar {
+            0% { transform: translateX(-100px) translateY(-50px) rotate(-45deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateX(calc(100vw + 100px)) translateY(calc(50vh)) rotate(-45deg); opacity: 0; }
+        }
+
+        /* ===== CANVAS ===== */
+        #firefly-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* (Water line removed for cleaner horizon) */
+
+        /* ===== POND SILHOUETTES ===== */
+        #pond-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 32%; /* Matches new horizon height */
+            pointer-events: none;
+            overflow: visible;
+            transition: transform 0.3s ease-out;
+            z-index: 4;
+        }
+
+        .pond-element {
+            position: absolute;
+            bottom: 0;
+            fill: #030a0f;
+            opacity: 0.95;
+        }
+
+        /* Reeds & Cattails - Rooted below screen */
+        .reed, .cattail {
+            bottom: -5%;
+            transform-origin: bottom center;
+        }
+
+        /* Lily pads - Perspective transformations */
+        .lilypad {
+            fill: #040d0a;
+            transform-origin: center center;
+            opacity: 0.6;
+        }
+        
+        /* Grass clumps */
+        .grass {
+            bottom: 0;
+            fill: #020805;
+        }
+
+        /* ===== RIPPLE EFFECT ===== */
+        .ripple {
+            position: absolute;
+            border: 1px solid rgba(168, 240, 197, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: rippleExpand 2s ease-out forwards;
+            z-index: 5;
+        }
+
+        @keyframes rippleExpand {
+            0% { 
+                width: 0; 
+                height: 0; 
+                opacity: 0.6;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% { 
+                width: 180px; 
+                height: 50px; 
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        /* ===== HINT TEXT ===== */
+        #hint-text {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 18px;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            z-index: 10;
+        }
+
+        #hint-text.visible {
+            opacity: 1;
+        }
+
+        /* ===== WATCHING MESSAGE ===== */
+        #watching-message {
+            position: absolute;
+            top: 28%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(168, 240, 197, 0.4);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 15px;
+            font-style: italic;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+            z-index: 10;
+        }
+
+        #watching-message.visible {
+            opacity: 1;
+        }
+
+        /* ===== VIGNETTE ===== */
+        #vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(
+                ellipse 120% 80% at 50% 30%,
+                transparent 30%,
+                rgba(5, 8, 22, 0.3) 70%,
+                rgba(5, 8, 22, 0.6) 100%
+            );
+            z-index: 6;
+        }
+
+        /* ===== UI ELEMENTS ===== */
+        #back-button {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            color: var(--text-soft);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.8s ease, background 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            z-index: 20;
+        }
+
+        #back-button.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #back-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        #closing-message {
+            position: absolute;
+            bottom: 70px;
+            left: 24px;
+            color: var(--text-muted);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        #closing-message.visible {
+            opacity: 1;
+        }
+
+        /* ===== FADE OVERLAY ===== */
+        #fade-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--sky-deep);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            z-index: 100;
+        }
+
+        #fade-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ===== REDUCED MOTION (System preference) ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="garden-container">
+        <!-- Stars -->
+        <div id="stars-container"></div>
+        
+        <!-- Moon -->
+        <div id="moon"></div>
+        <div id="moon-reflection"></div>
+        
+        <!-- Main Canvas -->
+        <canvas id="firefly-canvas"></canvas>
+        
+        <!-- Pond Silhouettes - Organic varied layout -->
+        <div id="pond-container">
+            <!-- === BACK LAYER (Slightly smaller/transparent for depth) === -->
+            
+            <!-- Far Left Reed -->
+            <svg class="pond-element reed" style="left: 2%; height: 160%; opacity: 0.7; width: 40px;" viewBox="0 0 20 100" preserveAspectRatio="none">
+                <path d="M10 100 Q12 50 5 0" stroke-width="1.5" fill="none" stroke="#030a0f"/>
+            </svg>
+            
+             <!-- Far Right Reed -->
+            <svg class="pond-element reed" style="right: 15%; height: 140%; opacity: 0.7; width: 30px;" viewBox="0 0 20 100" preserveAspectRatio="none">
+                <path d="M10 100 Q8 50 15 0" stroke-width="1.5" fill="none" stroke="#030a0f"/>
+            </svg>
+
+            <!-- === LILY PADS (Perspective scaled) === -->
+            <!-- Horizon line is roughly at 'bottom: 100%' of this container (since container height is 32%) -->
+            
+            <!-- Horizon pads (Small, flat, near top of container) -->
+            <svg class="pond-element lilypad" style="left: 25%; bottom: 90%; width: 30px; opacity: 0.3;" viewBox="0 0 40 15" preserveAspectRatio="xMidYMid meet">
+                <ellipse cx="20" cy="7" rx="18" ry="5"/>
+            </svg>
+            
+            <svg class="pond-element lilypad" style="left: 65%; bottom: 85%; width: 35px; opacity: 0.3;" viewBox="0 0 40 15" preserveAspectRatio="xMidYMid meet">
+                <ellipse cx="20" cy="7" rx="18" ry="5"/>
+            </svg>
+            
+            <!-- Mid-distance pads (Medium) -->
+            <svg class="pond-element lilypad" style="left: 10%; bottom: 60%; width: 60px; opacity: 0.5;" viewBox="0 0 60 25" preserveAspectRatio="xMidYMid meet">
+                <ellipse cx="30" cy="12" rx="28" ry="10"/>
+                <path d="M30 2 L30 12" stroke="#030a0f" stroke-width="1"/>
+            </svg>
+            
+            <svg class="pond-element lilypad" style="right: 20%; bottom: 50%; width: 70px; opacity: 0.5; transform: rotate(5deg);" viewBox="0 0 70 30" preserveAspectRatio="xMidYMid meet">
+                <ellipse cx="35" cy="15" rx="33" ry="12"/>
+                <path d="M35 3 L35 15" stroke="#030a0f" stroke-width="1"/>
+            </svg>
+
+            <!-- Foreground pads (Large, rounder, near bottom) -->
+            <svg class="pond-element lilypad" style="left: 40%; bottom: 15%; width: 120px; opacity: 0.7;" viewBox="0 0 100 40" preserveAspectRatio="xMidYMid meet">
+                <ellipse cx="50" cy="20" rx="48" ry="18"/>
+                <path d="M50 2 L50 20" stroke="#030a0f" stroke-width="2"/>
+                <circle cx="50" cy="10" r="4" fill="#081510" opacity="0.6"/>
+            </svg>
+
+            <!-- === FOREGROUND SILHOUETTES === -->
+            
+            <!-- Left Cluster -->
+            <svg class="pond-element cattail" style="left: -2%; height: 180%; width: 60px;" viewBox="0 0 40 100" preserveAspectRatio="none">
+                 <path d="M20 100 Q15 60 25 20" stroke-width="2" fill="none" stroke="#030a0f"/>
+                 <ellipse cx="25" cy="25" rx="5" ry="15" fill="#030a0f"/>
+                 <path d="M10 100 Q5 70 15 40" stroke-width="1.5" fill="none" stroke="#030a0f"/>
+                 <ellipse cx="15" cy="40" rx="4" ry="10" fill="#030a0f"/>
+            </svg>
+
+            <!-- Right Cluster -->
+             <svg class="pond-element reed" style="right: -5%; height: 200%; width: 80px;" viewBox="0 0 50 100" preserveAspectRatio="none">
+                <path d="M25 100 Q30 50 10 0" stroke-width="2.5" fill="none" stroke="#030a0f"/>
+                <path d="M10 100 Q15 60 5 20" stroke-width="2" fill="none" stroke="#030a0f"/>
+                <path d="M40 100 Q35 70 45 30" stroke-width="2" fill="none" stroke="#030a0f"/>
+            </svg>
+
+            <!-- Center Accent -->
+            <svg class="pond-element cattail" style="left: 75%; height: 130%; width: 40px;" viewBox="0 0 30 100" preserveAspectRatio="none">
+                <path d="M15 100 Q12 60 18 30" stroke-width="1.8" fill="none" stroke="#030a0f"/>
+                <ellipse cx="18" cy="30" rx="4" ry="12" fill="#030a0f"/>
+            </svg>
+            
+            <!-- Foreground Grass (Bottom Edge) -->
+            <svg class="pond-element grass" style="left: 15%; height: 40%; width: 100px;" viewBox="0 0 50 30" preserveAspectRatio="none">
+                <path d="M0 30 Q10 10 20 0 L 25 5 L 30 0 Q 40 10 50 30 Z" fill="#020805"/>
+            </svg>
+             <svg class="pond-element grass" style="right: 30%; height: 30%; width: 80px;" viewBox="0 0 50 30" preserveAspectRatio="none">
+                <path d="M0 30 Q10 15 25 5 Q 40 15 50 30 Z" fill="#020805"/>
+            </svg>
+        </div>
+        
+        <!-- Vignette -->
+        <div id="vignette"></div>
+        
+        <!-- Hint Text -->
+        <div id="hint-text">Tap gently. Or just breathe.</div>
+        
+        <!-- Watching Message -->
+        <div id="watching-message">The pond appreciates your presence.</div>
+        
+        <!-- UI -->
+        <a id="back-button" href="dashboard.html">← Back to Dashboard</a>
+        <div id="closing-message">Thanks for taking a moment.</div>
+        
+        <!-- Fade Overlay -->
+        <div id="fade-overlay"></div>
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            // Firefly settings
+            maxFireflies: 7,
+            initialFireflies: 3,
+            fireflyBaseSize: 6,
+            fireflySizeVariance: 2,
+            
+            // Charge cycle (in ms) - SLOWED DOWN
+            minCycleDuration: 8000,
+            maxCycleDuration: 12000,
+            readyZoneStart: 0.75, // Green zone starts at 75% charge
+            readyWindowDuration: 5000, // Stay green for 5 seconds (longer window)
+            
+            // Movement
+            baseSpeed: 0.15,
+            driftAmplitude: 0.3,
+            driftFrequency: 0.001,
+            
+            // Interaction - MORE FORGIVING
+            tapRadius: 100, // Increased from 70
+            boostRadius: 200,
+            boostAmount: 0.25, // How much nearby fireflies get boosted
+            rippleBoostRadius: 180, // Ripple spreads boost further
+            
+            // Sync drifting
+            syncDriftStrength: 0.008, // How strongly similar-phase fireflies attract (reduced)
+            syncPhaseThreshold: 0.15, // Phase difference to consider "in sync"
+            
+            // Anti-clustering
+            repulsionRadius: 80, // Minimum comfortable distance
+            repulsionStrength: 0.03, // How strongly fireflies push apart when too close
+            wanderInterval: 8000, // Every 8 seconds, pick a new wander target
+            wanderStrength: 0.01, // Gentle pull toward wander target
+            
+            // Particles
+            maxParticles: 60,
+            particleLifespan: 1500,
+            
+            // Session timing
+            hintDelay: 4000,
+            hintDuration: 5000,
+            backButtonDelay: 60000,
+            closingAnimationStart: 180000,
+            
+            // Watching mode
+            watchingMessageDelay: 45000, // Show after 45s of no taps
+            
+            // Spawn rate - Every 20 seconds until max
+            spawnInterval: 20000, // One firefly every 20 seconds
+            spawnIntervalVariance: 0, // No variance
+            
+            // Global breathing
+            globalBreathingPeriod: 8000, // 8 second breathing cycle
+            
+            // Water line position (as fraction from top) - horizon at ~68% (32% from bottom)
+            waterLineFraction: 0.68,
+        };
+
+        // ===== PROGRESSION LEVELS =====
+        const PROGRESSION = {
+            // Taps required for each level
+            levels: [0, 3, 6, 10, 15, 20],
+            current: 1,
+            targetLevel: 1,
+            
+            // Smooth transition values (0-1)
+            skyWarmth: 0,
+            starTwinkle: 0,
+            moonRadiance: 0,
+            plantSway: 0,
+            lilyDrift: 0,
+            victoryTriggered: false
+        };
+
+        // ===== GAME STATE =====
+        const state = {
+            fireflies: [],
+            particles: [],
+            totalSuccesses: 0,
+            sessionStartTime: Date.now(),
+            lastTapTime: Date.now(),
+            lastSpawnTime: 0, // Will be set after initial fireflies
+            spawnTimerReady: false, // Flag to indicate when spawning can begin
+            backButtonVisible: false,
+            closingStarted: false,
+            hintShown: false,
+            hintDismissed: false,
+            watchingMessageShown: false,
+            
+            // Canvas dimensions for resize tracking
+            lastWidth: 0,
+            lastHeight: 0,
+            
+            // Progression
+            stats: {
+                totalSessions: 0,
+                bestStreak: 0
+            }
+        };
+
+        // ===== CANVAS SETUP =====
+        const canvas = document.getElementById('firefly-canvas');
+        const ctx = canvas.getContext('2d');
+        let dpr = window.devicePixelRatio || 1;
+
+        function resizeCanvas() {
+            const oldW = state.lastWidth || window.innerWidth;
+            const oldH = state.lastHeight || window.innerHeight;
+            
+            const rect = canvas.getBoundingClientRect();
+            const newW = rect.width;
+            const newH = rect.height;
+            
+            canvas.width = newW * dpr;
+            canvas.height = newH * dpr;
+            ctx.scale(dpr, dpr);
+            
+            // Scale firefly positions proportionally
+            if (state.lastWidth > 0 && state.lastHeight > 0) {
+                for (const f of state.fireflies) {
+                    f.x = (f.x / oldW) * newW;
+                    f.y = (f.y / oldH) * newH;
+                }
+            }
+            
+            state.lastWidth = newW;
+            state.lastHeight = newH;
+        }
+
+        // Debounced resize handler
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeCanvas, 150);
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', handleResize);
+
+        // ===== DOM REFERENCES =====
+        const gardenContainer = document.getElementById('garden-container');
+        const pondContainer = document.getElementById('pond-container');
+        const starsContainer = document.getElementById('stars-container');
+        const backButton = document.getElementById('back-button');
+        const closingMessage = document.getElementById('closing-message');
+        const fadeOverlay = document.getElementById('fade-overlay');
+        const hintText = document.getElementById('hint-text');
+        const watchingMessage = document.getElementById('watching-message');
+        const moon = document.getElementById('moon');
+        const moonReflection = document.getElementById('moon-reflection');
+
+        // ===== INITIALIZATION =====
+        function init() {
+            loadStats();
+            createStars();
+            setupEventListeners();
+            scheduleHint();
+            
+            // Delayed firefly spawn for soft intro
+            setTimeout(() => {
+                spawnInitialFireflies();
+            }, 2000);
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ===== STATS & PROGRESSION =====
+        function loadStats() {
+            try {
+                const saved = localStorage.getItem('firefly_pond_stats');
+                if (saved) {
+                    state.stats = JSON.parse(saved);
+                }
+                state.stats.totalSessions++;
+                saveStats();
+            } catch (e) {
+                console.warn('Could not load stats:', e);
+            }
+        }
+
+        function saveStats() {
+            try {
+                localStorage.setItem('firefly_pond_stats', JSON.stringify(state.stats));
+            } catch (e) {
+                console.warn('Could not save stats:', e);
+            }
+        }
+
+        // ===== STARS =====
+        function createStars() {
+            const count = Math.min(50, Math.floor((window.innerWidth * window.innerHeight) / 15000));
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star' + (Math.random() < 0.1 ? ' large' : '');
+                star.style.left = (Math.random() * 100) + '%';
+                star.style.top = (Math.random() * 100) + '%';
+                star.style.setProperty('--twinkle-duration', (2 + Math.random() * 4) + 's');
+                star.style.setProperty('--twinkle-delay', (Math.random() * 5) + 's');
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // ===== HINT =====
+        function scheduleHint() {
+            setTimeout(() => {
+                if (!state.hintDismissed && state.totalSuccesses === 0) {
+                    hintText.classList.add('visible');
+                    state.hintShown = true;
+                    
+                    setTimeout(() => {
+                        hintText.classList.remove('visible');
+                    }, CONFIG.hintDuration);
+                }
+            }, CONFIG.hintDelay);
+        }
+
+        function dismissHint() {
+            if (state.hintShown) {
+                hintText.classList.remove('visible');
+                state.hintDismissed = true;
+            }
+        }
+
+        // ===== WATCHING MESSAGE =====
+        function checkWatchingMessage() {
+            const timeSinceLastTap = Date.now() - state.lastTapTime;
+            
+            if (!state.watchingMessageShown && timeSinceLastTap > CONFIG.watchingMessageDelay) {
+                watchingMessage.classList.add('visible');
+                state.watchingMessageShown = true;
+                
+                // Fade out after a few seconds
+                setTimeout(() => {
+                    watchingMessage.classList.remove('visible');
+                }, 4000);
+            }
+        }
+
+        // ===== GLOBAL BREATHING =====
+        function getGlobalBreathingFactor(time) {
+            // Returns 0-1 based on breathing cycle
+            const phase = (time % CONFIG.globalBreathingPeriod) / CONFIG.globalBreathingPeriod;
+            return 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
+        }
+
+        // ===== PROGRESSION SYSTEM =====
+        function checkProgression() {
+            const taps = state.totalSuccesses;
+            let newLevel = 1;
+            
+            // Find highest level achieved
+            for (let i = PROGRESSION.levels.length - 1; i >= 0; i--) {
+                if (taps >= PROGRESSION.levels[i]) {
+                    newLevel = i + 1;
+                    break;
+                }
+            }
+            
+            // Only update if level changed
+            if (newLevel !== PROGRESSION.current) {
+                PROGRESSION.current = newLevel;
+                applyLevelEffects(newLevel);
+            }
+        }
+
+        function applyLevelEffects(level) {
+            // Level 2+: Warm sky (smooth 3s CSS transition)
+            gardenContainer.classList.toggle('warm', level >= 2);
+            
+            // Level 3+: Stars begin twinkling
+            starsContainer.classList.toggle('stars-active', level >= 3);
+            
+            // Level 4+: Moon glows brighter + plants sway
+            moon.classList.toggle('radiant', level >= 4);
+            moonReflection.classList.toggle('radiant', level >= 4);
+            document.querySelectorAll('.reed, .cattail').forEach(el => 
+                el.classList.toggle('swaying', level >= 4));
+            
+            // Level 5+: Lily pads drift
+            document.querySelectorAll('.lilypad').forEach(el => 
+                el.classList.toggle('drifting', level >= 5));
+            
+            // Level 6: Victory celebration (one-time)
+            if (level >= 6 && !PROGRESSION.victoryTriggered) {
+                PROGRESSION.victoryTriggered = true;
+                triggerVictoryBloom();
+            }
+        }
+
+        function triggerVictoryBloom() {
+            // Create a burst of particles from each firefly
+            for (const f of state.fireflies) {
+                if (!f.alive) continue;
+                for (let i = 0; i < 8; i++) {
+                    spawnParticle(f.x, f.y, 1, true);
+                }
+            }
+            
+            // Create multiple ripples across the water
+            const w = canvas.width / dpr;
+            const h = canvas.height / dpr;
+            const waterY = h * CONFIG.waterLineFraction;
+            
+            setTimeout(() => createRipple(w * 0.3, waterY), 0);
+            setTimeout(() => createRipple(w * 0.5, waterY), 200);
+            setTimeout(() => createRipple(w * 0.7, waterY), 400);
+        }
+
+        // ===== FIREFLY CLASS =====
+        class Firefly {
+            constructor(x, y, delayedAppear = false) {
+                const w = canvas.width / dpr;
+                const h = canvas.height / dpr;
+                const skyHeight = h * CONFIG.waterLineFraction; // Sky area above water
+                
+                this.x = x ?? (Math.random() * w * 0.8 + w * 0.1);
+                this.y = y ?? (Math.random() * skyHeight * 0.7 + skyHeight * 0.15);
+                this.vx = (Math.random() - 0.5) * CONFIG.baseSpeed;
+                this.vy = (Math.random() - 0.5) * CONFIG.baseSpeed;
+                this.size = CONFIG.fireflyBaseSize + Math.random() * CONFIG.fireflySizeVariance;
+                
+                // Charge system
+                this.cycleDuration = CONFIG.minCycleDuration + Math.random() * (CONFIG.maxCycleDuration - CONFIG.minCycleDuration);
+                this.chargePhase = Math.random() * 0.5; // Start in first half of cycle
+                this.isCharging = true;
+                this.readyTimer = 0;
+                
+                this.driftOffset = Math.random() * 1000;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.alive = true;
+                
+                // Soft fade in
+                this.alpha = delayedAppear ? 0 : 1;
+                this.targetAlpha = 1;
+                
+                // Ready ring pulse
+                this.readyRingPhase = 0;
+                
+                // Wandering system - pick random target areas to drift toward
+                this.pickNewWanderTarget(w, skyHeight);
+                this.lastWanderTime = Date.now();
+            }
+            
+            pickNewWanderTarget(w, skyHeight) {
+                // Pick a random point in a different region of the sky
+                const margin = 40;
+                this.wanderTargetX = margin + Math.random() * (w - margin * 2);
+                this.wanderTargetY = margin + Math.random() * (skyHeight - margin * 2);
+            }
+
+            get isReady() {
+                return this.chargePhase >= CONFIG.readyZoneStart;
+            }
+
+            getChargeColor() {
+                const phase = this.chargePhase;
+                
+                if (phase < 0.3) {
+                    // Red/dim phase
+                    return { r: 180, g: 90, b: 90, a: 0.5 + phase };
+                } else if (phase < 0.6) {
+                    // Amber/charging phase
+                    const t = (phase - 0.3) / 0.3;
+                    return { 
+                        r: 180 + 60 * t, 
+                        g: 90 + 110 * t, 
+                        b: 90 - 20 * t, 
+                        a: 0.7 + t * 0.2 
+                    };
+                } else if (phase < CONFIG.readyZoneStart) {
+                    // Yellow-green transition
+                    const t = (phase - 0.6) / (CONFIG.readyZoneStart - 0.6);
+                    return { 
+                        r: 240 - 72 * t, 
+                        g: 200 + 40 * t, 
+                        b: 70 + 127 * t, 
+                        a: 0.9 
+                    };
+                } else {
+                    // Green/ready phase - pulsing
+                    const pulse = Math.sin(this.pulsePhase * 2) * 0.1;
+                    return { r: 168, g: 240, b: 197, a: 0.95 + pulse };
+                }
+            }
+
+            update(deltaTime, time, globalBreathing) {
+                // Soft alpha transition
+                this.alpha += (this.targetAlpha - this.alpha) * 0.05;
+                
+                // Update charge
+                if (this.isCharging) {
+                    this.chargePhase += deltaTime / this.cycleDuration;
+                    if (this.chargePhase >= CONFIG.readyZoneStart) {
+                        this.isCharging = false;
+                        this.readyTimer = 0;
+                    }
+                } else {
+                    // In ready zone - count down
+                    this.readyTimer += deltaTime;
+                    if (this.readyTimer >= CONFIG.readyWindowDuration) {
+                        // Missed the window - just restart cycle (NO PENALTY)
+                        this.chargePhase = 0;
+                        this.isCharging = true;
+                        this.cycleDuration = CONFIG.minCycleDuration + Math.random() * (CONFIG.maxCycleDuration - CONFIG.minCycleDuration);
+                    }
+                }
+                
+                // Update ready ring pulse
+                if (this.isReady) {
+                    this.readyRingPhase += 0.08;
+                }
+                
+                const w = canvas.width / dpr;
+                const h = canvas.height / dpr;
+                const skyHeight = h * CONFIG.waterLineFraction; // Sky area above water
+                
+                // Wandering - periodically pick new target area
+                if (Date.now() - this.lastWanderTime > CONFIG.wanderInterval) {
+                    this.pickNewWanderTarget(w, skyHeight);
+                    this.lastWanderTime = Date.now();
+                }
+                
+                // Gentle pull toward wander target
+                const wanderDx = this.wanderTargetX - this.x;
+                const wanderDy = this.wanderTargetY - this.y;
+                const wanderDist = Math.sqrt(wanderDx * wanderDx + wanderDy * wanderDy);
+                if (wanderDist > 50) {
+                    this.vx += (wanderDx / wanderDist) * CONFIG.wanderStrength;
+                    this.vy += (wanderDy / wanderDist) * CONFIG.wanderStrength;
+                }
+                
+                // Drift movement with global breathing influence
+                const drift = Math.sin((time + this.driftOffset) * CONFIG.driftFrequency) * CONFIG.driftAmplitude;
+                const breathInfluence = globalBreathing * 0.3;
+                
+                this.x += this.vx + drift * 0.1;
+                this.y += this.vy + Math.sin(time * 0.0005 + this.driftOffset) * breathInfluence * 0.1;
+                
+                // Apply repulsion from nearby fireflies (anti-clustering)
+                this.applyRepulsion();
+                
+                // Drift toward sync'd neighbors (but weaker now)
+                this.applySyncDrift(deltaTime);
+                
+                // Damping
+                this.vx *= 0.992;
+                this.vy *= 0.992;
+                
+                // Pulse animation
+                this.pulsePhase += 0.04;
+                
+                // Boundaries - keep in sky area
+                const margin = 30;
+                
+                if (this.x < margin) { this.x = margin; this.vx *= -0.5; }
+                if (this.x > w - margin) { this.x = w - margin; this.vx *= -0.5; }
+                if (this.y < margin) { this.y = margin; this.vy *= -0.5; }
+                if (this.y > skyHeight - margin) { this.y = skyHeight - margin; this.vy *= -0.5; }
+            }
+            
+            applyRepulsion() {
+                // Push away from fireflies that are too close
+                for (const other of state.fireflies) {
+                    if (other === this || !other.alive) continue;
+                    
+                    const dx = this.x - other.x;
+                    const dy = this.y - other.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < CONFIG.repulsionRadius && dist > 0) {
+                        // Stronger push the closer they are
+                        const force = CONFIG.repulsionStrength * (1 - dist / CONFIG.repulsionRadius);
+                        this.vx += (dx / dist) * force;
+                        this.vy += (dy / dist) * force;
+                    }
+                }
+            }
+            
+            applySyncDrift(deltaTime) {
+                // Fireflies with similar charge phases drift toward each other (gentle)
+                for (const other of state.fireflies) {
+                    if (other === this || !other.alive) continue;
+                    
+                    const phaseDiff = Math.abs(this.chargePhase - other.chargePhase);
+                    
+                    // Only attract if phases are similar AND they're not too close
+                    if (phaseDiff < CONFIG.syncPhaseThreshold) {
+                        const dx = other.x - this.x;
+                        const dy = other.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        // Only attract if at medium distance (not too close, not too far)
+                        if (dist > CONFIG.repulsionRadius * 1.5 && dist < 250) {
+                            const strength = CONFIG.syncDriftStrength * (1 - phaseDiff / CONFIG.syncPhaseThreshold);
+                            this.vx += (dx / dist) * strength;
+                            this.vy += (dy / dist) * strength;
+                        }
+                    }
+                }
+            }
+
+            onTapSuccess() {
+                // Big bloom effect
+                for (let i = 0; i < 10; i++) {
+                    spawnParticle(this.x, this.y, 1, true);
+                }
+                
+                // Reset cycle
+                this.chargePhase = 0;
+                this.isCharging = true;
+                this.cycleDuration = CONFIG.minCycleDuration + Math.random() * (CONFIG.maxCycleDuration - CONFIG.minCycleDuration);
+                
+                // Create ripple on water that boosts nearby fireflies
+                createRipple(this.x, this.y);
+                
+                // Boost nearby fireflies (pulled toward by ripple)
+                for (const other of state.fireflies) {
+                    if (other === this) continue;
+                    
+                    const dx = other.x - this.x;
+                    const dy = other.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < CONFIG.rippleBoostRadius) {
+                        const boost = CONFIG.boostAmount * (1 - dist / CONFIG.rippleBoostRadius);
+                        other.chargePhase = Math.min(other.chargePhase + boost, CONFIG.readyZoneStart - 0.05);
+                        
+                        // Also sync phases slightly (pull toward this firefly's new phase)
+                        other.chargePhase = other.chargePhase * 0.9 + this.chargePhase * 0.1;
+                    }
+                }
+            }
+
+            draw() {
+                if (!this.alive || this.alpha < 0.01) return;
+                
+                const color = this.getChargeColor();
+                const displayAlpha = color.a * this.alpha;
+                const glowSize = this.size * (this.isReady ? 1.5 : 1);
+                const pulse = this.isReady ? (1 + Math.sin(this.pulsePhase * 2) * 0.15) : 1;
+                
+                // Outer glow
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, glowSize * 4 * pulse
+                );
+                gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${displayAlpha * 0.6})`);
+                gradient.addColorStop(0.4, `rgba(${color.r}, ${color.g}, ${color.b}, ${displayAlpha * 0.2})`);
+                gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, glowSize * 4 * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Ready ring (pulsing indicator for green state)
+                if (this.isReady) {
+                    const ringPulse = Math.sin(this.readyRingPhase) * 0.5 + 0.5;
+                    const ringRadius = this.size * 3 + ringPulse * 8;
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, ringRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(168, 240, 197, ${0.3 * ringPulse * this.alpha})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+                
+                // Core
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${Math.min(255, color.r + 50)}, ${Math.min(255, color.g + 30)}, ${Math.min(255, color.b + 30)}, ${displayAlpha})`;
+                ctx.fill();
+                
+                // Bright center
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 0.4 * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${displayAlpha * 0.9})`;
+                ctx.fill();
+                
+                // Draw reflection on water
+                this.drawReflection(color, displayAlpha, glowSize, pulse);
+            }
+            
+            drawReflection(color, alpha, glowSize, pulse) {
+                const h = canvas.height / dpr;
+                const skyHeight = h * CONFIG.waterLineFraction; // Water starts here
+                
+                // Reflection appears below water line, mirrored
+                const distFromWater = skyHeight - this.y;
+                const reflectY = skyHeight + distFromWater * 0.4;
+                
+                if (reflectY > h || this.y > skyHeight) return;
+                
+                // Fade reflection based on depth in water
+                const reflectAlpha = alpha * 0.2 * Math.max(0, 1 - (reflectY - skyHeight) / (h - skyHeight));
+                
+                const gradient = ctx.createRadialGradient(
+                    this.x, reflectY, 0,
+                    this.x, reflectY, glowSize * 2.5 * pulse
+                );
+                gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${reflectAlpha})`);
+                gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+                
+                ctx.beginPath();
+                ctx.arc(this.x, reflectY, glowSize * 2.5 * pulse, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+        }
+
+        // ===== PARTICLES =====
+        function spawnParticle(x, y, brightness, isSuccess) {
+            if (state.particles.length >= CONFIG.maxParticles) return;
+            
+            const color = isSuccess ? { r: 168, g: 240, b: 197 } : { r: 180, g: 120, b: 100 };
+            const speed = isSuccess ? 1.2 : 0.4;
+            
+            state.particles.push({
+                x: x + (Math.random() - 0.5) * 15,
+                y: y + (Math.random() - 0.5) * 15,
+                vx: (Math.random() - 0.5) * speed,
+                vy: (Math.random() - 0.5) * speed - (isSuccess ? 0.4 : 0.1),
+                size: isSuccess ? 2 + Math.random() * 3 : 1 + Math.random() * 2,
+                alpha: brightness * 0.8,
+                color: color,
+                life: CONFIG.particleLifespan
+            });
+        }
+
+        function updateParticles(deltaTime) {
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.005; // Very slight gravity
+                p.life -= deltaTime;
+                p.alpha *= 0.98;
+                
+                if (p.life <= 0 || p.alpha < 0.01) {
+                    state.particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (const p of state.particles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${p.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        // ===== RIPPLE EFFECT =====
+        function createRipple(x, y) {
+            const h = canvas.height / dpr;
+            const skyHeight = h * CONFIG.waterLineFraction;
+            
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = skyHeight + 'px';
+            gardenContainer.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 2000);
+        }
+
+        // ===== FIREFLY MANAGEMENT =====
+        function spawnInitialFireflies() {
+            const w = canvas.width / dpr;
+            const h = canvas.height / dpr;
+            const skyHeight = h * CONFIG.waterLineFraction; // Area above water
+            
+            // Pre-defined spread positions - across screen, in sky area
+            const spreadPositions = [
+                { x: w * 0.2, y: skyHeight * 0.4 },
+                { x: w * 0.5, y: skyHeight * 0.6 },
+                { x: w * 0.8, y: skyHeight * 0.45 },
+            ];
+            
+            // Spawn fireflies one by one with delays for soft intro
+            for (let i = 0; i < CONFIG.initialFireflies; i++) {
+                setTimeout(() => {
+                    const pos = spreadPositions[i] || { 
+                        x: Math.random() * w * 0.8 + w * 0.1, 
+                        y: Math.random() * skyHeight * 0.6 + skyHeight * 0.2
+                    };
+                    // Add some randomness to the preset positions
+                    const x = pos.x + (Math.random() - 0.5) * 80;
+                    const y = pos.y + (Math.random() - 0.5) * 30;
+                    
+                    const f = new Firefly(x, y, true);
+                    // Stagger initial charge phases so they don't all turn green at once
+                    f.chargePhase = i / CONFIG.initialFireflies * 0.6;
+                    state.fireflies.push(f);
+                }, i * 1500); // 1.5 second delay between each
+            }
+            
+            // After all initial fireflies are spawned, enable the spawn timer
+            // Last firefly appears at (initialFireflies - 1) * 1500ms, add 500ms buffer
+            const lastSpawnDelay = (CONFIG.initialFireflies - 1) * 1500 + 500;
+            setTimeout(() => {
+                state.lastSpawnTime = Date.now();
+                state.spawnTimerReady = true;
+            }, lastSpawnDelay);
+        }
+
+        function maybeSpawnFirefly() {
+            // Don't spawn until initial fireflies are done
+            if (!state.spawnTimerReady) return;
+            
+            const aliveCount = state.fireflies.filter(f => f.alive).length;
+            if (aliveCount >= CONFIG.maxFireflies) return;
+            
+            const now = Date.now();
+            const timeSinceSpawn = now - state.lastSpawnTime;
+            
+            // Spawn every 20 seconds (after initial fireflies)
+            if (timeSinceSpawn >= CONFIG.spawnInterval) {
+                const w = canvas.width / dpr;
+                const h = canvas.height / dpr;
+                const waterLine = h * CONFIG.waterLineFraction;
+                const skyArea = waterLine; // Fireflies live above water
+                
+                // Find the least populated horizontal third
+                const thirds = [0, 0, 0]; // left, center, right
+                for (const f of state.fireflies) {
+                    if (!f.alive) continue;
+                    if (f.x < w / 3) thirds[0]++;
+                    else if (f.x < w * 2 / 3) thirds[1]++;
+                    else thirds[2]++;
+                }
+                
+                // Pick emptiest third
+                let targetThird = 0;
+                if (thirds[1] < thirds[targetThird]) targetThird = 1;
+                if (thirds[2] < thirds[targetThird]) targetThird = 2;
+                
+                // Spawn from edge toward emptiest area
+                let x, y;
+                const targetX = (targetThird + 0.5) * (w / 3);
+                
+                // Spawn from top or side edge
+                if (Math.random() < 0.5) {
+                    // From top
+                    x = targetX + (Math.random() - 0.5) * (w / 3);
+                    y = -20;
+                } else {
+                    // From side nearest to target
+                    x = targetThird === 0 ? -20 : (targetThird === 2 ? w + 20 : (Math.random() < 0.5 ? -20 : w + 20));
+                    y = Math.random() * skyArea * 0.7 + skyArea * 0.15;
+                }
+                
+                const f = new Firefly(x, y, true);
+                // Set initial wander target to spread them out
+                f.wanderTargetX = targetX + (Math.random() - 0.5) * (w / 4);
+                f.wanderTargetY = skyArea * 0.3 + Math.random() * skyArea * 0.4;
+                
+                state.fireflies.push(f);
+                state.lastSpawnTime = Date.now();
+            }
+        }
+
+        function cleanupFireflies() {
+            state.fireflies = state.fireflies.filter(f => f.alive && f.alpha > 0.01);
+        }
+
+        // ===== INPUT HANDLING =====
+        function setupEventListeners() {
+            canvas.addEventListener('pointerdown', handleTap);
+            document.addEventListener('keydown', handleKeyDown);
+            backButton.addEventListener('click', handleBackClick);
+            document.addEventListener('mousemove', handleParallax);
+            window.addEventListener('beforeunload', handleUnload);
+        }
+
+        function handleTap(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            dismissHint();
+            state.lastTapTime = Date.now();
+            
+            // Hide watching message if it was showing
+            if (state.watchingMessageShown) {
+                watchingMessage.classList.remove('visible');
+            }
+            
+            // Find nearest firefly within tap radius
+            let nearest = null;
+            let nearestDist = CONFIG.tapRadius;
+            
+            for (const f of state.fireflies) {
+                if (!f.alive) continue;
+                
+                const dx = f.x - x;
+                const dy = f.y - y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < nearestDist) {
+                    nearestDist = dist;
+                    nearest = f;
+                }
+            }
+            
+            if (nearest) {
+                if (nearest.isReady) {
+                    // Success!
+                    nearest.onTapSuccess();
+                    state.totalSuccesses++;
+                    
+                    // Check progression level
+                    checkProgression();
+                }
+                // If NOT ready - do nothing (no penalty, no feedback)
+                // The firefly simply continues its cycle
+            }
+        }
+
+        function handleKeyDown(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                state.lastTapTime = Date.now();
+                
+                // Find any ready firefly and tap it
+                const readyFirefly = state.fireflies.find(f => f.isReady && f.alive);
+                if (readyFirefly) {
+                    readyFirefly.onTapSuccess();
+                    state.totalSuccesses++;
+                    dismissHint();
+                    checkProgression();
+                }
+            }
+        }
+
+        function handleParallax(e) {
+            const x = (e.clientX / window.innerWidth - 0.5) * 8;
+            const y = (e.clientY / window.innerHeight - 0.5) * 4;
+            pondContainer.style.transform = `translateX(${x}px) translateY(${y}px)`;
+        }
+
+        function handleBackClick(e) {
+            e.preventDefault();
+            fadeOverlay.classList.add('active');
+            saveStats();
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 600);
+        }
+
+        function handleUnload() {
+            saveStats();
+        }
+
+        // ===== SESSION FLOW =====
+        function checkSessionProgress(elapsed) {
+            if (!state.backButtonVisible && elapsed > CONFIG.backButtonDelay) {
+                backButton.classList.add('visible');
+                state.backButtonVisible = true;
+            }
+            
+            if (!state.closingStarted && elapsed > CONFIG.closingAnimationStart) {
+                startClosingAnimation();
+            }
+            
+            checkWatchingMessage();
+        }
+
+        function startClosingAnimation() {
+            state.closingStarted = true;
+            closingMessage.classList.add('visible');
+        }
+
+        // ===== GAME LOOP =====
+        let lastTime = performance.now();
+
+        function gameLoop(currentTime) {
+            const deltaTime = Math.min(currentTime - lastTime, 50);
+            lastTime = currentTime;
+            
+            const elapsed = Date.now() - state.sessionStartTime;
+            const globalBreathing = getGlobalBreathingFactor(currentTime);
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+            
+            // Update and draw fireflies
+            for (const f of state.fireflies) {
+                f.update(deltaTime, currentTime, globalBreathing);
+                f.draw();
+            }
+            
+            // Update and draw particles
+            updateParticles(deltaTime);
+            drawParticles();
+            
+            // Game logic
+            maybeSpawnFirefly();
+            cleanupFireflies();
+            checkSessionProgress(elapsed);
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ===== START =====
+        init();
+    </script>
+</body>
+</html>

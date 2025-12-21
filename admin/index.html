@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="../assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="../assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="../assets/owl_favicon_mattegray_512.png">
+    <title>Admin Dashboard - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { background: #F3F4F6; }
+        .admin-header { 
+            background: var(--col-primary); 
+            color: white; 
+            padding: 1.5rem 0; 
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        .admin-header h1 { color: white; margin: 0; }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--col-primary);
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            color: var(--col-text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-change {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .stat-change.positive { color: #10b981; }
+        .stat-change.negative { color: #ef4444; }
+        
+        .data-table {
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            background: #F9FAFB;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--col-text);
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .data-table tr:hover {
+            background: #F9FAFB;
+        }
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .data-table tbody tr:hover {
+            background: #EEF2FF;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-active { background: #D1FAE5; color: #065F46; }
+        .badge-trial { background: #DBEAFE; color: #1E40AF; }
+        .badge-expired { background: #FEE2E2; color: #991B1B; }
+        .badge-lifetime { background: #E0E7FF; color: #3730A3; }
+        .badge-promo { background: #FEF3C7; color: #92400E; }
+        .badge-admin { background: #F3E8FF; color: #6B21A8; }
+        .badge-canceled { background: #FEF3C7; color: #92400E; }
+        
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .chart-container h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>
+                <i class="fa-solid fa-chart-line"></i> Admin Analytics Dashboard
+                <a href="feedback.html" style="font-size: 0.9rem; font-weight: normal; margin-left: 2rem; color: rgba(255,255,255,0.9);">
+                    <i class="fa-solid fa-comments"></i> Feedback Management
+                </a>
+            </h1>
+            <a href="../account.html" style="font-size: 0.9rem; color: rgba(255,255,255,0.9); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; transition: all 0.2s;">
+                <i class="fa-solid fa-arrow-left" style="margin-right: 0.5rem;"></i>Back to Site
+            </a>
+        </div>
+    </div>
+
+    <main class="container" style="padding-bottom: 4rem;">
+        <!-- Key Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="stat-users">-</div>
+                <div class="stat-change positive" id="stat-users-change">
+                    <i class="fa-solid fa-arrow-up"></i> Loading...
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Active Subscribers</div>
+                <div class="stat-value" id="stat-subs">-</div>
+                <div class="stat-change positive" id="stat-subs-change">
+                    <i class="fa-solid fa-arrow-up"></i> Loading...
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Monthly Revenue</div>
+                <div class="stat-value" id="stat-revenue">$-</div>
+                <div class="stat-change positive" id="stat-revenue-change">
+                    <i class="fa-solid fa-arrow-up"></i> Loading...
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Trial Conversions</div>
+                <div class="stat-value" id="stat-conversion">-%</div>
+                <div class="stat-change" id="stat-conversion-change">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <h3>User Growth (Last 30 Days)</h3>
+            <canvas id="growth-chart" width="400" height="100"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>App Usage Statistics</h3>
+            <canvas id="usage-chart" width="400" height="100"></canvas>
+        </div>
+
+        <!-- Recent Users Table -->
+        <div class="data-table" style="margin-bottom: 2rem;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Plan</th>
+                        <th>Joined</th>
+                        <th>Last Active</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--col-text-muted);">
+                            Loading users...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Payments Table -->
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Event</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="payments-table">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: var(--col-text-muted);">
+                            Loading payments...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../auth.js"></script>
+    <script src="analytics.js"></script>
+</body>
+</html>
+

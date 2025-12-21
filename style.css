@@ -1,0 +1,417 @@
+:root {
+    /* Palette: 'Morning Calm' */
+    --col-bg-main: #F9FAFB;
+    --col-bg-alt: #FFFFFF;
+    --col-primary: #2C5558;
+    --col-primary-light: #4A7C7F;
+    --col-accent: #D97757;
+    --col-accent-soft: #F5E6E1;
+    --col-text-main: #1F2937;
+    --col-text-muted: #6B7280;
+    
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    --radius-md: 12px;
+    --radius-lg: 20px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--col-bg-main);
+    color: var(--col-text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    color: var(--col-primary);
+    line-height: 1.2;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    width: 100%;
+}
+
+/* --- UI ANIMATIONS (Fancy Stuff) --- */
+
+/* 1. Scroll Reveal */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(5px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out, filter 0.8s ease-out;
+    will-change: opacity, transform, filter;
+}
+
+.animate-on-scroll.in-view {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+}
+
+/* Stagger delays */
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }
+.delay-300 { transition-delay: 0.3s; }
+
+/* 2. Text Clip Slide (Hero Text) */
+.hero h1 span {
+    display: inline-block;
+    animation: text-clip-slide 0.8s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+@keyframes text-clip-slide {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 3. Border Beam Button */
+.btn-beam {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-beam::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.btn-beam:hover::after {
+    opacity: 1;
+    animation: border-beam-anim 2s infinite linear;
+}
+
+@keyframes border-beam-anim {
+    0% { clip-path: polygon(0% 0%, 0% 0%, 0% 0%, 0% 0%); border-color: rgba(255,255,255,0.8); }
+    25% { clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%); }
+    50% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 100% 100%); }
+    75% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
+    100% { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); border-color: rgba(255,255,255,0); }
+}
+
+/* 4. Flashlight Effect Card */
+.flashlight-card {
+    position: relative;
+    background: var(--col-bg-alt);
+    overflow: hidden;
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+}
+
+.flashlight-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x) var(--mouse-y), 
+        rgba(255, 255, 255, 0.06), 
+        transparent 40%
+    );
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.flashlight-card:hover::before {
+    opacity: 1;
+}
+
+/* 5. Marquee */
+.marquee-container {
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+}
+
+.marquee-container::before, .marquee-container::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 50px;
+    z-index: 2;
+}
+.marquee-container::before { left: 0; background: linear-gradient(to right, var(--col-bg-main), transparent); }
+.marquee-container::after { right: 0; background: linear-gradient(to left, var(--col-bg-main), transparent); }
+
+.marquee-inner {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-33.33%); } /* Since content is tripled */
+}
+
+/* --- STANDARD STYLES --- */
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 0;
+}
+
+.nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--col-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-links { display: flex; gap: 2rem; }
+.nav-links a {
+    color: var(--col-text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+    position: relative;
+}
+.nav-links a:hover { color: var(--col-primary); }
+.nav-links a.active { color: var(--col-primary); }
+
+/* Underline animation for links */
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--col-accent);
+    transition: width 0.3s ease;
+}
+.nav-links a:hover::after { width: 100%; }
+
+.nav-cta {
+    color: var(--col-primary);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    transition: all 0.3s;
+}
+.nav-cta:hover { background: rgba(44, 85, 88, 0.1); }
+.nav-account-active {
+    background-color: var(--col-primary);
+    color: white;
+}
+.nav-account-active:hover {
+    background-color: var(--col-primary-light);
+    color: white;
+}
+
+/* Hero */
+.hero {
+    padding: 8rem 0 6rem;
+    text-align: center;
+    position: relative;
+    /* Clip Background Animation Logic would go here if using SVG/Canvas, 
+       using CSS gradients for a cleaner implementation */
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(217, 119, 87, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(44, 85, 88, 0.05) 0%, transparent 20%);
+}
+
+.hero h1 {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--col-primary);
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    font-size: 1.35rem;
+    color: var(--col-text-muted);
+    max-width: 650px;
+    margin: 0 auto 3rem;
+    font-weight: 300;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    background-color: var(--col-primary);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(44, 85, 88, 0.2);
+    border: none;
+    cursor: pointer;
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(44, 85, 88, 0.3);
+    background-color: var(--col-primary-light);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--col-primary);
+    border: 1px solid #E5E7EB;
+}
+.btn-secondary:hover {
+    border-color: var(--col-primary);
+    background-color: #F9FAFB;
+}
+
+/* Cards & Grid */
+.services-section { padding: 4rem 0 6rem; }
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background: var(--col-bg-alt);
+    border-radius: var(--radius-md);
+    padding: 2.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #F3F4F6;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative; /* For flashlight */
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: #E5E7EB;
+}
+
+.card-icon {
+    width: 56px; height: 56px;
+    background-color: rgba(44, 85, 88, 0.1);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem;
+    color: var(--col-primary);
+    font-size: 1.5rem;
+}
+.card-icon.accent {
+    background-color: var(--col-accent-soft);
+    color: var(--col-accent);
+}
+
+.card h3 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 600; color: var(--col-text-main); }
+.card p { color: var(--col-text-muted); margin-bottom: 1.5rem; flex-grow: 1; }
+
+/* Footer */
+footer {
+    background-color: white;
+    padding: 4rem 0;
+    margin-top: auto;
+    border-top: 1px solid #E5E7EB;
+}
+.footer-content { text-align: center; color: var(--col-text-muted); }
+
+/* Forms */
+.form-group { margin-bottom: 1.5rem; }
+.form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+.form-input {
+    width: 100%; padding: 0.75rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+}
+.form-input:focus { outline: none; border-color: var(--col-primary); box-shadow: 0 0 0 3px rgba(44, 85, 88, 0.1); }
+
+/* App Window Frame */
+.app-window-frame {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    background: #fff;
+    height: 80vh;
+    position: relative;
+}
+.app-window-header {
+    background: #f3f4f6;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.app-window-title { font-size: 0.9rem; font-weight: 600; color: #6b7280; }
+.app-window-controls { display: flex; gap: 6px; }
+.win-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+.win-dot.red { background: #ef4444; }
+.win-dot.yellow { background: #f59e0b; }
+.win-dot.green { background: #22c55e; }
+
+/* --- FLOATING DASHBOARD BUTTON --- */
+.floating-dashboard-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(31, 41, 55, 0.9); /* Gray-800 equivalent */
+    color: #e5e7eb; /* Gray-200 */
+    padding: 8px 16px;
+    border-radius: 9999px; /* Pill shape */
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.floating-dashboard-btn:hover {
+    background-color: #111827; /* Gray-900 */
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.floating-dashboard-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero h1 { font-size: 2.8rem; }
+    .nav-links { display: none; }
+}

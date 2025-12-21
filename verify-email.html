@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Verify Email - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="container">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 4rem; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 100%; max-width: 450px;">
+            
+            <!-- Loading State -->
+            <div id="loading-container" class="card" style="padding: 2.5rem; text-align: center;">
+                <div style="font-size: 2.5rem; color: var(--col-primary); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                </div>
+                <h2 style="margin-bottom: 0.5rem;">Verifying Your Email</h2>
+                <p style="color: var(--col-text-muted);">Please wait...</p>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-container" class="card" style="padding: 2.5rem; display: none; text-align: center;">
+                <div style="font-size: 3rem; color: var(--col-accent); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h2 style="margin-bottom: 1rem;">Email Verified!</h2>
+                <p id="success-message" style="color: var(--col-text-muted); margin-bottom: 2rem;">Your email has been verified. You can now access all features.</p>
+                <a href="dashboard.html" class="btn btn-beam" style="display: inline-block;">Go to Dashboard</a>
+                <p style="margin-top: 1rem;">
+                    <a href="login.html" style="color: var(--col-primary); text-decoration: none; font-size: 0.9rem;">Or sign in →</a>
+                </p>
+            </div>
+
+            <!-- Already Verified State -->
+            <div id="already-verified-container" class="card" style="padding: 2.5rem; display: none; text-align: center;">
+                <div style="font-size: 3rem; color: var(--col-primary); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+                <h2 style="margin-bottom: 1rem;">Already Verified</h2>
+                <p style="color: var(--col-text-muted); margin-bottom: 2rem;">Your email was already verified. You're all set!</p>
+                <a href="dashboard.html" class="btn btn-beam" style="display: inline-block;">Go to Dashboard</a>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-container" class="card" style="padding: 2.5rem; display: none; text-align: center;">
+                <div style="font-size: 3rem; color: #e74c3c; margin-bottom: 1rem;">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <h2 style="margin-bottom: 1rem;">Verification Failed</h2>
+                <p id="error-message" style="color: var(--col-text-muted); margin-bottom: 2rem;">This verification link is invalid or has expired.</p>
+                <a href="login.html" class="btn btn-secondary" style="display: inline-block;">Back to Sign In</a>
+                <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--col-text-muted);">
+                    Need help? <a href="contact.html" style="color: var(--col-primary);">Contact support</a>
+                </p>
+            </div>
+
+            <!-- No Token State / Resend Form -->
+            <div id="no-token-container" class="card" style="padding: 2.5rem; display: none; text-align: center;">
+                <div style="font-size: 3rem; color: var(--col-text-muted); margin-bottom: 1rem;">
+                    <i class="fa-solid fa-envelope-circle-check"></i>
+                </div>
+                <h2 style="margin-bottom: 1rem;">Check Your Email</h2>
+                <p style="color: var(--col-text-muted); margin-bottom: 1.5rem;">
+                    We sent a verification link to your email address. Click the link in the email to verify your account.
+                </p>
+                
+                <div style="border-top: 1px solid #E5E7EB; padding-top: 1.5rem; margin-top: 1rem;">
+                    <p style="font-size: 0.9rem; color: var(--col-text-muted); margin-bottom: 1rem;">
+                        Didn't receive it? Enter your email to resend:
+                    </p>
+                    <form id="resend-form" style="display: flex; gap: 0.5rem;">
+                        <input type="email" id="resend-email" class="form-input" placeholder="your@email.com" required style="flex: 1;">
+                        <button type="submit" class="btn btn-secondary" style="white-space: nowrap;">Resend</button>
+                    </form>
+                    <p id="resend-status" style="margin-top: 0.75rem; font-size: 0.85rem; min-height: 1.25rem;"></p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script>
+        // API_BASE is already defined in auth.js
+        
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const email = urlParams.get('email');
+        
+        async function verifyEmail() {
+            const loadingEl = document.getElementById('loading-container');
+            const successEl = document.getElementById('success-container');
+            const alreadyEl = document.getElementById('already-verified-container');
+            const errorEl = document.getElementById('error-container');
+            const noTokenEl = document.getElementById('no-token-container');
+            
+            // If no token provided, show the "check your email" message
+            if (!token || !email) {
+                loadingEl.style.display = 'none';
+                noTokenEl.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/verify-email.php?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                loadingEl.style.display = 'none';
+                
+                if (response.ok && data.success) {
+                    if (data.already_verified) {
+                        alreadyEl.style.display = 'block';
+                    } else {
+                        successEl.style.display = 'block';
+                        if (data.message) {
+                            document.getElementById('success-message').textContent = data.message;
+                        }
+                    }
+                    
+                    // Update localStorage with fresh user data after verification
+                    if (Auth.getToken()) {
+                        // User is logged in - refresh from API to get updated emailVerified status
+                        try {
+                            await Auth.getCurrentUser();
+                        } catch (refreshErr) {
+                            // Silently fail - user can refresh manually if needed
+                        }
+                    } else {
+                        // User not logged in - update cached user if email matches
+                        const cachedUser = Auth.getUser();
+                        if (cachedUser && cachedUser.email?.toLowerCase() === email?.toLowerCase()) {
+                            cachedUser.emailVerified = true;
+                            Auth.setUser(cachedUser);
+                        }
+                    }
+                    
+                } else {
+                    errorEl.style.display = 'block';
+                    if (data.error) {
+                        document.getElementById('error-message').textContent = data.error;
+                    }
+                }
+            } catch (err) {
+                console.error('Verification error:', err);
+                loadingEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                document.getElementById('error-message').textContent = 'Unable to verify email. Please try again later.';
+            }
+        }
+        
+        // Run verification on page load
+        verifyEmail();
+        
+        // Resend form handler
+        document.getElementById('resend-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('resend-email');
+            const statusEl = document.getElementById('resend-status');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            const email = emailInput.value.trim();
+            if (!email) return;
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            statusEl.textContent = '';
+            statusEl.style.color = 'inherit';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/resend-verification.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.already_verified) {
+                    statusEl.textContent = 'Email already verified! You can sign in.';
+                    statusEl.style.color = 'var(--col-accent)';
+                } else if (response.ok) {
+                    statusEl.textContent = 'Verification email sent! Check your inbox.';
+                    statusEl.style.color = 'var(--col-primary)';
+                    emailInput.value = '';
+                } else {
+                    statusEl.textContent = data.error || 'Failed to send. Try again later.';
+                    statusEl.style.color = '#e74c3c';
+                }
+            } catch (err) {
+                statusEl.textContent = 'An error occurred. Please try again.';
+                statusEl.style.color = '#e74c3c';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Resend';
+            }
+        });
+    </script>
+
+</body>
+</html>
+
