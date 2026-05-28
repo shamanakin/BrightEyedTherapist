@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
 </head>
 <body>
 
@@ -22,12 +24,23 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html">Features</a>
+                <a href="index.html#tools">Tools</a>
                 <a href="about.html">About</a>
+                <a href="feedback.html">Feedback</a>
                 <a href="contact.html">Contact</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="about.html">About</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="contact.html">Contact</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main class="container" style="padding-top: 3rem; padding-bottom: 5rem; max-width: 800px;">
@@ -83,7 +96,7 @@
             <p>
                 The Service is not intended to be used directly by therapy clients or the general public without a
                 Clinician. If you are not a trained Clinician, you must not use the EMDR Suite, Genogram Genie, or
-                Trauma Timeline for self-treatment, emergency situations, or as a substitute for professional care.
+                Life Map for self-treatment, emergency situations, or as a substitute for professional care.
             </p>
         </section>
 
@@ -95,14 +108,13 @@
             </p>
             <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
                 <li>
-                    <strong>Free Trial.</strong> New users may receive a time-limited free trial. We may modify,
-                    extend, or discontinue free trials at any time. A trial is limited to one per person and per email
-                    address, subject to our systems and fraud-prevention measures.
+                    <strong>Free Access.</strong> The EMDR Suite is currently available on a free plan with no credit
+                    card required. We may modify or discontinue free access in the future with reasonable notice.
                 </li>
                 <li>
-                    <strong>Subscriptions.</strong> After the trial, continued access to the tools requires a paid
-                    subscription. Pricing, tiers, and features may change over time; we will provide notice where
-                    required.
+                    <strong>Subscriptions.</strong> Paid access currently covers the expanded clinical toolkit
+                    (including EMDR Guided, Brainspotting, Life Map, Genogram Genie, and future paid tools). Pricing, tiers,
+                    and features may change over time; we will provide notice where required.
                 </li>
                 <li>
                     <strong>Early Access / Beta Features.</strong> Some tools and features are offered as &ldquo;Early
@@ -179,6 +191,11 @@
                 <li>
                     Any separate Business Associate Agreements (BAAs) you may require in your jurisdiction. Use of the
                     Service alone does not constitute a BAA.
+                </li>
+                <li>
+                    Understanding that Note Genie uses third-party AI providers selected by you. If you use that tool,
+                    any content you submit is governed in part by the provider you choose and your own settings with
+                    that provider.
                 </li>
             </ul>
         </section>
@@ -291,7 +308,7 @@
     <footer>
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 

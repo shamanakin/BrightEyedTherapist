@@ -40,6 +40,17 @@ try {
 $db = Database::getInstance();
 
 try {
+    // Idempotency: skip if this Stripe event was already processed
+    $existing = $db->fetchOne(
+        "SELECT id FROM payment_events WHERE stripe_event_id = :eid",
+        ['eid' => $event->id]
+    );
+    if ($existing) {
+        http_response_code(200);
+        echo json_encode(['received' => true, 'duplicate' => true]);
+        exit;
+    }
+
     switch ($event->type) {
         case 'checkout.session.completed':
             handleCheckoutCompleted($event->data->object, $db);
@@ -140,10 +151,30 @@ try {
 function handleCheckoutCompleted($session, $db) {
     $userId = $session->metadata->user_id ?? null;
     if (!$userId) return;
-    
-    error_log("Checkout completed for user {$userId}");
-    
-    // Subscription will be updated via subscription.created event
+
+    $planType = $session->metadata->plan_type ?? null;
+    $existing = $db->fetchOne(
+        "SELECT id, plan_name FROM subscriptions WHERE user_id = :user_id ORDER BY created_at DESC LIMIT 1",
+        ['user_id' => $userId]
+    );
+
+    $update = [];
+    if (!empty($session->customer)) {
+        $update['stripe_customer_id'] = $session->customer;
+    }
+    if (!empty($session->subscription)) {
+        $update['stripe_subscription_id'] = $session->subscription;
+    }
+    $resolvedPlan = Utils::resolveSubscriptionPlanName($planType, $existing ?: [], null);
+    if ($resolvedPlan) {
+        $update['plan_name'] = $resolvedPlan;
+    }
+
+    if (!empty($update) && $existing) {
+        $db->update('subscriptions', $update, 'user_id = :user_id', ['user_id' => $userId]);
+    }
+
+    error_log("Checkout completed for user {$userId}" . ($resolvedPlan ? " plan={$resolvedPlan}" : ''));
 }
 
 function handleSubscriptionUpdate($subscription, $db) {
@@ -161,16 +192,52 @@ function handleSubscriptionUpdate($subscription, $db) {
         error_log("Cannot find user for subscription: {$subscription->id}");
         return;
     }
-    
-    // Update subscription in database
-    $db->update('subscriptions', [
+
+    $existing = $db->fetchOne(
+        "SELECT id, plan_name FROM subscriptions WHERE stripe_subscription_id = :sub_id LIMIT 1",
+        ['sub_id' => $subscription->id]
+    );
+    if (!$existing) {
+        $existing = $db->fetchOne(
+            "SELECT id, plan_name FROM subscriptions WHERE user_id = :user_id ORDER BY created_at DESC LIMIT 1",
+            ['user_id' => $userId]
+        );
+    }
+
+    // Update subscription in database (scope by Stripe subscription id when possible)
+    $item = $subscription->items->data[0];
+    $priceId = $item->price->id;
+    $incomingPlan = $subscription->metadata->plan_type ?? null;
+    $resolvedPlan = Utils::resolveSubscriptionPlanName($incomingPlan, $existing ?: [], $priceId);
+
+    $updateData = [
         'stripe_subscription_id' => $subscription->id,
-        'stripe_price_id' => $subscription->items->data[0]->price->id,
+        'stripe_price_id' => $priceId,
         'status' => $subscription->status,
+        'amount' => $item->price->unit_amount / 100,
+        'currency' => $item->price->currency,
         'current_period_start' => date('Y-m-d H:i:s', $subscription->current_period_start),
         'current_period_end' => date('Y-m-d H:i:s', $subscription->current_period_end),
-        'cancel_at_period_end' => $subscription->cancel_at_period_end ? 1 : 0
-    ], 'user_id = :user_id', ['user_id' => $userId]);
+        'cancel_at_period_end' => $subscription->cancel_at_period_end ? 1 : 0,
+    ];
+
+    if ($resolvedPlan) {
+        $updateData['plan_name'] = $resolvedPlan;
+    }
+
+    if (!empty($subscription->trial_start)) {
+        $updateData['trial_start'] = date('Y-m-d H:i:s', $subscription->trial_start);
+    }
+    if (!empty($subscription->trial_end)) {
+        $updateData['trial_end'] = date('Y-m-d H:i:s', $subscription->trial_end);
+    }
+
+    if ($existing && !empty($existing['id'])) {
+        $db->update('subscriptions', $updateData, 'id = :id', ['id' => $existing['id']]);
+    } else {
+        $updateData['user_id'] = $userId;
+        $db->update('subscriptions', $updateData, 'user_id = :user_id', ['user_id' => $userId]);
+    }
     
     error_log("Subscription updated for user {$userId}: {$subscription->status}");
 }

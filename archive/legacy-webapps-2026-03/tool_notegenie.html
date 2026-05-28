@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Note Genie - Bright Eyed Therapist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
+    <script src="subscription_overlay.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sage: { 
+                            50: '#E8F0EC',
+                            100: '#D1E1D9',
+                            400: '#5D8A6E', 
+                            500: '#4A6E58', 
+                            600: '#3A5846' 
+                        },
+                        accent: { 
+                            DEFAULT: '#D4A574', 
+                            100: '#F5E6E1',
+                            500: '#D97757'
+                        }
+                    },
+                    fontFamily: {
+                        'display': ['Playfair Display', 'serif'],
+                        'body': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .generating {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .output-area {
+            min-height: 150px;
+            white-space: pre-wrap;
+        }
+        
+        .provider-card {
+            transition: all 0.2s ease;
+        }
+        
+        .provider-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .provider-card.selected {
+            border-color: #4A6E58;
+            background-color: #E8F0EC;
+        }
+        
+        .session-card {
+            transition: all 0.2s ease;
+        }
+        
+        .settings-drawer {
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+        }
+        
+        .settings-drawer.collapsed {
+            max-height: 0;
+        }
+        
+        .settings-drawer.expanded {
+            max-height: 800px;
+        }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .floating-dashboard-btn { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Floating Dashboard Button -->
+    <a href="dashboard.html" class="floating-dashboard-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" />
+        </svg>
+        Dashboard
+    </a>
+    
+    <div class="app-chrome-bottom-right no-print">
+        <span class="app-chrome-watermark">Note Genie · Bright Eyed Therapist</span>
+        <a href="feedback.html?app=notegenie" class="app-chrome-feedback" title="Send Feedback">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Feedback
+        </a>
+    </div>
+
+    <!-- ============ TOS MODAL ============ -->
+    <div id="tos-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-scale-balanced text-accent-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-display font-semibold text-gray-900">Welcome to Note Genie</h2>
+                        <p class="text-sm text-gray-500">Please review before continuing</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="prose prose-sm max-w-none">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Terms of Use</h3>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">1. Data Privacy</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li>Your notes are sent directly to your chosen AI provider (OpenAI, Google, Anthropic, or xAI)</li>
+                                <li><strong>BrightEyedTherapist is not intended to store these note contents as part of a permanent chart</strong></li>
+                                <li>Your API key is stored only in YOUR browser's local storage</li>
+                                <li>We recommend reviewing your AI provider's data handling policies</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">2. Professional Responsibility</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li>AI-generated notes are <strong>drafts only</strong></li>
+                                <li>YOU are responsible for reviewing and editing all output</li>
+                                <li>YOU are responsible for clinical accuracy of final documentation</li>
+                                <li>This tool does not replace professional clinical judgment</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">3. HIPAA Compliance</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li>This tool automatically converts full names to initials in output</li>
+                                <li>The AI is instructed to remove identifying information</li>
+                                <li>However, YOU are ultimately responsible for ensuring PHI protection</li>
+                                <li>Do not include Social Security numbers, full addresses, or other unnecessary PHI</li>
+                                <li>Third-party AI providers may have different retention, logging, or training policies than BrightEyedTherapist</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">4. Liability Waiver</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li>BrightEyedTherapist provides this tool "as is" without warranty</li>
+                                <li>We are not liable for clinical decisions made using this tool</li>
+                                <li>We are not liable for errors in AI-generated content</li>
+                                <li>We are not liable for data breaches at third-party AI providers</li>
+                                <li>By using this tool, you agree to hold harmless BrightEyedTherapist and its affiliates</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1">5. Intended Use</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li>This tool is intended for licensed mental health professionals only</li>
+                                <li>Use with appropriate supervision for trainees</li>
+                                <li>Ensure compliance with your jurisdiction's documentation requirements</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 mt-6">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="tos-check-1" class="mt-1 w-4 h-4 text-sage-500 rounded border-gray-300 focus:ring-sage-500">
+                        <span class="text-sm text-gray-700">I am a licensed mental health professional (or supervised trainee)</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="tos-check-2" class="mt-1 w-4 h-4 text-sage-500 rounded border-gray-300 focus:ring-sage-500">
+                        <span class="text-sm text-gray-700">I have read and agree to the Terms of Use</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="tos-check-3" class="mt-1 w-4 h-4 text-sage-500 rounded border-gray-300 focus:ring-sage-500">
+                        <span class="text-sm text-gray-700">I understand that AI output requires my professional review before use</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 bg-gray-50">
+                <button id="tos-accept-btn" onclick="acceptTOS()" disabled
+                        class="w-full bg-sage-500 text-white py-3 px-6 rounded-xl font-semibold hover:bg-sage-600 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                    Continue to Note Genie
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ SETUP WIZARD ============ -->
+    <div id="setup-wizard" class="hidden">
+        <!-- Step 1: Provider Selection -->
+        <div id="setup-step-1" class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-lg max-w-2xl w-full p-8">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-sage-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-robot text-sage-500 text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-display font-semibold text-gray-900 mb-2">Choose Your AI Provider</h2>
+                    <p class="text-gray-600">Note Genie works with any major AI service. Select the one you have (or want to sign up for):</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button onclick="selectProvider('openai')" class="provider-card p-4 border-2 border-gray-200 rounded-xl text-left hover:border-sage-400" data-provider="openai">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white font-bold text-sm">AI</div>
+                            <div>
+                                <div class="font-semibold text-gray-900">OpenAI</div>
+                                <div class="text-xs text-gray-500">GPT-4o</div>
+                            </div>
+                        </div>
+                        <span class="inline-block text-xs bg-sage-50 text-sage-600 px-2 py-0.5 rounded">Recommended</span>
+                    </button>
+                    
+                    <button onclick="selectProvider('gemini')" class="provider-card p-4 border-2 border-gray-200 rounded-xl text-left hover:border-sage-400" data-provider="gemini">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">G</div>
+                            <div>
+                                <div class="font-semibold text-gray-900">Google Gemini</div>
+                                <div class="text-xs text-gray-500">Gemini 1.5</div>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="selectProvider('claude')" class="provider-card p-4 border-2 border-gray-200 rounded-xl text-left hover:border-sage-400" data-provider="claude">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">C</div>
+                            <div>
+                                <div class="font-semibold text-gray-900">Anthropic Claude</div>
+                                <div class="text-xs text-gray-500">Claude 3.5</div>
+                            </div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="selectProvider('grok')" class="provider-card p-4 border-2 border-gray-200 rounded-xl text-left hover:border-sage-400" data-provider="grok">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-sm">X</div>
+                            <div>
+                                <div class="font-semibold text-gray-900">xAI Grok</div>
+                                <div class="text-xs text-gray-500">Grok 2</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-amber-800 font-medium mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Important: API Access Required</p>
+                    <p class="text-sm text-amber-700 mb-2">All providers require a <strong>paid API account</strong>. This is different from consumer subscriptions like ChatGPT Plus, Claude Pro, or Gemini Advanced.</p>
+                    <button onclick="toggleApiExplainer()" class="text-sm text-amber-800 underline">What's the difference?</button>
+                </div>
+                
+                <div id="api-explainer" class="hidden bg-gray-50 rounded-lg p-4 mb-4 text-sm">
+                    <h4 class="font-semibold text-gray-900 mb-2">Consumer Plans vs API Access</h4>
+                    <div class="space-y-2 text-gray-600">
+                        <p><strong>❌ Consumer Plans</strong> (won't work with Note Genie):</p>
+                        <ul class="list-disc list-inside ml-2 mb-3">
+                            <li>ChatGPT Plus ($20/month)</li>
+                            <li>Claude Pro ($20/month)</li>
+                            <li>Gemini Advanced ($20/month)</li>
+                        </ul>
+                        <p><strong>✅ API Access</strong> (what you need):</p>
+                        <ul class="list-disc list-inside ml-2">
+                            <li>Pay-per-use pricing</li>
+                            <li>Requires adding a payment method to the AI provider</li>
+                            <li>Typical cost: $0.01-0.05 per note generated</li>
+                            <li>You're billed directly by the AI provider</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <p class="text-center text-sm text-gray-500">
+                    💡 Not sure which to pick? <strong>OpenAI (GPT-4o)</strong> is most popular and well-tested.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Step 2: API Key Entry -->
+        <div id="setup-step-2" class="hidden min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-lg max-w-xl w-full p-8">
+                <button onclick="goToStep1()" class="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Back to provider selection
+                </button>
+                
+                <div class="text-center mb-6">
+                    <div id="provider-icon" class="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">AI</div>
+                    <h2 class="text-2xl font-display font-semibold text-gray-900 mb-2">Connect <span id="provider-name">OpenAI</span></h2>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <p class="text-sm text-gray-700 mb-1"><strong>Already have an API key?</strong></p>
+                    <p class="text-sm text-gray-600">Paste it below and click Verify.</p>
+                </div>
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                        <input type="password" id="api-key-input" placeholder="sk-..."
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none font-mono text-sm">
+                        <p id="key-format-hint" class="text-xs text-gray-500 mt-1">Should start with: sk-</p>
+                    </div>
+                    
+                    <button onclick="verifyAndSaveKey()" id="verify-btn"
+                            class="w-full bg-sage-500 text-white py-3 px-6 rounded-xl font-semibold hover:bg-sage-600 transition shadow-sm flex items-center justify-center gap-2">
+                        Verify & Continue
+                    </button>
+                    
+                    <p id="key-error" class="text-sm text-red-600 hidden"></p>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-6">
+                    <p class="text-sm font-medium text-gray-700 mb-3"><i class="fa-solid fa-book mr-1"></i> Need help getting an API key?</p>
+                    <div class="bg-gray-50 rounded-lg p-4 text-sm space-y-3">
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-sage-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                            <div>
+                                <p class="text-gray-700">Create an account with your AI provider</p>
+                                <a id="provider-link" href="#" target="_blank" class="text-sage-500 hover:underline">Go to platform.openai.com →</a>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-sage-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                            <p class="text-gray-700">Add a payment method (Settings → Billing)</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-sage-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                            <p class="text-gray-700">Create an API key (API Keys section)</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <span class="flex-shrink-0 w-6 h-6 bg-sage-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                            <p class="text-gray-700">Copy and paste the key above</p>
+                        </div>
+                        <p class="text-gray-500 text-xs mt-2">⏱️ This takes about 5 minutes if you're new</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-gray-500"><i class="fa-solid fa-lock mr-1"></i> Your API key is stored only in your browser. We never see it.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MAIN APP ============ -->
+    <div id="main-app" class="hidden">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-40 no-print">
+            <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-accent-100 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-scale-balanced text-accent-500"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-display font-semibold text-sage-500">Note Genie</h1>
+                        <p class="text-xs text-gray-500">AI Clinical Documentation</p>
+                    </div>
+                </div>
+                <button onclick="toggleSettings()" class="p-2 text-gray-500 hover:text-sage-500 hover:bg-gray-100 rounded-lg transition">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto px-4 py-6">
+            <!-- Settings Drawer -->
+            <div id="settings-drawer" class="settings-drawer collapsed bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 no-print">
+                <div class="p-6">
+                    <h3 class="font-display text-lg font-semibold text-gray-900 mb-4">Settings</h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Output Format -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Output Format</label>
+                            <select id="format-type" onchange="updateFormatOptions()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none mb-2">
+                                <option value="standard">Standard Format</option>
+                                <option value="ehr">EHR-Specific</option>
+                            </select>
+                            <select id="format-selection" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none">
+                                <option value="SOAP">SOAP</option>
+                                <option value="DAP">DAP</option>
+                                <option value="BIRP">BIRP</option>
+                                <option value="narrative">Simple Narrative</option>
+                            </select>
+                        </div>
+                        
+                        <!-- AI Settings -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">AI Provider</label>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span id="current-provider-badge" class="px-3 py-1 bg-gray-100 rounded-lg text-sm font-medium">OpenAI</span>
+                                <span id="current-key-masked" class="text-xs text-gray-500 font-mono">sk-...****</span>
+                            </div>
+                            <select id="model-selection" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none mb-2">
+                                <option value="gpt-4o-mini">GPT-4o Mini (faster)</option>
+                                <option value="gpt-4o">GPT-4o (recommended)</option>
+                            </select>
+                            <button onclick="resetProvider()" class="text-sm text-sage-500 hover:underline">Switch AI provider</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Diagnosis Toggle -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="include-diagnosis" class="w-4 h-4 text-sage-500 rounded border-gray-300 focus:ring-sage-500">
+                            <span class="text-sm text-gray-700">Include diagnosis field in output (required for some EHRs like TherapyNotes)</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Danger Zone -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button onclick="clearAllData()" class="text-sm text-red-600 hover:underline">Clear all data & reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Container -->
+            <div id="sessions-container" class="space-y-4 mb-6 no-print">
+                <!-- Sessions will be rendered here -->
+            </div>
+            
+            <!-- Add Session Button -->
+            <div class="mb-6 no-print">
+                <button onclick="addSession()" id="add-session-btn" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-sage-400 hover:text-sage-500 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Another Session <span id="session-counter" class="text-sm">(9 remaining)</span>
+                </button>
+            </div>
+            
+            <!-- Generate Button -->
+            <div class="mb-8 no-print">
+                <button onclick="generateAllNotes()" id="generate-btn"
+                        class="w-full bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold hover:bg-sage-600 transition shadow-sm flex items-center justify-center gap-2 text-lg">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    Generate Notes
+                </button>
+            </div>
+
+            <!-- Output Section -->
+            <div id="output-section" class="hidden space-y-4">
+                <div class="flex items-center justify-between mb-2 no-print">
+                    <h3 class="font-display text-xl font-semibold text-gray-900">Generated Notes</h3>
+                    <div class="flex gap-2">
+                        <button onclick="copyAllNotes()" class="px-4 py-2 bg-sage-500 text-white rounded-lg hover:bg-sage-600 transition text-sm font-medium flex items-center gap-2">
+                            <i class="fa-solid fa-copy"></i>
+                            Copy All
+                        </button>
+                        <button onclick="clearOutput()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">
+                            Clear & Start Over
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="output-cards" class="space-y-4">
+                    <!-- Output cards will be rendered here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 pb-8 text-center text-sm text-gray-400 no-print">
+            <p>Note Genie · Built by <a href="https://brighteyedtherapist.com" class="text-sage-500 hover:underline">BrightEyedTherapist</a></p>
+            <p class="mt-1"><i class="fa-solid fa-lock text-xs"></i> Your data never touches our servers.</p>
+            <button onclick="showTOS()" class="mt-2 text-gray-500 hover:underline text-xs">Review Terms of Use</button>
+        </footer>
+    </div>
+
+    <script>
+        // ============ PROVIDER CONFIGURATION ============
+        const PROVIDERS = {
+            openai: {
+                name: 'OpenAI',
+                url: 'https://api.openai.com/v1/chat/completions',
+                keyPrefix: 'sk-',
+                keyPage: 'https://platform.openai.com/api-keys',
+                linkText: 'Go to platform.openai.com →',
+                models: [
+                    { value: 'gpt-4o-mini', label: 'GPT-4o Mini (faster, cheaper)' },
+                    { value: 'gpt-4o', label: 'GPT-4o (recommended)' },
+                    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' }
+                ],
+                iconBg: 'bg-black',
+                iconText: 'AI'
+            },
+            gemini: {
+                name: 'Google Gemini',
+                url: 'https://generativelanguage.googleapis.com/v1beta/models/',
+                keyPrefix: 'AIza',
+                keyPage: 'https://aistudio.google.com/apikey',
+                linkText: 'Go to aistudio.google.com →',
+                models: [
+                    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (faster)' },
+                    { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (recommended)' }
+                ],
+                iconBg: 'bg-blue-500',
+                iconText: 'G'
+            },
+            claude: {
+                name: 'Anthropic Claude',
+                url: 'https://api.anthropic.com/v1/messages',
+                keyPrefix: 'sk-ant-',
+                keyPage: 'https://console.anthropic.com/settings/keys',
+                linkText: 'Go to console.anthropic.com →',
+                models: [
+                    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (faster)' },
+                    { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (recommended)' }
+                ],
+                iconBg: 'bg-orange-500',
+                iconText: 'C'
+            },
+            grok: {
+                name: 'xAI Grok',
+                url: 'https://api.x.ai/v1/chat/completions',
+                keyPrefix: 'xai-',
+                keyPage: 'https://console.x.ai',
+                linkText: 'Go to console.x.ai →',
+                models: [
+                    { value: 'grok-2-mini', label: 'Grok 2 Mini (faster)' },
+                    { value: 'grok-2', label: 'Grok 2 (recommended)' }
+                ],
+                iconBg: 'bg-gray-900',
+                iconText: 'X'
+            }
+        };
+
+        // ============ STATE ============
+        let selectedProvider = null;
+        let sessions = [];
+        let generatedNotes = [];
+        let settingsOpen = false;
+
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check BET auth first
+            const user = await Auth.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Note: subscription_overlay.js automatically handles subscription checks
+            // and will create a blocking overlay if user doesn't have access
+            
+            // Check TOS acceptance
+            const tosAccepted = localStorage.getItem('noteGenie_tosAccepted');
+            if (tosAccepted !== 'true') {
+                document.getElementById('tos-modal').classList.remove('hidden');
+            } else {
+                checkSetupComplete();
+            }
+            
+            // Setup TOS checkbox listeners
+            ['tos-check-1', 'tos-check-2', 'tos-check-3'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateTOSButton);
+            });
+        });
+
+        // ============ TOS FUNCTIONS ============
+        function updateTOSButton() {
+            const check1 = document.getElementById('tos-check-1').checked;
+            const check2 = document.getElementById('tos-check-2').checked;
+            const check3 = document.getElementById('tos-check-3').checked;
+            document.getElementById('tos-accept-btn').disabled = !(check1 && check2 && check3);
+        }
+
+        function acceptTOS() {
+            localStorage.setItem('noteGenie_tosAccepted', 'true');
+            document.getElementById('tos-modal').classList.add('hidden');
+            checkSetupComplete();
+        }
+
+        function showTOS() {
+            document.getElementById('tos-modal').classList.remove('hidden');
+            ['tos-check-1', 'tos-check-2', 'tos-check-3'].forEach(id => {
+                document.getElementById(id).checked = true;
+            });
+            updateTOSButton();
+        }
+
+        // ============ SETUP WIZARD FUNCTIONS ============
+        function checkSetupComplete() {
+            const provider = localStorage.getItem('noteGenie_provider');
+            const apiKey = localStorage.getItem('noteGenie_apiKey');
+            
+            if (provider && apiKey) {
+                selectedProvider = provider;
+                showMainApp();
+            } else {
+                showSetupWizard();
+            }
+        }
+
+        function showSetupWizard() {
+            document.getElementById('setup-wizard').classList.remove('hidden');
+            document.getElementById('setup-step-1').classList.remove('hidden');
+            document.getElementById('setup-step-2').classList.add('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+        }
+
+        function toggleApiExplainer() {
+            const el = document.getElementById('api-explainer');
+            el.classList.toggle('hidden');
+        }
+
+        function selectProvider(provider) {
+            selectedProvider = provider;
+            
+            document.querySelectorAll('.provider-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-provider="${provider}"]`).classList.add('selected');
+            
+            setTimeout(() => {
+                goToStep2();
+            }, 200);
+        }
+
+        function goToStep1() {
+            document.getElementById('setup-step-1').classList.remove('hidden');
+            document.getElementById('setup-step-2').classList.add('hidden');
+        }
+
+        function goToStep2() {
+            const config = PROVIDERS[selectedProvider];
+            
+            document.getElementById('provider-name').textContent = config.name;
+            document.getElementById('provider-icon').className = `w-16 h-16 ${config.iconBg} rounded-2xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl`;
+            document.getElementById('provider-icon').textContent = config.iconText;
+            document.getElementById('key-format-hint').textContent = `Should start with: ${config.keyPrefix}`;
+            document.getElementById('provider-link').href = config.keyPage;
+            document.getElementById('provider-link').textContent = config.linkText;
+            document.getElementById('api-key-input').placeholder = config.keyPrefix + '...';
+            
+            document.getElementById('setup-step-1').classList.add('hidden');
+            document.getElementById('setup-step-2').classList.remove('hidden');
+            document.getElementById('api-key-input').focus();
+        }
+
+        async function verifyAndSaveKey() {
+            const keyInput = document.getElementById('api-key-input');
+            const key = keyInput.value.trim();
+            const config = PROVIDERS[selectedProvider];
+            const btn = document.getElementById('verify-btn');
+            const errorEl = document.getElementById('key-error');
+            
+            errorEl.classList.add('hidden');
+            
+            if (!key) {
+                showKeyError('Please enter an API key');
+                return;
+            }
+            
+            if (!key.startsWith(config.keyPrefix)) {
+                showKeyError(`API key should start with "${config.keyPrefix}"`);
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying...';
+            
+            try {
+                await testApiKey(key);
+                
+                localStorage.setItem('noteGenie_provider', selectedProvider);
+                localStorage.setItem('noteGenie_apiKey', key);
+                localStorage.setItem('noteGenie_model', config.models[0].value);
+                
+                showMainApp();
+            } catch (error) {
+                showKeyError(error.message || 'Invalid API key. Please check and try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Verify & Continue';
+            }
+        }
+
+        function showKeyError(message) {
+            const errorEl = document.getElementById('key-error');
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+
+        async function testApiKey(key) {
+            const config = PROVIDERS[selectedProvider];
+            
+            if (selectedProvider === 'openai' || selectedProvider === 'grok') {
+                const response = await fetch(config.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${key}`
+                    },
+                    body: JSON.stringify({
+                        model: config.models[0].value,
+                        messages: [{ role: 'user', content: 'Hi' }],
+                        max_tokens: 5
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'Invalid API key');
+                }
+            } else if (selectedProvider === 'gemini') {
+                const response = await fetch(`${config.url}${config.models[0].value}:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: 'Hi' }] }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'Invalid API key');
+                }
+            } else if (selectedProvider === 'claude') {
+                const response = await fetch(config.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': key,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: config.models[0].value,
+                        max_tokens: 5,
+                        messages: [{ role: 'user', content: 'Hi' }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'Invalid API key');
+                }
+            }
+        }
+
+        // ============ MAIN APP FUNCTIONS ============
+        function showMainApp() {
+            document.getElementById('setup-wizard').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('fade-in');
+            
+            loadSettings();
+            initializeSessions();
+        }
+
+        function loadSettings() {
+            const provider = localStorage.getItem('noteGenie_provider');
+            const key = localStorage.getItem('noteGenie_apiKey') || '';
+            const model = localStorage.getItem('noteGenie_model');
+            const formatType = localStorage.getItem('noteGenie_formatType') || 'standard';
+            const format = localStorage.getItem('noteGenie_format') || 'SOAP';
+            const includeDx = localStorage.getItem('noteGenie_includeDiagnosis') === 'true';
+            
+            const config = PROVIDERS[provider];
+            
+            document.getElementById('current-provider-badge').textContent = config.name;
+            document.getElementById('current-key-masked').textContent = key.substring(0, 7) + '...' + key.slice(-4);
+            
+            const modelSelect = document.getElementById('model-selection');
+            modelSelect.innerHTML = config.models.map(m => 
+                `<option value="${m.value}"${m.value === model ? ' selected' : ''}>${m.label}</option>`
+            ).join('');
+            
+            document.getElementById('format-type').value = formatType;
+            updateFormatOptions();
+            document.getElementById('format-selection').value = format;
+            document.getElementById('include-diagnosis').checked = includeDx;
+        }
+
+        function updateFormatOptions() {
+            const formatType = document.getElementById('format-type').value;
+            const formatSelect = document.getElementById('format-selection');
+            
+            if (formatType === 'standard') {
+                formatSelect.innerHTML = `
+                    <option value="SOAP">SOAP (Subjective, Objective, Assessment, Plan)</option>
+                    <option value="DAP">DAP (Data, Assessment, Plan)</option>
+                    <option value="BIRP">BIRP (Behavior, Intervention, Response, Plan)</option>
+                    <option value="narrative">Simple Narrative</option>
+                `;
+            } else {
+                formatSelect.innerHTML = `
+                    <option value="SimplePractice">SimplePractice</option>
+                    <option value="TherapyNotes">TherapyNotes</option>
+                    <option value="TheraNest">TheraNest</option>
+                    <option value="Jane">Jane</option>
+                `;
+            }
+            
+            saveSettings();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('noteGenie_model', document.getElementById('model-selection').value);
+            localStorage.setItem('noteGenie_formatType', document.getElementById('format-type').value);
+            localStorage.setItem('noteGenie_format', document.getElementById('format-selection').value);
+            localStorage.setItem('noteGenie_includeDiagnosis', document.getElementById('include-diagnosis').checked);
+        }
+
+        function toggleSettings() {
+            const drawer = document.getElementById('settings-drawer');
+            settingsOpen = !settingsOpen;
+            
+            if (settingsOpen) {
+                drawer.classList.remove('collapsed');
+                drawer.classList.add('expanded');
+            } else {
+                drawer.classList.remove('expanded');
+                drawer.classList.add('collapsed');
+                saveSettings();
+            }
+        }
+
+        function resetProvider() {
+            if (confirm('This will clear your API key and let you choose a new provider. Continue?')) {
+                localStorage.removeItem('noteGenie_provider');
+                localStorage.removeItem('noteGenie_apiKey');
+                localStorage.removeItem('noteGenie_model');
+                location.reload();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('This will clear ALL your data including API key and settings. Continue?')) {
+                localStorage.removeItem('noteGenie_tosAccepted');
+                localStorage.removeItem('noteGenie_provider');
+                localStorage.removeItem('noteGenie_apiKey');
+                localStorage.removeItem('noteGenie_model');
+                localStorage.removeItem('noteGenie_formatType');
+                localStorage.removeItem('noteGenie_format');
+                localStorage.removeItem('noteGenie_includeDiagnosis');
+                location.reload();
+            }
+        }
+
+        // ============ SESSION MANAGEMENT ============
+        function initializeSessions() {
+            sessions = [{
+                id: Date.now(),
+                initials: '',
+                date: new Date().toISOString().split('T')[0],
+                duration: '50',
+                diagnosis: '',
+                notes: ''
+            }];
+            renderSessions();
+        }
+
+        function addSession() {
+            if (sessions.length >= 10) {
+                alert('Maximum 10 sessions per batch');
+                return;
+            }
+            
+            sessions.push({
+                id: Date.now(),
+                initials: '',
+                date: new Date().toISOString().split('T')[0],
+                duration: '50',
+                diagnosis: '',
+                notes: ''
+            });
+            
+            renderSessions();
+            
+            const container = document.getElementById('sessions-container');
+            container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function removeSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (session && session.notes.trim() && !confirm('This session has notes. Remove it?')) {
+                return;
+            }
+            
+            sessions = sessions.filter(s => s.id !== id);
+            
+            if (sessions.length === 0) {
+                initializeSessions();
+            } else {
+                renderSessions();
+            }
+        }
+
+        function updateSession(id, field, value) {
+            const session = sessions.find(s => s.id === id);
+            if (session) {
+                session[field] = value;
+            }
+        }
+
+        function renderSessions() {
+            const container = document.getElementById('sessions-container');
+            const includeDx = document.getElementById('include-diagnosis')?.checked || localStorage.getItem('noteGenie_includeDiagnosis') === 'true';
+            
+            container.innerHTML = sessions.map((session, index) => `
+                <div class="session-card bg-white rounded-2xl shadow-sm border border-gray-200 p-5 fade-in" data-session-id="${session.id}">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-medium text-gray-900">Session ${index + 1}</h4>
+                        ${sessions.length > 1 ? `
+                            <button onclick="removeSession(${session.id})" class="text-gray-400 hover:text-red-500 transition">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-${includeDx ? '4' : '3'} gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Initials</label>
+                            <input type="text" value="${session.initials}" maxlength="5" placeholder="J.D."
+                                   onchange="updateSession(${session.id}, 'initials', this.value)"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                            <input type="date" value="${session.date}"
+                                   onchange="updateSession(${session.id}, 'date', this.value)"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Duration</label>
+                            <select onchange="updateSession(${session.id}, 'duration', this.value)"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none text-sm">
+                                <option value="45"${session.duration === '45' ? ' selected' : ''}>45 min</option>
+                                <option value="50"${session.duration === '50' ? ' selected' : ''}>50 min</option>
+                                <option value="60"${session.duration === '60' ? ' selected' : ''}>60 min</option>
+                                <option value="90"${session.duration === '90' ? ' selected' : ''}>90 min</option>
+                            </select>
+                        </div>
+                        ${includeDx ? `
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Diagnosis (opt)</label>
+                                <input type="text" value="${session.diagnosis}" placeholder="F41.1"
+                                       onchange="updateSession(${session.id}, 'diagnosis', this.value)"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none text-sm">
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">What happened in this session?</label>
+                        <textarea rows="4" placeholder="Dump your thoughts here... What did the client say? What did you observe? What interventions did you use? What's the plan?"
+                                  onchange="updateSession(${session.id}, 'notes', this.value)"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none text-sm resize-none">${session.notes}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            
+            const remaining = 10 - sessions.length;
+            document.getElementById('session-counter').textContent = `(${remaining} remaining)`;
+            document.getElementById('add-session-btn').disabled = remaining === 0;
+            if (remaining === 0) {
+                document.getElementById('add-session-btn').classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                document.getElementById('add-session-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // ============ AI GENERATION ============
+        async function generateAllNotes() {
+            const validSessions = sessions.filter(s => s.notes.trim());
+            if (validSessions.length === 0) {
+                alert('Please add notes to at least one session');
+                return;
+            }
+            
+            const emptyInitials = validSessions.filter(s => !s.initials.trim());
+            if (emptyInitials.length > 0) {
+                alert('Please add client initials to all sessions with notes');
+                return;
+            }
+            
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Generating ' + validSessions.length + ' note' + (validSessions.length > 1 ? 's' : '') + '...';
+            btn.classList.add('generating');
+            
+            generatedNotes = [];
+            
+            try {
+                for (const session of validSessions) {
+                    const note = await generateSingleNote(session);
+                    generatedNotes.push({
+                        session: session,
+                        content: note
+                    });
+                }
+                
+                renderOutput();
+                document.getElementById('output-section').classList.remove('hidden');
+                document.getElementById('output-section').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                alert('Error generating notes: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Generate Notes';
+                btn.classList.remove('generating');
+            }
+        }
+
+        async function generateSingleNote(session) {
+            const provider = localStorage.getItem('noteGenie_provider');
+            const apiKey = localStorage.getItem('noteGenie_apiKey');
+            const model = localStorage.getItem('noteGenie_model');
+            
+            const prompt = buildPrompt(session);
+            
+            return await callAI(provider, apiKey, model, prompt);
+        }
+
+        function buildPrompt(session) {
+            const formatType = localStorage.getItem('noteGenie_formatType') || 'standard';
+            const format = localStorage.getItem('noteGenie_format') || 'SOAP';
+            const includeDx = localStorage.getItem('noteGenie_includeDiagnosis') === 'true';
+            
+            let formatInstructions = '';
+            
+            if (formatType === 'standard') {
+                switch (format) {
+                    case 'SOAP':
+                        formatInstructions = 'Format as SOAP note with clear sections: SUBJECTIVE (client report), OBJECTIVE (therapist observations), ASSESSMENT (clinical interpretation), PLAN (next steps).';
+                        break;
+                    case 'DAP':
+                        formatInstructions = 'Format as DAP note with clear sections: DATA (client report and observations combined), ASSESSMENT (clinical interpretation), PLAN (next steps).';
+                        break;
+                    case 'BIRP':
+                        formatInstructions = 'Format as BIRP note with clear sections: BEHAVIOR (client presentation), INTERVENTION (what you did), RESPONSE (how client responded), PLAN (next steps).';
+                        break;
+                    case 'narrative':
+                        formatInstructions = 'Format as a simple narrative paragraph. Professional but concise, covering key points without structured sections.';
+                        break;
+                }
+            } else {
+                switch (format) {
+                    case 'SimplePractice':
+                        formatInstructions = 'Format for SimplePractice EHR. Use a flexible narrative style. Include session summary, interventions used, client response, and plan. Diagnosis is optional.';
+                        break;
+                    case 'TherapyNotes':
+                        formatInstructions = 'Format for TherapyNotes EHR. Use structured format with labeled sections. Include diagnosis code if provided. Be specific with clinical language.';
+                        break;
+                    case 'TheraNest':
+                        formatInstructions = 'Format for TheraNest EHR. Use structured SOAP-like format with clear section headers.';
+                        break;
+                    case 'Jane':
+                        formatInstructions = 'Format for Jane App EHR. Use template-style format with labeled fields for easy copy-paste.';
+                        break;
+                }
+            }
+            
+            const systemPrompt = `You are a clinical documentation assistant for licensed mental health professionals.
+
+CRITICAL RULES:
+1. Convert any full names to initials only (e.g., "Sarah Johnson" becomes "S.J.", "my husband Mike" becomes "client's spouse M.")
+2. Remove specific addresses, phone numbers, dates of birth, Social Security numbers
+3. Remove or generalize employer names, school names, or other identifying details (e.g., "Google" becomes "client's workplace")
+4. Use clinical language appropriate for medical records
+5. Be specific about clinical observations but vague about identifying details
+6. Never fabricate information not provided by the therapist
+7. Output should be subpoena-safe - clinically accurate but protecting client privacy
+8. Keep notes concise and professional
+
+${formatInstructions}`;
+
+            let userPrompt = `Generate a progress note for the following session:
+
+CLIENT: ${session.initials}
+DATE: ${session.date}
+DURATION: ${session.duration} minutes`;
+
+            if (includeDx && session.diagnosis) {
+                userPrompt += `\nDIAGNOSIS: ${session.diagnosis}`;
+            }
+
+            userPrompt += `
+
+THERAPIST'S NOTES:
+${session.notes}
+
+Generate a professional clinical note based on this information. Only include information provided - do not fabricate details.`;
+
+            return { system: systemPrompt, user: userPrompt };
+        }
+
+        async function callAI(provider, apiKey, model, prompt) {
+            const config = PROVIDERS[provider];
+            
+            if (provider === 'openai' || provider === 'grok') {
+                const response = await fetch(config.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: prompt.system },
+                            { role: 'user', content: prompt.user }
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 1500
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'API request failed');
+                }
+                
+                const data = await response.json();
+                return data.choices[0].message.content;
+                
+            } else if (provider === 'gemini') {
+                const response = await fetch(`${config.url}${model}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: `${prompt.system}\n\n${prompt.user}` }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.3,
+                            maxOutputTokens: 1500
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'API request failed');
+                }
+                
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+                
+            } else if (provider === 'claude') {
+                const response = await fetch(config.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        max_tokens: 1500,
+                        system: prompt.system,
+                        messages: [{ role: 'user', content: prompt.user }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error?.message || 'API request failed');
+                }
+                
+                const data = await response.json();
+                return data.content[0].text;
+            }
+        }
+
+        // ============ OUTPUT FUNCTIONS ============
+        function renderOutput() {
+            const container = document.getElementById('output-cards');
+            
+            container.innerHTML = generatedNotes.map((note, index) => `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden fade-in">
+                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                        <div class="font-medium text-gray-900">${note.session.initials} - ${formatDate(note.session.date)}</div>
+                        <div class="flex gap-2">
+                            <button onclick="copyNote(${index})" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-1">
+                                <i class="fa-solid fa-copy"></i>
+                                Copy
+                            </button>
+                            <button onclick="regenerateNote(${index})" class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-amber-50 border-b border-amber-200 px-5 py-2 no-print">
+                        <p class="text-xs text-amber-800 flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            AI-generated draft. Review before using.
+                        </p>
+                    </div>
+                    
+                    <div class="p-5">
+                        <div id="note-content-${index}" contenteditable="true" 
+                             class="output-area bg-gray-50 rounded-lg p-4 border border-gray-200 focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none text-sm text-gray-800 leading-relaxed whitespace-pre-wrap"
+                             oninput="updateNoteContent(${index}, this.innerText)">${escapeHtml(note.content)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateNoteContent(index, content) {
+            if (generatedNotes[index]) {
+                generatedNotes[index].content = content;
+            }
+        }
+
+        function copyNote(index) {
+            const content = generatedNotes[index].content;
+            navigator.clipboard.writeText(content).then(() => {
+                const btns = document.querySelectorAll(`#output-cards > div:nth-child(${index + 1}) button`);
+                const copyBtn = btns[0];
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                setTimeout(() => copyBtn.innerHTML = originalHTML, 2000);
+            });
+        }
+
+        function copyAllNotes() {
+            const allContent = generatedNotes.map(note => 
+                `=== ${note.session.initials} - ${formatDate(note.session.date)} ===\n\n${note.content}`
+            ).join('\n\n---\n\n');
+            
+            navigator.clipboard.writeText(allContent).then(() => {
+                const btn = document.querySelector('#output-section button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied All!';
+                setTimeout(() => btn.innerHTML = originalHTML, 2000);
+            });
+        }
+
+        async function regenerateNote(index) {
+            const session = generatedNotes[index].session;
+            const noteEl = document.getElementById(`note-content-${index}`);
+            
+            noteEl.innerHTML = '<div class="text-gray-500 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Regenerating...</div>';
+            
+            try {
+                const newContent = await generateSingleNote(session);
+                generatedNotes[index].content = newContent;
+                noteEl.innerText = newContent;
+            } catch (error) {
+                noteEl.innerText = generatedNotes[index].content;
+                alert('Error regenerating note: ' + error.message);
+            }
+        }
+
+        function clearOutput() {
+            document.getElementById('output-section').classList.add('hidden');
+            generatedNotes = [];
+        }
+
+        // ============ KEYBOARD SHORTCUTS ============
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (!document.getElementById('main-app').classList.contains('hidden')) {
+                    generateAllNotes();
+                }
+            }
+        });
+
+        document.addEventListener('change', (e) => {
+            if (['model-selection', 'format-type', 'format-selection', 'include-diagnosis'].includes(e.target.id)) {
+                saveSettings();
+                if (e.target.id === 'include-diagnosis') {
+                    renderSessions();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

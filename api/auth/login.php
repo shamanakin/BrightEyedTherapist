@@ -53,15 +53,7 @@ try {
         ['id' => $user['id']]
     );
     
-    // Get subscription
-    $subscription = $db->fetchOne(
-        "SELECT status, plan_name, trial_end, current_period_end, cancel_at_period_end 
-         FROM subscriptions 
-         WHERE user_id = :user_id 
-         ORDER BY created_at DESC 
-         LIMIT 1",
-        ['user_id' => $user['id']]
-    );
+    $subscription = Utils::fetchLatestSubscriptionRow($db, $user['id']);
     
     // Generate JWT token
     $token = Utils::generateJWT($user['id']);
@@ -86,7 +78,7 @@ try {
             'lastName' => $user['last_name'],
             'emailVerified' => (bool)$user['email_verified'],
             'isAdmin' => Utils::isAdminEmail($user['email']),
-            'subscription' => $subscription ?: null
+            'subscription' => Utils::formatSubscriptionForClient($subscription)
         ]
     ]);
     

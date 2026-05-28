@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
     <script src="../auth.js"></script>
+    <script src="app-registry.js"></script>
     <style>
         body { background: #F3F4F6; }
         .admin-header { 
@@ -25,6 +26,8 @@
         .admin-header h1 { color: white; margin: 0; font-size: 1.5rem; }
         .admin-header a { color: rgba(255,255,255,0.8); text-decoration: none; }
         .admin-header a:hover { color: white; }
+        .admin-nav { display: flex; align-items: center; gap: 1.5rem; }
+        .admin-nav a { font-size: 0.9rem; color: rgba(255,255,255,0.9); text-decoration: none; }
         
         .back-link {
             display: inline-flex;
@@ -106,9 +109,14 @@
         .badge-trial { background: #DBEAFE; color: #1E40AF; }
         .badge-expired { background: #FEE2E2; color: #991B1B; }
         .badge-canceled { background: #FEF3C7; color: #92400E; }
+        .badge-canceling { background: #FFEDD5; color: #9A3412; }
         .badge-none { background: #F3F4F6; color: #6B7280; }
         .badge-lifetime { background: #E0E7FF; color: #3730A3; }
         .badge-promo { background: #FEF3C7; color: #92400E; }
+        .badge-free { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+        .badge-sent { background: #D1FAE5; color: #065F46; }
+        .badge-failed { background: #FEE2E2; color: #991B1B; }
+        .badge-bounced { background: #FEF3C7; color: #92400E; }
         
         .data-table {
             background: white;
@@ -129,10 +137,7 @@
             gap: 0.5rem;
         }
         .data-table h3 i { color: var(--col-primary); }
-        .data-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .data-table table { width: 100%; border-collapse: collapse; }
         .data-table th {
             background: #F9FAFB;
             padding: 0.75rem 1rem;
@@ -148,31 +153,14 @@
             font-size: 0.9rem;
         }
         .data-table tr:hover { background: #F9FAFB; }
-        .empty-state {
-            padding: 2rem;
-            text-align: center;
-            color: var(--col-text-muted);
-        }
+        .empty-state { padding: 2rem; text-align: center; color: var(--col-text-muted); }
         
-        .stripe-link {
-            color: #635BFF;
-            text-decoration: none;
-            font-weight: 500;
-        }
+        .stripe-link { color: #635BFF; text-decoration: none; font-weight: 500; }
         .stripe-link:hover { text-decoration: underline; }
         
-        .loading {
-            text-align: center;
-            padding: 4rem;
-            color: var(--col-text-muted);
-        }
-        .error {
-            text-align: center;
-            padding: 4rem;
-            color: #991B1B;
-        }
+        .loading { text-align: center; padding: 4rem; color: var(--col-text-muted); }
+        .error { text-align: center; padding: 4rem; color: #991B1B; }
         
-        /* Admin action buttons */
         .action-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -197,52 +185,38 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .btn-extend {
-            background: #DBEAFE;
-            color: #1E40AF;
-            border-color: #93C5FD;
+        .btn-extend { background: #DBEAFE; color: #1E40AF; border-color: #93C5FD; }
+        .btn-lifetime { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
+        .btn-year { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
+        .btn-cancel { background: #FED7AA; color: #9A3412; border-color: #FDBA74; }
+        .btn-delete { background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; }
+        .btn-verify { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
+        .btn-resend { background: #DBEAFE; color: #1E40AF; border-color: #93C5FD; }
+        .verify-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--col-text-muted);
+            font-size: 0.85rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            transition: all 0.15s;
+            margin-left: 0.5rem;
         }
-        .btn-lifetime {
-            background: #D1FAE5;
-            color: #065F46;
-            border-color: #6EE7B7;
-        }
-        .btn-year {
-            background: #FEF3C7;
-            color: #92400E;
-            border-color: #FCD34D;
-        }
-        .btn-cancel {
-            background: #FED7AA;
-            color: #9A3412;
-            border-color: #FDBA74;
-        }
-        .btn-delete {
-            background: #FEE2E2;
-            color: #991B1B;
-            border-color: #FCA5A5;
-        }
-        .btn-verify {
-            background: #D1FAE5;
-            color: #065F46;
-            border-color: #6EE7B7;
-        }
-        .btn-resend {
-            background: #DBEAFE;
-            color: #1E40AF;
-            border-color: #93C5FD;
-        }
-        .verify-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
+        .copy-btn:hover { background: #EEF2FF; color: var(--col-primary); }
     </style>
 </head>
 <body>
     <div class="admin-header">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
             <h1><i class="fa-solid fa-user"></i> User Detail</h1>
+            <div class="admin-nav">
+                <a href="index.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="feedback.html"><i class="fa-solid fa-comments"></i> Feedback</a>
+                <a href="../account.html"><i class="fa-solid fa-arrow-left"></i> Back to Site</a>
+            </div>
         </div>
     </div>
 
@@ -261,9 +235,16 @@
 
     <script>
         const ADMIN_API_BASE = '/api/admin';
+        let currentUser = null;
+        
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
         
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check if user is logged in
             const token = Auth.getToken();
             if (!token) {
                 showUnauthorized('You must be logged in to access the admin dashboard.');
@@ -286,7 +267,7 @@
                 <div style="text-align: center; padding: 4rem 2rem;">
                     <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--col-text-muted); margin-bottom: 1rem;"></i>
                     <h2 style="margin-bottom: 1rem;">Access Denied</h2>
-                    <p style="color: var(--col-text-muted); margin-bottom: 2rem;">${message}</p>
+                    <p style="color: var(--col-text-muted); margin-bottom: 2rem;">${escapeHtml(message)}</p>
                     <a href="../login.html" class="btn btn-primary">Sign In</a>
                 </div>
             `;
@@ -295,29 +276,18 @@
         async function loadUserDetail(userId) {
             try {
                 const token = Auth.getToken();
-                const response = await fetch(`${ADMIN_API_BASE}/user.php?id=${userId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                const response = await fetch(`${ADMIN_API_BASE}/user.php?id=${encodeURIComponent(userId)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (response.status === 403) {
-                    showUnauthorized('Your account does not have admin privileges.');
-                    return;
-                }
-                
-                if (response.status === 401) {
-                    showUnauthorized('Your session has expired. Please sign in again.');
-                    return;
-                }
+                if (response.status === 403) { showUnauthorized('Your account does not have admin privileges.'); return; }
+                if (response.status === 401) { showUnauthorized('Your session has expired. Please sign in again.'); return; }
+                if (!response.ok) throw new Error(`Status ${response.status}`);
                 
                 const data = await response.json();
+                if (!data.success) { showError(data.error || 'Failed to load user'); return; }
                 
-                if (!data.success) {
-                    showError(data.error || 'Failed to load user');
-                    return;
-                }
-                
+                currentUser = data.user;
                 renderUserDetail(data);
             } catch (error) {
                 console.error('Error loading user:', error);
@@ -329,110 +299,124 @@
             document.getElementById('content').innerHTML = `
                 <div class="error">
                     <i class="fa-solid fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                    <p>${message}</p>
+                    <p>${escapeHtml(message)}</p>
                     <a href="index.html" class="btn" style="margin-top: 1rem;">Return to Dashboard</a>
                 </div>
             `;
         }
         
         function renderUserDetail(data) {
-            const { user, subscription, subscription_flags, payments, app_usage, stats } = data;
+            const { user, subscription, subscription_flags, payments, app_usage, email_logs, stats } = data;
             
-            const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || user.email[0].toUpperCase();
-            const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'No Name';
+            const initials = escapeHtml(((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || user.email[0].toUpperCase());
+            const fullName = escapeHtml(`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'No Name');
+            const safeEmail = escapeHtml(user.email);
             
-            // Format dates
+            document.title = `${fullName} - Admin Dashboard`;
+            
             const createdAt = new Date(user.created_at).toLocaleString();
             const updatedAt = user.updated_at ? new Date(user.updated_at).toLocaleString() : 'N/A';
             const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString() : 'Never';
             
-            // Helper function to calculate days remaining
             function calculateDaysRemaining(endDate) {
                 if (!endDate) return null;
                 const end = new Date(endDate);
-                const now = new Date();
-                const diff = end - now;
+                const diff = end - new Date();
                 return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
             }
             
-            // Plan name mapping
-            const planName = subscription?.plan_name === 'early_access' ? 'Early Access Beta' 
-                           : subscription?.plan_name === 'vip' ? 'VIP Tier' 
-                           : subscription?.plan_name === 'trial' ? 'Free Trial'
-                           : subscription?.plan_name === '1_year_promo' ? '1 Year Promo'
-                           : subscription?.plan_name === 'lifetime' ? 'Lifetime Access'
-                           : subscription?.plan_name || 'None';
+            const planNames = {
+                'free': 'Free Plan', 'founding_member': 'Founding Member',
+                'early_access': 'Early Access Beta', 'vip': 'VIP Tier',
+                'trial': 'Free Trial', '1_year_promo': '1 Year Promo', 'lifetime': 'Lifetime Access'
+            };
+            const planName = escapeHtml(
+                subscription?.plan_display
+                || planNames[subscription?.plan_name]
+                || subscription?.plan_name
+                || 'None'
+            );
             
-            // Subscription status badge and text
             let statusBadge = '<span class="badge badge-none">No Subscription</span>';
             let statusText = 'No active subscription';
             let daysRemaining = null;
             
             if (subscription) {
-                // Special handling for lifetime and promo plans
-                if (subscription.plan_name === 'lifetime') {
+                if (subscription.status === 'free') {
+                    statusBadge = '<span class="badge badge-free">Free</span>';
+                    statusText = 'Free plan - limited access';
+                } else if (subscription.plan_name === 'lifetime') {
                     statusBadge = '<span class="badge badge-lifetime">Lifetime</span>';
-                    const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'Never';
-                    statusText = `Lifetime access (expires ${periodEnd})`;
+                    statusText = 'Lifetime access';
                     daysRemaining = subscription.current_period_end ? calculateDaysRemaining(subscription.current_period_end) : null;
                 } else if (subscription.plan_name === '1_year_promo') {
                     statusBadge = '<span class="badge badge-promo">1 Year Promo</span>';
-                    const trialEnd = subscription.trial_end ? new Date(subscription.trial_end).toLocaleDateString() : 'N/A';
-                    daysRemaining = subscription.trial_end ? calculateDaysRemaining(subscription.trial_end) : null;
-                    statusText = daysRemaining !== null ? `${daysRemaining} days remaining (expires ${trialEnd})` : `Expires ${trialEnd}`;
-                } else if (subscription_flags.is_active) {
-                    statusBadge = '<span class="badge badge-active">Active</span>';
-                    const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'N/A';
+                    const endDate = subscription.current_period_end || subscription.trial_end;
+                    daysRemaining = endDate ? calculateDaysRemaining(endDate) : null;
+                    statusText = daysRemaining !== null ? `${daysRemaining} days remaining` : 'Active';
+                } else if (subscription_flags?.is_cancel_pending) {
+                    statusBadge = '<span class="badge badge-canceling">Canceling</span>';
                     daysRemaining = subscription.current_period_end ? calculateDaysRemaining(subscription.current_period_end) : null;
-                    statusText = daysRemaining !== null ? `Active - ${daysRemaining} days remaining (until ${periodEnd})` : `Active until ${periodEnd}`;
-                } else if (subscription_flags.is_trialing) {
+                    const endLabel = subscription.current_period_end
+                        ? new Date(subscription.current_period_end).toLocaleDateString()
+                        : null;
+                    statusText = endLabel
+                        ? (daysRemaining !== null
+                            ? `Cancels ${endLabel} (${daysRemaining} days left, access until then)`
+                            : `Cancels ${endLabel}`)
+                        : 'Scheduled to cancel at period end';
+                } else if (subscription_flags?.is_active) {
+                    statusBadge = '<span class="badge badge-active">Active</span>';
+                    daysRemaining = subscription.current_period_end ? calculateDaysRemaining(subscription.current_period_end) : null;
+                    statusText = daysRemaining !== null ? `Active - ${daysRemaining} days remaining` : 'Active';
+                } else if (subscription_flags?.is_trialing) {
                     statusBadge = '<span class="badge badge-trial">Trial</span>';
                     daysRemaining = subscription_flags.trial_days_remaining || (subscription.trial_end ? calculateDaysRemaining(subscription.trial_end) : null);
                     statusText = daysRemaining !== null ? `${daysRemaining} days remaining` : 'Trial active';
-                } else if (subscription_flags.is_canceled) {
+                } else if (subscription_flags?.is_canceled) {
                     statusBadge = '<span class="badge badge-canceled">Canceled</span>';
                     statusText = subscription.canceled_at ? `Canceled on ${new Date(subscription.canceled_at).toLocaleDateString()}` : 'Cancels at period end';
-                } else if (subscription_flags.is_expired) {
+                } else if (subscription_flags?.is_expired) {
                     statusBadge = '<span class="badge badge-expired">Expired</span>';
                     statusText = 'Trial or subscription expired';
                 } else {
-                    statusBadge = `<span class="badge badge-none">${subscription.status}</span>`;
-                    statusText = subscription.status;
+                    statusBadge = `<span class="badge badge-none">${escapeHtml(subscription.status)}</span>`;
+                    statusText = escapeHtml(subscription.status);
                 }
             }
             
-            // Stripe links
             const stripeCustomerLink = subscription?.stripe_customer_id 
-                ? `<a href="https://dashboard.stripe.com/customers/${subscription.stripe_customer_id}" target="_blank" class="stripe-link">${subscription.stripe_customer_id}</a>`
+                ? `<a href="https://dashboard.stripe.com/customers/${encodeURIComponent(subscription.stripe_customer_id)}" target="_blank" class="stripe-link">${escapeHtml(subscription.stripe_customer_id)}</a>`
                 : '<span style="color: var(--col-text-muted);">Not set</span>';
             
             const stripeSubLink = subscription?.stripe_subscription_id 
-                ? `<a href="https://dashboard.stripe.com/subscriptions/${subscription.stripe_subscription_id}" target="_blank" class="stripe-link">${subscription.stripe_subscription_id}</a>`
+                ? `<a href="https://dashboard.stripe.com/subscriptions/${encodeURIComponent(subscription.stripe_subscription_id)}" target="_blank" class="stripe-link">${escapeHtml(subscription.stripe_subscription_id)}</a>`
                 : '<span style="color: var(--col-text-muted);">Not set</span>';
             
+            const emailLogsArr = email_logs || [];
+            
             let html = `
-                <!-- User Header -->
                 <div class="user-header">
                     <div class="user-avatar">${initials}</div>
                     <div class="user-meta">
                         <h2>${fullName}</h2>
-                        <p>${user.email}</p>
+                        <p>${safeEmail}
+                            <button class="copy-btn" onclick="copyEmail()" title="Copy email"><i class="fa-solid fa-copy"></i></button>
+                        </p>
                         <p style="margin-top: 0.5rem;">${statusBadge}</p>
                     </div>
                 </div>
                 
-                <!-- Detail Cards -->
                 <div class="detail-grid">
-                    <!-- Profile Info -->
                     <div class="detail-card">
                         <h3><i class="fa-solid fa-user"></i> Profile Information</h3>
                         <div class="detail-row">
                             <span class="detail-label">User ID</span>
-                            <span class="detail-value">#${user.id}</span>
+                            <span class="detail-value">#${parseInt(user.id)}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Email</span>
-                            <span class="detail-value">${user.email}</span>
+                            <span class="detail-value">${safeEmail}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Name</span>
@@ -445,17 +429,15 @@
                             </div>
                             ${!user.email_verified ? `
                             <div class="verify-actions">
-                                <button onclick="manualVerify(${user.id})" class="btn-action btn-verify"><i class="fa-solid fa-check"></i> Manual Verify</button>
-                                <button onclick="resendVerification(${user.id})" class="btn-action btn-resend"><i class="fa-solid fa-envelope"></i> Resend Email</button>
-                            </div>
-                            ` : ''}
+                                <button onclick="manualVerify(${parseInt(user.id)})" class="btn-action btn-verify"><i class="fa-solid fa-check"></i> Manual Verify</button>
+                                <button onclick="resendVerification(${parseInt(user.id)})" class="btn-action btn-resend"><i class="fa-solid fa-envelope"></i> Resend Email</button>
+                            </div>` : ''}
                         </div>
                         ${user.has_verification_token && !user.email_verified ? `
                         <div class="detail-row">
                             <span class="detail-label">Verification Pending</span>
                             <span class="detail-value"><i class="fa-solid fa-exclamation-triangle" style="color: #f59e0b;"></i> Token exists, awaiting click</span>
-                        </div>
-                        ` : ''}
+                        </div>` : ''}
                         <div class="detail-row">
                             <span class="detail-label">Registered</span>
                             <span class="detail-value">${createdAt}</span>
@@ -470,7 +452,6 @@
                         </div>
                     </div>
                     
-                    <!-- Subscription Info -->
                     <div class="detail-card">
                         <h3><i class="fa-solid fa-credit-card"></i> Subscription</h3>
                         <div class="detail-row">
@@ -485,8 +466,7 @@
                         <div class="detail-row">
                             <span class="detail-label">Days Remaining</span>
                             <span class="detail-value"><strong>${daysRemaining}</strong> days</span>
-                        </div>
-                        ` : ''}
+                        </div>` : ''}
                         <div class="detail-row">
                             <span class="detail-label">Amount</span>
                             <span class="detail-value">${subscription?.amount ? '$' + parseFloat(subscription.amount).toFixed(2) + '/' + (subscription.currency || 'usd') : 'N/A'}</span>
@@ -500,27 +480,18 @@
                             <span class="detail-value">${subscription?.trial_end ? new Date(subscription.trial_end).toLocaleString() : 'N/A'}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Current Period Start</span>
+                            <span class="detail-label">Period Start</span>
                             <span class="detail-value">${subscription?.current_period_start ? new Date(subscription.current_period_start).toLocaleString() : 'N/A'}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Current Period End</span>
+                            <span class="detail-label">Period End</span>
                             <span class="detail-value">${subscription?.current_period_end ? new Date(subscription.current_period_end).toLocaleString() : 'N/A'}</span>
                         </div>
                         ${subscription?.cancel_at_period_end ? `
                         <div class="detail-row">
                             <span class="detail-label">Cancel at Period End</span>
-                            <span class="detail-value"><i class="fa-solid fa-exclamation-triangle" style="color: #f59e0b;"></i> Yes (will cancel at period end)</span>
-                        </div>
-                        ` : ''}
-                        <div class="detail-row">
-                            <span class="detail-label">Subscription Created</span>
-                            <span class="detail-value">${subscription?.created_at ? new Date(subscription.created_at).toLocaleString() : 'N/A'}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Subscription Updated</span>
-                            <span class="detail-value">${subscription?.updated_at ? new Date(subscription.updated_at).toLocaleString() : 'N/A'}</span>
-                        </div>
+                            <span class="detail-value"><i class="fa-solid fa-exclamation-triangle" style="color: #f59e0b;"></i> Yes</span>
+                        </div>` : ''}
                         <div class="detail-row">
                             <span class="detail-label">Stripe Customer</span>
                             <span class="detail-value">${stripeCustomerLink}</span>
@@ -532,56 +503,45 @@
                         ${subscription?.stripe_price_id ? `
                         <div class="detail-row">
                             <span class="detail-label">Stripe Price ID</span>
-                            <span class="detail-value"><code style="font-size: 0.85em;">${subscription.stripe_price_id}</code></span>
-                        </div>
-                        ` : ''}
+                            <span class="detail-value"><code style="font-size: 0.85em;">${escapeHtml(subscription.stripe_price_id)}</code></span>
+                        </div>` : ''}
                         
-                        <!-- Admin Action Buttons -->
                         <div class="action-buttons">
-                            <button onclick="extendTrial(${user.id})" class="btn-action btn-extend"><i class="fa-solid fa-clock-rotate-left"></i> Extend Trial</button>
-                            <button onclick="grantLifetime(${user.id})" class="btn-action btn-lifetime"><i class="fa-solid fa-infinity"></i> Grant Lifetime</button>
-                            <button onclick="grantYear(${user.id})" class="btn-action btn-year"><i class="fa-solid fa-calendar-plus"></i> Grant 1 Year</button>
-                            <button onclick="forceCancel(${user.id})" class="btn-action btn-cancel"><i class="fa-solid fa-ban"></i> Force Cancel</button>
-                            <button onclick="deleteUser(${user.id}, '${user.email}')" class="btn-action btn-delete"><i class="fa-solid fa-trash"></i> Delete User</button>
+                            <button onclick="extendTrial(${parseInt(user.id)})" class="btn-action btn-extend"><i class="fa-solid fa-clock-rotate-left"></i> Extend Trial</button>
+                            <button onclick="grantLifetime(${parseInt(user.id)})" class="btn-action btn-lifetime"><i class="fa-solid fa-infinity"></i> Grant Lifetime</button>
+                            <button onclick="grantYear(${parseInt(user.id)})" class="btn-action btn-year"><i class="fa-solid fa-calendar-plus"></i> Grant 1 Year</button>
+                            <button onclick="forceCancel(${parseInt(user.id)})" class="btn-action btn-cancel"><i class="fa-solid fa-ban"></i> Force Cancel</button>
+                            <button onclick="deleteUser()" class="btn-action btn-delete"><i class="fa-solid fa-trash"></i> Delete User</button>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Usage Stats -->
                 <div class="detail-grid">
                     <div class="detail-card">
                         <h3><i class="fa-solid fa-chart-simple"></i> Activity Stats</h3>
                         <div class="detail-row">
                             <span class="detail-label">Total Sessions</span>
-                            <span class="detail-value">${stats.session_count}</span>
+                            <span class="detail-value">${parseInt(stats.session_count)}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Page Views</span>
-                            <span class="detail-value">${stats.page_view_count}</span>
+                            <span class="detail-value">${parseInt(stats.page_view_count)}</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Recent Payments -->
                 <div class="data-table">
                     <h3><i class="fa-solid fa-receipt"></i> Recent Payments</h3>
                     ${payments.length > 0 ? `
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Event</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Date</th><th>Event</th><th>Amount</th><th>Status</th></tr></thead>
                             <tbody>
                                 ${payments.map(p => `
                                     <tr>
                                         <td>${new Date(p.created_at).toLocaleString()}</td>
-                                        <td>${p.event_type || 'N/A'}</td>
+                                        <td>${escapeHtml(p.event_type || 'N/A')}</td>
                                         <td>${p.amount ? '$' + parseFloat(p.amount).toFixed(2) : 'N/A'}</td>
-                                        <td><span class="badge ${p.status === 'succeeded' ? 'badge-active' : 'badge-none'}">${p.status || 'N/A'}</span></td>
+                                        <td><span class="badge ${p.status === 'succeeded' ? 'badge-active' : 'badge-none'}">${escapeHtml(p.status || 'N/A')}</span></td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -589,25 +549,17 @@
                     ` : '<div class="empty-state">No payment events recorded</div>'}
                 </div>
                 
-                <!-- App Usage -->
                 <div class="data-table">
                     <h3><i class="fa-solid fa-mobile-screen"></i> Recent App Usage</h3>
                     ${app_usage.length > 0 ? `
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>App</th>
-                                    <th>Action</th>
-                                    <th>Duration</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Date</th><th>App</th><th>Action</th><th>Duration</th></tr></thead>
                             <tbody>
                                 ${app_usage.map(u => `
                                     <tr>
                                         <td>${new Date(u.created_at).toLocaleString()}</td>
-                                        <td>${formatAppName(u.app_name)}</td>
-                                        <td>${u.action || 'N/A'}</td>
+                                        <td>${escapeHtml(formatAppDisplayName(u.app_name))}</td>
+                                        <td>${escapeHtml(u.action || 'N/A')}</td>
                                         <td>${u.session_duration ? formatDuration(u.session_duration) : 'N/A'}</td>
                                     </tr>
                                 `).join('')}
@@ -615,18 +567,42 @@
                         </table>
                     ` : '<div class="empty-state">No app usage recorded</div>'}
                 </div>
+                
+                <div class="data-table">
+                    <h3><i class="fa-solid fa-envelope"></i> Email Delivery History</h3>
+                    ${emailLogsArr.length > 0 ? `
+                        <table>
+                            <thead><tr><th>Date</th><th>Type</th><th>Subject</th><th>Status</th></tr></thead>
+                            <tbody>
+                                ${emailLogsArr.map(e => `
+                                    <tr>
+                                        <td>${new Date(e.created_at).toLocaleString()}</td>
+                                        <td>${escapeHtml(formatEmailType(e.email_type))}</td>
+                                        <td>${escapeHtml(e.subject || 'N/A')}</td>
+                                        <td><span class="badge badge-${e.status || 'none'}">${escapeHtml(e.status || 'N/A')}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="empty-state">No email logs recorded</div>'}
+                </div>
             `;
             
             document.getElementById('content').innerHTML = html;
         }
         
-        function formatAppName(name) {
-            const names = {
-                'emdr': 'EMDR Suite',
-                'genogram': 'Genogram Genie',
-                'timeline': 'Trauma Timeline'
+        function formatEmailType(type) {
+            const types = {
+                'welcome': 'Welcome',
+                'verification': 'Email Verification',
+                'admin_resend_verification': 'Admin Resend Verification',
+                'password_reset': 'Password Reset',
+                'trial_ending': 'Trial Ending',
+                'trial_ended': 'Trial Ended',
+                'payment_failed': 'Payment Failed',
+                'account_deleted': 'Account Deleted'
             };
-            return names[name] || name || 'Unknown';
+            return types[type] || type || 'Unknown';
         }
         
         function formatDuration(seconds) {
@@ -635,116 +611,103 @@
             return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
         }
         
-        // Admin Action Functions
-        async function adminAction(action, userId, extraData = {}) {
+        async function copyEmail() {
+            if (!currentUser) return;
             try {
-                const response = await Auth.apiRequest('/admin/actions.php', {
-                    method: 'POST',
-                    body: JSON.stringify({ action, user_id: userId, ...extraData })
-                });
-                return response;
-            } catch (error) {
-                throw error;
+                await navigator.clipboard.writeText(currentUser.email);
+                const btn = document.querySelector('.copy-btn');
+                if (btn) {
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    btn.style.color = '#10b981';
+                    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+                }
+            } catch (e) {
+                console.error('Copy failed:', e);
             }
+        }
+        
+        async function adminAction(action, userId, extraData = {}) {
+            const response = await Auth.apiRequest('/admin/actions.php', {
+                method: 'POST',
+                body: JSON.stringify({ action, user_id: userId, ...extraData })
+            });
+            return response;
         }
         
         async function extendTrial(userId) {
             const days = prompt('How many days to extend the trial?', '14');
             if (days === null) return;
-            
             const numDays = parseInt(days);
-            if (isNaN(numDays) || numDays < 1 || numDays > 365) {
-                alert('Please enter a number between 1 and 365');
-                return;
-            }
-            
+            if (isNaN(numDays) || numDays < 1 || numDays > 365) { alert('Please enter a number between 1 and 365'); return; }
             try {
                 const result = await adminAction('extend_trial', userId, { days: numDays });
                 alert(result.message);
                 location.reload();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
         
         async function grantLifetime(userId) {
             if (!confirm('Grant LIFETIME access to this user? This cannot be easily undone.')) return;
-            
             try {
                 const result = await adminAction('grant_lifetime', userId);
                 alert(result.message);
                 location.reload();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
         
         async function grantYear(userId) {
             if (!confirm('Grant 1 YEAR free access to this user?')) return;
-            
             try {
                 const result = await adminAction('grant_year', userId);
                 alert(result.message);
                 location.reload();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
         
         async function forceCancel(userId) {
             if (!confirm('Force cancel this subscription? This will immediately revoke access.')) return;
-            
             try {
                 const result = await adminAction('cancel_subscription', userId);
                 alert(result.message);
                 location.reload();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
         
-        async function deleteUser(userId, email) {
-            const confirmation = prompt(`Type "${email}" to confirm permanent deletion:`);
-            if (confirmation !== email) {
+        async function deleteUser() {
+            if (!currentUser) return;
+            const confirmation = prompt(`Type "${currentUser.email}" to confirm permanent deletion:`);
+            if (confirmation !== currentUser.email) {
                 if (confirmation !== null) alert('Email did not match. Deletion cancelled.');
                 return;
             }
-            
             try {
-                const result = await adminAction('delete_user', userId);
+                const result = await adminAction('delete_user', currentUser.id);
                 alert(result.message);
                 window.location.href = 'index.html';
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
         
         async function manualVerify(userId) {
             if (!confirm('Manually verify this user\'s email? Use this only if email delivery issues prevented normal verification.')) return;
-            
             try {
                 const result = await adminAction('verify_email', userId);
                 alert(result.message);
                 location.reload();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
         
         async function resendVerification(userId) {
             if (!confirm('Resend verification email to this user?')) return;
-            
             try {
                 const result = await adminAction('resend_verification', userId);
-                alert(result.message);
-                if (!result.already_verified) {
-                    alert('Verification email sent! User should check their inbox.');
+                if (result.already_verified) {
+                    alert(result.message);
+                } else {
+                    alert(result.message || 'Verification email sent! User should check their inbox.');
                 }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            } catch (error) { alert('Error: ' + error.message); }
         }
     </script>
 </body>
 </html>
-

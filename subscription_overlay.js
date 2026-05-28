@@ -1,13 +1,27 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for Auth to be available
+    // === LOCALHOST DEV BYPASS ===
+    const isLocalDev = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' || 
+                       window.location.protocol === 'file:';
+    if (isLocalDev) {
+        console.log('[DEV] Subscription overlay bypassed - local dev detected (' + window.location.protocol + ')');
+        return;
+    }
+    // === END DEV BYPASS ===
+
     if (typeof Auth === 'undefined') {
         console.error("Auth module not loaded. Please include auth.js before subscription_overlay.js");
         return;
     }
 
+    // Determine access level required for this tool
+    // Tool pages set window.TOOL_ACCESS_LEVEL = 'free' or 'paid' before this script loads
+    // Default to 'paid' for backward compatibility
+    const requiredLevel = window.TOOL_ACCESS_LEVEL || 'paid';
+
     // Check if user has a token
     if (!Auth.getToken()) {
-        createOverlay('not_signed_in');
+        createOverlay('not_signed_in', requiredLevel);
         return;
     }
 
@@ -15,164 +29,129 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = await Auth.getCurrentUser();
     
     if (!user) {
-        createOverlay('not_signed_in');
+        createOverlay('not_signed_in', requiredLevel);
         return;
     }
 
-    // Check access based on subscription
-    if (!Auth.checkAccess()) {
-        createOverlay('no_access');
+    // Check access based on required level
+    if (requiredLevel === 'free') {
+        // Free tools only require being logged in
+        if (!Auth.checkFreeAccess()) {
+            createOverlay('not_signed_in', requiredLevel);
+        }
+    } else if (requiredLevel === 'founding') {
+        if (!Auth.checkFoundingAccess()) {
+            createOverlay('upgrade_required', requiredLevel);
+        }
+    } else {
+        // Paid tools require active subscription
+        if (!Auth.checkPaidAccess()) {
+            createOverlay('upgrade_required', requiredLevel);
+        }
     }
 });
 
-function createOverlay(reason = 'no_access') {
-    // Create overlay container
+function createOverlay(reason, requiredLevel) {
     const overlay = document.createElement('div');
     overlay.id = 'subscription-overlay';
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.width = '100%';
-    overlay.style.height = '100%';
-    overlay.style.backgroundColor = 'rgba(31, 41, 55, 0.85)';
-    overlay.style.zIndex = '9999';
-    overlay.style.display = 'flex';
-    overlay.style.justifyContent = 'center';
-    overlay.style.alignItems = 'center';
-    overlay.style.backdropFilter = 'blur(8px)';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(31,41,55,0.85);z-index:9999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(8px);';
 
-    // Create modal content
     const modal = document.createElement('div');
-    modal.style.backgroundColor = '#fff';
-    modal.style.padding = '2.5rem';
-    modal.style.borderRadius = '16px';
-    modal.style.maxWidth = '450px';
-    modal.style.textAlign = 'center';
-    modal.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
-    modal.style.fontFamily = "'Inter', sans-serif";
+    modal.style.cssText = "background:#fff;padding:2.5rem;border-radius:16px;max-width:450px;text-align:center;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);font-family:'Inter',sans-serif;margin:1rem;";
 
-    // Icon
     const icon = document.createElement('i');
-    icon.className = 'fa-solid fa-lock';
-    icon.style.fontSize = '3rem';
-    icon.style.color = '#2C5558';
-    icon.style.marginBottom = '1.5rem';
-    icon.style.display = 'block';
+    icon.style.cssText = 'font-size:3rem;color:#2C5558;margin-bottom:1.5rem;display:block;';
 
-    // Content based on reason
     const title = document.createElement('h2');
-    title.style.fontSize = '1.8rem';
-    title.style.fontWeight = '700';
-    title.style.color = '#1f2937';
-    title.style.marginBottom = '1rem';
-    title.style.fontFamily = "'Playfair Display', serif";
+    title.style.cssText = "font-size:1.8rem;font-weight:700;color:#1f2937;margin-bottom:1rem;font-family:'Playfair Display',serif;";
 
     const message = document.createElement('p');
-    message.style.color = '#6b7280';
-    message.style.marginBottom = '2rem';
-    message.style.lineHeight = '1.6';
+    message.style.cssText = 'color:#6b7280;margin-bottom:2rem;line-height:1.6;';
 
-    if (reason === 'not_signed_in') {
-        title.textContent = 'Professional Tools Locked';
-        message.textContent = 'You need to be signed in to access the clinical apps suite.';
-    } else {
-        title.textContent = 'Subscription Required';
-        message.textContent = 'Your trial has ended or you don\'t have an active subscription. Subscribe now to continue using this tool and get early access to all future updates.';
-    }
-
-    // Buttons
     const buttonContainer = document.createElement('div');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.flexDirection = 'column';
-    buttonContainer.style.gap = '1rem';
+    buttonContainer.style.cssText = 'display:flex;flex-direction:column;gap:1rem;';
 
     if (reason === 'not_signed_in') {
-        const signInBtn = document.createElement('a');
-        signInBtn.href = 'login.html';
-        signInBtn.textContent = 'Sign In';
-        signInBtn.className = 'btn btn-beam';
-        signInBtn.style.display = 'inline-block';
-        signInBtn.style.backgroundColor = '#2C5558';
-        signInBtn.style.color = '#fff';
-        signInBtn.style.padding = '0.75rem 1.5rem';
-        signInBtn.style.borderRadius = '9999px';
-        signInBtn.style.textDecoration = 'none';
-        signInBtn.style.fontWeight = '600';
-        signInBtn.style.transition = 'background-color 0.2s';
-        
+        icon.className = 'fa-solid fa-lock';
+        title.textContent = 'Sign In Required';
+        message.textContent = 'Create a free account to access this tool. No credit card required.';
+
+        const signInBtn = createButton('Sign In', 'login.html');
         const signUpText = document.createElement('p');
-        signUpText.style.fontSize = '0.9rem';
-        signUpText.style.color = '#6b7280';
-        signUpText.innerHTML = 'Don\'t have an account? <a href="register.html" style="color: #2C5558; font-weight: 600; text-decoration: none;">Sign Up</a>';
+        signUpText.style.cssText = 'font-size:0.9rem;color:#6b7280;';
+        signUpText.innerHTML = 'No account? <a href="register.html" style="color:#2C5558;font-weight:600;text-decoration:none;">Create one free</a>';
         
         buttonContainer.appendChild(signInBtn);
         buttonContainer.appendChild(signUpText);
-    } else {
-        const subscribeBtn = document.createElement('a');
-        subscribeBtn.href = 'dashboard.html';
-        subscribeBtn.textContent = 'Start $10/mo Plan';
-        subscribeBtn.onclick = async (e) => {
+
+    } else if (reason === 'upgrade_required') {
+        icon.className = 'fa-solid fa-sparkles';
+        title.textContent = 'Founding Member Tool';
+        message.innerHTML = 'This tool is included with the Founding Member plan at <strong>$5/month</strong> — price locked in forever.<br><br>Your free EMDR access continues regardless.';
+        const helperText = document.createElement('p');
+        helperText.style.cssText = 'font-size:0.9rem;color:#6b7280;line-height:1.5;';
+
+        const upgradeBtn = document.createElement('a');
+        upgradeBtn.textContent = 'Become a Founding Member — $5/mo';
+        upgradeBtn.href = '#';
+        upgradeBtn.style.cssText = 'display:inline-block;background-color:#2C5558;color:#fff;padding:0.75rem 1.5rem;border-radius:9999px;text-decoration:none;font-weight:600;transition:background-color 0.2s;cursor:pointer;';
+        upgradeBtn.onclick = async (e) => {
             e.preventDefault();
-            const originalText = subscribeBtn.textContent;
-            subscribeBtn.textContent = 'Loading...';
-            subscribeBtn.style.pointerEvents = 'none';
-            
+            upgradeBtn.textContent = 'Loading...';
+            upgradeBtn.style.pointerEvents = 'none';
             try {
-                await Auth.createCheckoutSession('early_access');
+                await Auth.createCheckoutSession('founding_member');
             } catch (error) {
                 console.error('Checkout error:', error);
-                subscribeBtn.textContent = originalText;
-                subscribeBtn.style.pointerEvents = 'auto';
-                
-                // Show user-friendly error
-                let errorMsg = 'Unable to start checkout. ';
-                if (error.message.includes('SDK_MISSING') || error.message.includes('not configured')) {
-                    errorMsg += 'The payment system is being set up. Please try again later or contact support.';
-                } else {
-                    errorMsg += 'Please try again. If the problem persists, contact support.';
+                upgradeBtn.style.pointerEvents = 'auto';
+                const errorMessage = (error && error.message ? error.message : '').toLowerCase();
+
+                if (errorMessage.includes('verify your email')) {
+                    upgradeBtn.textContent = 'Verify email before checkout';
+                    helperText.innerHTML = 'Please verify your email first. You can do that from <a href="account.html" style="color:#2C5558;font-weight:600;text-decoration:none;">My Account</a> or from the verification email we sent you.';
+                    return;
                 }
-                alert(errorMsg);
+
+                if (errorMessage.includes('payment system') || errorMessage.includes('price_not_set') || errorMessage.includes('sdk_')) {
+                    upgradeBtn.textContent = 'Checkout unavailable right now';
+                    helperText.textContent = 'Checkout is temporarily unavailable. Please try again shortly or contact support if it continues.';
+                    return;
+                }
+
+                upgradeBtn.textContent = 'Checkout failed — please try again';
+                helperText.textContent = error.message || 'Checkout failed. Please try again.';
+                setTimeout(() => {
+                    upgradeBtn.textContent = 'Become a Founding Member — $5/mo';
+                    helperText.textContent = '';
+                }, 4000);
             }
         };
-        subscribeBtn.style.display = 'inline-block';
-        subscribeBtn.style.backgroundColor = '#2C5558';
-        subscribeBtn.style.color = '#fff';
-        subscribeBtn.style.padding = '0.75rem 1.5rem';
-        subscribeBtn.style.borderRadius = '9999px';
-        subscribeBtn.style.textDecoration = 'none';
-        subscribeBtn.style.fontWeight = '600';
-        subscribeBtn.style.transition = 'background-color 0.2s';
-        subscribeBtn.style.cursor = 'pointer';
-        
-        const dashboardLink = document.createElement('a');
-        dashboardLink.href = 'dashboard.html';
-        dashboardLink.textContent = 'Return to Dashboard';
-        dashboardLink.style.display = 'block';
-        dashboardLink.style.color = '#6b7280';
-        dashboardLink.style.fontSize = '0.9rem';
-        dashboardLink.style.textDecoration = 'none';
-        dashboardLink.onmouseover = () => dashboardLink.style.color = '#1f2937';
-        dashboardLink.onmouseout = () => dashboardLink.style.color = '#6b7280';
-        
-        buttonContainer.appendChild(subscribeBtn);
-        buttonContainer.appendChild(dashboardLink);
+
+        const dashLink = document.createElement('a');
+        dashLink.href = 'dashboard.html';
+        dashLink.textContent = 'Back to Dashboard';
+        dashLink.style.cssText = 'display:block;color:#6b7280;font-size:0.9rem;text-decoration:none;';
+        dashLink.onmouseover = () => dashLink.style.color = '#1f2937';
+        dashLink.onmouseout = () => dashLink.style.color = '#6b7280';
+
+        buttonContainer.appendChild(upgradeBtn);
+        buttonContainer.appendChild(helperText);
+        buttonContainer.appendChild(dashLink);
     }
 
-    // Assemble
     modal.appendChild(icon);
     modal.appendChild(title);
     modal.appendChild(message);
     modal.appendChild(buttonContainer);
     overlay.appendChild(modal);
-
-    // Append to body
     document.body.appendChild(overlay);
-
-    // Disable scrolling on body
     document.body.style.overflow = 'hidden';
 }
 
-
-
-
-
+function createButton(text, href) {
+    const btn = document.createElement('a');
+    btn.href = href;
+    btn.textContent = text;
+    btn.style.cssText = 'display:inline-block;background-color:#2C5558;color:#fff;padding:0.75rem 1.5rem;border-radius:9999px;text-decoration:none;font-weight:600;transition:background-color 0.2s;';
+    return btn;
+}

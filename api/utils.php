@@ -36,10 +36,18 @@ class Utils {
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
         header('Access-Control-Allow-Credentials: true');
+        // Required so proxies/CDNs don't serve a cached CORS header for the wrong origin
+        header('Vary: Origin');
         
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             http_response_code(200);
             exit;
+        }
+
+        // Probabilistic background cleanup (1% of requests) to keep sessions and rate_limits tables lean
+        if (mt_rand(1, 100) === 1) {
+            self::cleanupExpiredSessions();
+            self::cleanupRateLimits(24);
         }
     }
     
@@ -101,6 +109,24 @@ class Utils {
         
         return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
     }
+
+    /**
+     * Normalize bearer token extraction across hosting environments
+     */
+    public static function getBearerToken() {
+        $headers = function_exists('getallheaders') ? getallheaders() : [];
+
+        $authHeader = $headers['Authorization']
+            ?? $headers['authorization']
+            ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? null)
+            ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+
+        if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+            return null;
+        }
+
+        return trim($matches[1]);
+    }
     
     /**
      * Verify JWT token
@@ -116,7 +142,7 @@ class Utils {
         $validSignature = hash_hmac('sha256', $header . "." . $payload, JWT_SECRET, true);
         $validSignature = self::base64UrlEncode($validSignature);
         
-        if ($signature !== $validSignature) {
+        if (!hash_equals($validSignature, $signature)) {
             return false;
         }
         
@@ -128,29 +154,74 @@ class Utils {
         
         return $payload;
     }
+
+    /**
+     * Check that the presented token still has a live session row.
+     */
+    public static function verifySessionToken($userId, $token) {
+        try {
+            $db = Database::getInstance();
+            $tokenHash = hash('sha256', $token);
+
+            $session = $db->fetchOne(
+                "SELECT id
+                 FROM sessions
+                 WHERE user_id = :user_id
+                   AND token_hash = :token_hash
+                   AND expires_at > NOW()
+                 LIMIT 1",
+                [
+                    'user_id' => $userId,
+                    'token_hash' => $tokenHash
+                ]
+            );
+
+            return (bool)$session;
+        } catch (Exception $e) {
+            error_log("Session verification failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Revoke the currently presented token.
+     */
+    public static function revokeCurrentSession($userId) {
+        $token = self::getBearerToken();
+        if (!$token) {
+            return;
+        }
+
+        try {
+            $db = Database::getInstance();
+            $db->query(
+                "DELETE FROM sessions WHERE user_id = :user_id AND token_hash = :token_hash",
+                [
+                    'user_id' => $userId,
+                    'token_hash' => hash('sha256', $token)
+                ]
+            );
+        } catch (Exception $e) {
+            error_log("Session revocation failed: " . $e->getMessage());
+        }
+    }
     
     /**
      * Get current user from JWT
      */
-    public static function getCurrentUser() {
-        // Some hosting environments do not expose the Authorization header
-        // consistently via getallheaders(), so we normalize a few options.
-        $headers = function_exists('getallheaders') ? getallheaders() : [];
-
-        // Try common locations for the bearer token
-        $authHeader = $headers['Authorization']
-            ?? $headers['authorization']
-            ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? null)
-            ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
-        
-        if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+    public static function getCurrentUser($fallbackToken = null) {
+        $token = self::getBearerToken() ?: $fallbackToken;
+        if (!$token) {
             return null;
         }
-        
-        $token = $matches[1];
+
         $payload = self::verifyJWT($token);
         
-        if (!$payload) {
+        if (!$payload || empty($payload['user_id'])) {
+            return null;
+        }
+
+        if (!self::verifySessionToken($payload['user_id'], $token)) {
             return null;
         }
         
@@ -160,8 +231,8 @@ class Utils {
     /**
      * Require authentication
      */
-    public static function requireAuth() {
-        $userId = self::getCurrentUser();
+    public static function requireAuth($fallbackToken = null) {
+        $userId = self::getCurrentUser($fallbackToken);
         if (!$userId) {
             self::errorResponse('Unauthorized', 401);
         }
@@ -313,7 +384,7 @@ class Utils {
     /**
      * Log analytics event
      */
-    public static function logPageView($userId, $pagePath) {
+    public static function logPageView($userId, $pagePath, $clientReferrer = null) {
         try {
             $db = Database::getInstance();
             $sessionId = session_id() ?: self::generateToken(16);
@@ -322,7 +393,7 @@ class Utils {
                 'user_id' => $userId,
                 'session_id' => $sessionId,
                 'page_path' => $pagePath,
-                'referrer' => $_SERVER['HTTP_REFERER'] ?? null,
+                'referrer' => $clientReferrer ?: ($_SERVER['HTTP_REFERER'] ?? null),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null
             ]);
@@ -411,6 +482,18 @@ class Utils {
     }
     
     /**
+     * Delete expired session rows (keeps the sessions table lean)
+     */
+    public static function cleanupExpiredSessions() {
+        try {
+            $db = Database::getInstance();
+            $db->query("DELETE FROM sessions WHERE expires_at < NOW()");
+        } catch (Exception $e) {
+            error_log("Session cleanup failed: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Cleanup old rate limit entries (run periodically)
      */
     public static function cleanupRateLimits($olderThanHours = 24) {
@@ -421,6 +504,196 @@ class Utils {
         } catch (Exception $e) {
             error_log("Rate limit cleanup failed: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Latest subscription row for a user (includes internal id for scoped updates).
+     */
+    public static function fetchLatestSubscriptionRow($db, $userId) {
+        return $db->fetchOne(
+            "SELECT id, status, plan_name, trial_start, trial_end, current_period_start,
+                    current_period_end, cancel_at_period_end, amount, currency, canceled_at,
+                    stripe_subscription_id, stripe_price_id
+             FROM subscriptions
+             WHERE user_id = :user_id
+             ORDER BY created_at DESC
+             LIMIT 1",
+            ['user_id' => $userId]
+        );
+    }
+
+    /**
+     * Map Stripe price ID to internal plan_name (uses config constants).
+     */
+    public static function planNameFromStripePriceId($priceId) {
+        if (!$priceId) {
+            return null;
+        }
+        $map = [];
+        if (defined('STRIPE_PRICE_FOUNDING_MEMBER')) {
+            $map[STRIPE_PRICE_FOUNDING_MEMBER] = 'founding_member';
+        }
+        if (defined('STRIPE_PRICE_EARLY_ACCESS')) {
+            $map[STRIPE_PRICE_EARLY_ACCESS] = 'early_access';
+        }
+        if (defined('STRIPE_PRICE_VIP')) {
+            $map[STRIPE_PRICE_VIP] = 'vip';
+        }
+        return $map[$priceId] ?? null;
+    }
+
+    /**
+     * Never wipe plan_name on Stripe sync — metadata may omit plan_type.
+     */
+    public static function resolveSubscriptionPlanName($incomingPlan, $existingRow, $stripePriceId = null) {
+        if (!empty($incomingPlan)) {
+            return $incomingPlan;
+        }
+        if (!empty($existingRow['plan_name'])) {
+            return $existingRow['plan_name'];
+        }
+        $fromPrice = self::planNameFromStripePriceId($stripePriceId);
+        if ($fromPrice) {
+            return $fromPrice;
+        }
+        return null;
+    }
+
+    /**
+     * Human-readable plan label for admin UI and exports.
+     */
+    public static function getPlanDisplayLabel($planName, $status = null) {
+        $labels = [
+            'free' => 'Free Plan',
+            'founding_member' => 'Founding Member',
+            'early_access' => 'Early Access',
+            'vip' => 'VIP',
+            'trial' => 'Free Trial',
+            '1_year_promo' => '1 Year Promo',
+            'lifetime' => 'Lifetime Access',
+        ];
+
+        if (empty($planName)) {
+            if ($status === 'trialing') {
+                return 'Trial (plan pending)';
+            }
+            if ($status === 'free') {
+                return 'Free Plan';
+            }
+            return 'None';
+        }
+
+        $label = $labels[$planName] ?? ucwords(str_replace('_', ' ', $planName));
+        if ($status === 'trialing' && $planName !== 'trial') {
+            return $label . ' (Trial)';
+        }
+        return $label;
+    }
+
+    /**
+     * True when Stripe cancel_at_period_end is set but access continues until period end.
+     */
+    public static function isCancelAtPeriodEndPending($subscription) {
+        if (!$subscription) {
+            return false;
+        }
+        $cancelRaw = $subscription['cancel_at_period_end'] ?? 0;
+        $pending = ($cancelRaw === true || $cancelRaw === 1 || $cancelRaw === '1');
+        if (!$pending) {
+            return false;
+        }
+        $status = $subscription['status'] ?? '';
+        return in_array($status, ['active', 'trialing'], true);
+    }
+
+    /**
+     * Subscription flags for admin list/detail (single source of truth).
+     */
+    public static function buildSubscriptionFlags($subscription) {
+        if (!$subscription || empty($subscription['status'])) {
+            return [];
+        }
+
+        $status = $subscription['status'];
+        $cancelPending = self::isCancelAtPeriodEndPending($subscription);
+        $flags = [
+            'is_active' => $status === 'active' && !$cancelPending,
+            'is_trialing' => $status === 'trialing' && !$cancelPending,
+            'is_cancel_pending' => $cancelPending,
+            'is_canceled' => $status === 'canceled',
+            'is_expired' => $status === 'incomplete_expired',
+            'is_free' => $status === 'free',
+        ];
+
+        if ($status === 'trialing' && !empty($subscription['trial_end'])) {
+            $trialEnd = strtotime($subscription['trial_end']);
+            $flags['trial_days_remaining'] = max(0, (int) ceil(($trialEnd - time()) / 86400));
+            if ($trialEnd < time()) {
+                $flags['is_trialing'] = false;
+                $flags['is_expired'] = true;
+                $flags['trial_days_remaining'] = 0;
+            }
+        }
+
+        return $flags;
+    }
+
+    /**
+     * Normalize subscription row for admin APIs (resolved plan + flags + display label).
+     */
+    public static function enrichSubscriptionForAdmin($subscription) {
+        if (!$subscription) {
+            return null;
+        }
+
+        $subscription['plan_name'] = self::resolveSubscriptionPlanName(
+            $subscription['plan_name'] ?? null,
+            $subscription,
+            $subscription['stripe_price_id'] ?? null
+        );
+        $subscription['plan_display'] = self::getPlanDisplayLabel(
+            $subscription['plan_name'],
+            $subscription['status'] ?? null
+        );
+        $subscription['subscription_flags'] = self::buildSubscriptionFlags($subscription);
+
+        return $subscription;
+    }
+
+    /**
+     * Normalize subscription for JSON API responses (explicit booleans).
+     */
+    public static function formatSubscriptionForClient($row) {
+        if (!$row) {
+            return null;
+        }
+
+        $cancelRaw = $row['cancel_at_period_end'] ?? 0;
+        $cancelPending = ($cancelRaw === true || $cancelRaw === 1 || $cancelRaw === '1');
+
+        $amount = $row['amount'] ?? null;
+        if ($amount !== null && $amount !== '') {
+            $amount = (float) $amount;
+        }
+
+        $planName = self::resolveSubscriptionPlanName(
+            $row['plan_name'] ?? null,
+            $row,
+            $row['stripe_price_id'] ?? null
+        );
+
+        return [
+            'status' => $row['status'] ?? null,
+            'plan_name' => $planName,
+            'trial_start' => $row['trial_start'] ?? null,
+            'trial_end' => $row['trial_end'] ?? null,
+            'current_period_start' => $row['current_period_start'] ?? null,
+            'current_period_end' => $row['current_period_end'] ?? null,
+            'cancel_at_period_end' => $cancelPending,
+            'amount' => $amount,
+            'currency' => $row['currency'] ?? null,
+            'canceled_at' => $row['canceled_at'] ?? null,
+        ];
     }
 }
 

@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Brainspotting Tool</title>
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
+    <script src="subscription_overlay.js"></script>
+    <style>
+        body {
+            overscroll-behavior: contain;
+            user-select: none;
+            cursor: default;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Toast notifications */
+        .bsp-toast-container { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+        .bsp-toast { pointer-events: auto; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-family: 'Inter', sans-serif; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: bspToastIn 0.3s ease, bspToastOut 0.3s ease 3.2s forwards; max-width: 400px; text-align: center; }
+        .bsp-toast.success { background: #2C5558; }
+        .bsp-toast.error { background: #dc2626; }
+        .bsp-toast.info { background: #374151; border: 1px solid #4b5563; }
+        @keyframes bspToastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bspToastOut { from { opacity: 1; } to { opacity: 0; } }
+        /* SUDs logging panel */
+        .suds-panel { position: fixed; bottom: 5rem; left: 1rem; z-index: 25; background: rgba(31,41,55,0.95); border: 1px solid #374151; border-radius: 12px; padding: 1rem; width: 220px; max-height: 300px; overflow-y: auto; backdrop-filter: blur(8px); }
+        .suds-panel.collapsed { width: auto; padding: 0.5rem; }
+        .suds-panel.collapsed .suds-body { display: none; }
+        .suds-picker { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.75rem; }
+        .suds-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #4b5563; background: #1f2937; color: #d1d5db; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .suds-btn:hover { background: #374151; border-color: #6b7280; }
+        .suds-entry { font-size: 0.75rem; color: #9ca3af; padding: 2px 0; border-bottom: 1px solid #374151; display: flex; justify-content: space-between; }
+        .suds-entry .suds-val { color: #fff; font-weight: 600; }
+        /* Session notes */
+        .session-notes-toggle { position: fixed; bottom: 5rem; right: 5rem; z-index: 25; }
+        .session-notes-panel { position: fixed; bottom: 5rem; right: 1rem; z-index: 25; background: rgba(31,41,55,0.95); border: 1px solid #374151; border-radius: 12px; padding: 1rem; width: 280px; backdrop-filter: blur(8px); }
+        .session-notes-panel textarea { width: 100%; height: 120px; background: #1f2937; border: 1px solid #374151; border-radius: 6px; color: #d1d5db; font-size: 0.8rem; padding: 0.5rem; resize: vertical; font-family: 'Inter', sans-serif; }
+        .session-notes-panel textarea:focus { outline: none; border-color: #6b7280; }
+        /* Pause badge */
+        .pause-badge { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(31,41,55,0.9); color: #fbbf24; font-size: 1.5rem; font-weight: 700; padding: 0.75rem 2rem; border-radius: 12px; border: 2px solid #fbbf24; z-index: 20; letter-spacing: 2px; }
+        .bs-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: #1a1a1a;
+            overflow: hidden;
+        }
+        /* Uniform circular control buttons */
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+            transition: background-color 0.2s, transform 0.1s;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+        }
+        .control-btn:hover {
+            background-color: #374151;
+        }
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        .control-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .control-btn:disabled:hover {
+            background-color: inherit;
+        }
+        .control-btn-label {
+            display: none;
+            font-size: 0.72rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        #pointer {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+            will-change: left, top;
+        }
+        #pointer.smooth-move {
+            transition: left 0.05s ease-out, top 0.05s ease-out, background-color 0.2s ease;
+        }
+        /* X marker line */
+        #x-marker {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            display: none;
+            top: 0;
+        }
+        #x-marker.draggable {
+            width: 20px;
+            margin-left: -9px;
+            background: linear-gradient(90deg, transparent 9px, rgba(255, 255, 255, 0.3) 9px, rgba(255, 255, 255, 0.3) 11px, transparent 11px);
+            cursor: ew-resize;
+        }
+        #x-marker.draggable:hover {
+            background: linear-gradient(90deg, transparent 9px, rgba(255, 255, 255, 0.5) 9px, rgba(255, 255, 255, 0.5) 11px, transparent 11px);
+        }
+        #pointer.draggable {
+            cursor: move;
+        }
+        #pointer.draggable:hover {
+            box-shadow: 0 0 40px rgba(255,255,255,0.7);
+        }
+        /* Share button active state */
+        .share-btn-active {
+            background-color: #dc2626 !important;
+            animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        /* Setup overlay */
+        .setup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+        .setup-overlay.hidden {
+            display: none;
+        }
+        .setup-card {
+            background: #1f2937;
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .setup-card h2 {
+            color: white !important;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .setup-card h3 {
+            color: #a5b4fc !important;
+        }
+        .setup-card p {
+            color: #9ca3af;
+            margin-bottom: 1.5rem;
+        }
+        .session-type-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: #374151;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .session-type-btn:hover {
+            background: #4b5563;
+            border-color: #6366f1;
+        }
+        .session-type-btn h3 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .session-type-btn p {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin: 0;
+        }
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+        .btn-secondary {
+            background: #374151;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        /* Phase indicator */
+        .phase-indicator {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+            text-align: center;
+            pointer-events: none;
+        }
+        .phase-indicator.hidden {
+            display: none;
+        }
+        /* Timer display */
+        .timer-display {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            font-weight: 400;
+            font-family: 'Inter', sans-serif;
+        }
+        .timer-display.hidden {
+            display: none;
+        }
+        /* Brainspot locked indicator */
+        .brainspot-locked {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid rgba(74, 222, 128, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+        }
+        .brainspot-locked.visible {
+            display: block;
+            animation: pulse-green 2s ease-in-out infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.8;
+            }
+        }
+        /* Adjustment hint */
+        .adjustment-hint {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+            text-align: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .adjustment-hint.visible {
+            opacity: 1;
+        }
+        .adjustment-hint.fading {
+            opacity: 0;
+        }
+        .session-bottom-hud {
+            position: absolute;
+            left: 50%;
+            bottom: max(1.5rem, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            z-index: 20;
+            width: min(calc(100vw - 2rem), 760px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+        .session-bottom-hud > * {
+            pointer-events: auto;
+        }
+        .session-action-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .session-action-row.hidden {
+            display: none;
+        }
+        .session-action-row > button {
+            flex: 0 1 auto;
+        }
+        .mobile-tools-toggle {
+            display: none;
+        }
+        @media (max-width: 900px) {
+            .floating-dashboard-btn {
+                top: 1rem;
+                bottom: auto;
+                left: 1rem;
+            }
+            .mobile-tools-toggle {
+                display: flex;
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                z-index: 12;
+            }
+            #settings-panel {
+                display: none;
+                position: absolute;
+                top: 4.5rem;
+                right: 1rem;
+                z-index: 12;
+                max-width: min(calc(100vw - 2rem), 340px);
+                padding: 0.75rem;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                border-radius: 1rem;
+                background: rgba(17, 24, 39, 0.88);
+                backdrop-filter: blur(12px);
+                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+            }
+            #settings-panel.is-open {
+                display: flex;
+            }
+            #settings-panel .control-btn {
+                width: auto;
+                min-width: 44px;
+                padding: 0 0.8rem;
+                gap: 0.45rem;
+            }
+            #settings-panel .control-btn-label {
+                display: inline;
+            }
+            .phase-indicator {
+                bottom: 9.5rem;
+                width: min(calc(100vw - 2rem), 30rem);
+            }
+            .session-bottom-hud {
+                width: min(calc(100vw - 1.5rem), 40rem);
+                gap: 0.6rem;
+            }
+            .session-action-row > button {
+                flex: 1 1 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="bs-container" class="bs-container">
+    <!-- Floating Dashboard Button -->
+    <a href="dashboard.html" class="floating-dashboard-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Dashboard
+    </a>
+
+    <!-- Bottom-right cluster: watermark + feedback (shared chrome pattern) -->
+    <div class="app-chrome-bottom-right">
+        <span class="app-chrome-watermark">Brainspotting · Bright Eyed Therapist</span>
+        <a href="feedback.html?app=brainspotting" target="_blank" class="app-chrome-feedback" title="Send Feedback">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Feedback
+        </a>
+    </div>
+
+    <button id="tools-toggle-btn" class="mobile-tools-toggle control-btn bg-gray-800 text-gray-100" aria-label="Toggle tools" title="Tools">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+
+    <!-- Controls top-right -->
+    <div id="settings-panel" class="absolute top-4 right-4 flex space-x-2 z-10">
+        <!-- Speed -->
+        <button id="speed-btn" class="control-btn bg-gray-800 text-yellow-300" aria-label="Speed Settings" title="Speed">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span class="control-btn-label">Speed</span>
+        </button>
+        <!-- Mode toggle: scan ↔ manual -->
+        <button id="mode-btn" class="control-btn bg-gray-800 text-green-400" aria-label="Toggle Mode" title="Toggle Mode (Scan/Manual)">
+            <svg id="scan-mode-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <svg id="manual-mode-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+            <span class="control-btn-label">Mode</span>
+        </button>
+        <!-- Color -->
+        <button id="color-btn" class="control-btn bg-gray-800 text-sky-300" aria-label="Color Settings" title="Color">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C9 5.2 6 9.4 6 13a6 6 0 0012 0c0-3.6-3-7.8-6-11z"/>
+                <circle cx="10" cy="11" r="1.2" fill="#ffffff"/>
+            </svg>
+            <span class="control-btn-label">Color</span>
+        </button>
+        <!-- Audio toggle -->
+        <button id="audio-btn" class="control-btn bg-gray-800 text-gray-400" aria-label="Toggle Audio" title="Audio">
+            <svg id="audio-on-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5l-4 4H4a1 1 0 00-1 1v4a1 1 0 001 1h3l4 4V5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9a3 3 0 010 6" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 7a6 6 0 010 10" />
+            </svg>
+            <svg id="audio-off-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5l-4 4H4a1 1 0 00-1 1v4a1 1 0 001 1h3l4 4V5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 5L5 19" />
+            </svg>
+            <span class="control-btn-label">Audio</span>
+        </button>
+        <!-- SUDs Log -->
+        <button id="suds-btn" class="control-btn bg-gray-800 text-amber-300" aria-label="SUDs Log" title="SUDs Log" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span class="control-btn-label">SUDs</span>
+        </button>
+        <!-- Session Notes -->
+        <button id="notes-btn" class="control-btn bg-gray-800 text-green-300" aria-label="Session Notes" title="Session Notes" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span class="control-btn-label">Notes</span>
+        </button>
+        <!-- Share -->
+        <button id="share-btn" class="control-btn bg-gray-800 text-blue-400" aria-label="Share to Client" title="Share to Client">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span class="control-btn-label">Share</span>
+        </button>
+        <!-- Fullscreen -->
+        <button id="fullscreen-btn" class="control-btn bg-gray-800" aria-label="Toggle Fullscreen" title="Fullscreen">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m7-5h4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m7 5h4m0 0v-4m0 4l-5-5"/>
+            </svg>
+            <span class="control-btn-label">Full</span>
+        </button>
+        <!-- Help -->
+        <button id="help-btn" class="control-btn bg-gray-800 text-gray-200" aria-label="Help" title="Help">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-1.2c0-1.1.7-1.8 1.3-2.2.6-.4 1.1-.9 1.1-1.8 0-1.2-1-2.1-2.4-2.1-1.2 0-2.1.7-2.4 1.8M12 18.5h.01" />
+            </svg>
+            <span class="control-btn-label">Help</span>
+        </button>
+    </div>
+
+    <!-- Phase indicator -->
+    <div id="phase-indicator" class="phase-indicator hidden">
+        <p id="phase-text">Follow the dot with your eyes</p>
+        <p class="text-sm mt-2 opacity-60">Click or SPACE to mark the spot</p>
+    </div>
+
+    <!-- X marker line -->
+    <div id="x-marker"></div>
+
+    <!-- Pointer -->
+    <div id="pointer"></div>
+
+    <!-- Brainspot locked indicator -->
+    <div id="brainspot-locked" class="brainspot-locked"></div>
+
+    <div id="session-bottom-hud" class="session-bottom-hud">
+        <!-- Timer: centered above buttons -->
+        <div id="timer-display" class="timer-display hidden">00:00</div>
+
+        <!-- Adjustment hint -->
+        <div id="adjustment-hint" class="adjustment-hint">
+            Drag or use arrow keys to adjust
+        </div>
+
+        <!-- Start Session Button -->
+        <button id="start-btn"
+                class="px-6 py-3 bg-gray-800 text-white text-lg rounded-full shadow-xl transition hover:bg-gray-700 active:scale-95">
+            Start Session
+        </button>
+
+        <!-- Find New Spot / End Session buttons (shown during holding) -->
+        <div id="holding-controls" class="session-action-row hidden">
+            <button id="pause-btn" class="px-5 py-3 bg-yellow-600 text-white rounded-full shadow-xl transition hover:bg-yellow-700 active:scale-95" title="Pause/Resume Timer">
+                ⏸ Pause
+            </button>
+            <button id="find-new-btn" class="px-5 py-3 bg-indigo-600 text-white rounded-full shadow-xl transition hover:bg-indigo-700 active:scale-95">
+                Another Round
+            </button>
+            <button id="end-session-btn" class="px-5 py-3 bg-gray-700 text-white rounded-full shadow-xl transition hover:bg-gray-600 active:scale-95">
+                Review / End
+            </button>
+        </div>
+    </div>
+
+    <!-- SUDs Logging Panel (shown during active session) -->
+    <div id="suds-panel" class="suds-panel hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="color:#d1d5db; font-size:0.8rem; font-weight:600;">SUDs Log</span>
+            <button id="suds-toggle" style="background:none; border:none; color:#9ca3af; cursor:pointer; font-size:0.75rem;">collapse</button>
+        </div>
+        <div class="suds-body">
+            <div class="suds-picker" id="suds-picker"></div>
+            <div id="suds-log" style="max-height:140px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- Session Notes Panel (shown during active session) -->
+    <div id="notes-panel" class="session-notes-panel hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <span style="color:#d1d5db; font-size:0.8rem; font-weight:600;">Session Notes</span>
+            <button id="notes-close" style="background:none; border:none; color:#9ca3af; cursor:pointer; font-size:0.75rem;">close</button>
+        </div>
+        <textarea id="session-notes-input" placeholder="Therapist observations..."></textarea>
+    </div>
+
+    <!-- Pause badge (shown when paused) -->
+    <div id="pause-badge" class="pause-badge hidden">PAUSED</div>
+</div>
+
+<!-- Setup Modal - Session Type Selection -->
+<div id="setup-modal" class="setup-overlay hidden">
+    <div class="setup-card">
+        <h2>What are we working on today?</h2>
+        <p>Choose the type of brainspotting session</p>
+        
+        <button class="session-type-btn" data-type="activation">
+            <h3>Activation Spot</h3>
+            <p>Processing distress or trauma-related material</p>
+        </button>
+        
+        <button class="session-type-btn" data-type="resource">
+            <h3>Resource Spot</h3>
+            <p>Accessing strength, calm, or positive resources</p>
+        </button>
+        
+        <button class="session-type-btn" data-type="rolling">
+            <h3>Rolling Brainspotting</h3>
+            <p>Multiple passes for deeper processing</p>
+        </button>
+
+        <button id="cancel-setup-btn" class="btn-secondary mt-4">Cancel</button>
+    </div>
+</div>
+
+<!-- Check-in Modal -->
+<div id="checkin-modal" class="setup-overlay hidden">
+    <div class="setup-card" style="max-width:480px;">
+        <h2>Processing Complete</h2>
+        <div id="session-summary" style="text-align:left; margin:1rem 0; padding:1rem; background:rgba(255,255,255,0.05); border-radius:8px; font-size:0.85rem; max-height:250px; overflow-y:auto;"></div>
+        <button id="copy-summary-btn" class="btn-secondary mb-3" style="width:100%;">Copy Summary to Clipboard</button>
+        <div style="font-size:0.72rem; opacity:0.75; margin-bottom:0.75rem;">Clipboard contents may remain available after copying. Remove identifying details before sharing outside your session.</div>
+        <button id="another-round-btn" class="btn-primary mb-3">Process Another Round</button>
+        <button id="end-complete-btn" class="btn-secondary">End Session</button>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-30">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto text-white">
+        <h2 id="modal-title" class="text-2xl font-bold mb-4 text-white">Settings</h2>
+        <div id="modal-content" class="space-y-4 text-sm leading-relaxed"></div>
+        <button id="modal-close-btn" class="mt-6 w-full py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+            Close
+        </button>
+    </div>
+</div>
+
+<script>
+    /*************** App State ***************/
+    const bsContainer = document.getElementById('bs-container');
+    const pointer = document.getElementById('pointer');
+    const xMarker = document.getElementById('x-marker');
+    const phaseIndicator = document.getElementById('phase-indicator');
+    const phaseText = document.getElementById('phase-text');
+    const timerDisplay = document.getElementById('timer-display');
+    const brainspotLocked = document.getElementById('brainspot-locked');
+    const startBtn = document.getElementById('start-btn');
+    const holdingControls = document.getElementById('holding-controls');
+    const findNewBtn = document.getElementById('find-new-btn');
+    const endSessionBtn = document.getElementById('end-session-btn');
+    const setupModal = document.getElementById('setup-modal');
+    const checkinModal = document.getElementById('checkin-modal');
+    const settingsModal = document.getElementById('settings-modal');
+    const toolsToggleBtn = document.getElementById('tools-toggle-btn');
+    const settingsPanel = document.getElementById('settings-panel');
+    const modalTitle = document.getElementById('modal-title');
+    const modalContent = document.getElementById('modal-content');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const speedBtn = document.getElementById('speed-btn');
+    const modeBtn = document.getElementById('mode-btn');
+    const colorBtn = document.getElementById('color-btn');
+    const audioBtn = document.getElementById('audio-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const helpBtn = document.getElementById('help-btn');
+    const scanModeIcon = document.getElementById('scan-mode-icon');
+    const manualModeIcon = document.getElementById('manual-mode-icon');
+    const audioOnIcon = document.getElementById('audio-on-icon');
+    const audioOffIcon = document.getElementById('audio-off-icon');
+    const adjustmentHint = document.getElementById('adjustment-hint');
+
+    // Session state
+    let sessionData = {
+        date: null,
+        type: null,
+        brainspot: { x: 0.5, y: 0.5 },
+        processingTime: 0,
+        sudsLog: [],
+        notes: ''
+    };
+
+    // App state
+    let currentPhase = 'idle'; // idle, x-scan, y-scan, holding, manual
+    let controlMode = 'scan'; // 'scan' or 'manual'
+    let lockedX = null;
+    let lockedY = null;
+    let animationFrameId = null;
+    let scanStartTime = 0;
+    let holdingStartTime = 0;
+    let holdingTimerInterval = null;
+    let currentSessionToken = null;
+    let currentViewerUrl = null;
+    let sessionUpdateInterval = null;
+    
+    // Pause state
+    let isPaused = false;
+    let pausedElapsed = 0;
+    const pauseBtn = document.getElementById('pause-btn');
+    const pauseBadge = document.getElementById('pause-badge');
+    const sudsPanel = document.getElementById('suds-panel');
+    const sudsBtn = document.getElementById('suds-btn');
+    const notesBtn = document.getElementById('notes-btn');
+    const notesPanel = document.getElementById('notes-panel');
+    const sessionNotesInput = document.getElementById('session-notes-input');
+
+    // Drag state
+    let isDragging = false;
+    let dragTarget = null; // 'x-marker' or 'pointer'
+
+    // Settings
+    let currentSpeedIndex = 2; // Default: Medium
+    let scanDurationMs = 10000; // 10 seconds
+    const SPEED_MAP = {
+        1: { name: 'Slow', ms: 15000, desc: 'Gentle pace for stabilization' },
+        2: { name: 'Medium', ms: 10000, desc: 'Standard processing pace' },
+        3: { name: 'Fast', ms: 6000, desc: 'Rapid scanning' }
+    };
+    let ballColor = '#FFFFFF';
+    const COLORS_MAP = {
+        '#FFFFFF': { name: 'White', class: 'text-white', hex: '#FFFFFF' },
+        '#5EEAD4': { name: 'Turquoise', class: 'text-teal-300', hex: '#5EEAD4' },
+        '#A5B4FC': { name: 'Lavender', class: 'text-indigo-300', hex: '#A5B4FC' },
+        '#FDE047': { name: 'Yellow', class: 'text-yellow-300', hex: '#FDE047' }
+    };
+    const pointerSize = 50;
+    const TRAVEL_PERCENTAGE = 0.90;
+
+    /*************** Audio (Biolateral) ***************/
+    let audioContext = null;
+    let stereoPanner = null;
+    let oscillator = null;
+    let gainNode = null;
+    let audioReady = false;
+    let audioEnabled = false;
+
+    function setSessionToolsEnabled(enabled) {
+        [sudsBtn, notesBtn].forEach(btn => {
+            btn.disabled = !enabled;
+        });
+
+        if (!enabled) {
+            sudsPanel.classList.add('hidden');
+            notesPanel.classList.add('hidden');
+        }
+    }
+
+    function toggleMobileTools(forceOpen) {
+        if (window.innerWidth > 900 || !settingsPanel) return;
+        const shouldOpen = typeof forceOpen === 'boolean'
+            ? forceOpen
+            : !settingsPanel.classList.contains('is-open');
+        settingsPanel.classList.toggle('is-open', shouldOpen);
+        toolsToggleBtn?.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    }
+
+    function syncMobileToolsState() {
+        if (window.innerWidth > 900) {
+            settingsPanel?.classList.remove('is-open');
+            toolsToggleBtn?.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    function initAudio() {
+        if (audioReady) return;
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            stereoPanner = audioContext.createStereoPanner();
+            gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+            oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 440;
+            oscillator.connect(stereoPanner);
+            stereoPanner.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            audioReady = true;
+        } catch (e) {
+            console.error("Audio init failed:", e);
+        }
+    }
+
+    function updateBiolateralAudio(positionFactor) {
+        if (!audioReady || !audioEnabled || !gainNode || !audioContext) return;
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        // Pan based on position (0 = left, 1 = right)
+        const panVal = positionFactor * 2 - 1;
+        stereoPanner.pan.setValueAtTime(panVal, audioContext.currentTime);
+        // Gentle volume
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+    }
+
+    function stopAudio() {
+        if (gainNode && audioContext) {
+            gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+        }
+    }
+
+    function setAudioEnabled(on) {
+        audioEnabled = on;
+        if (on) {
+            audioBtn.classList.remove('text-gray-400');
+            audioBtn.classList.add('text-indigo-300');
+            audioOnIcon.classList.remove('hidden');
+            audioOffIcon.classList.add('hidden');
+        } else {
+            audioBtn.classList.remove('text-indigo-300');
+            audioBtn.classList.add('text-gray-400');
+            audioOnIcon.classList.add('hidden');
+            audioOffIcon.classList.remove('hidden');
+            stopAudio();
+        }
+    }
+
+    /*************** Pointer Control ***************/
+    function centerPointer() {
+        const centerX = bsContainer.clientWidth / 2 - pointerSize / 2;
+        const centerY = bsContainer.clientHeight / 2 - pointerSize / 2;
+        pointer.style.left = `${centerX}px`;
+        pointer.style.top = `${centerY}px`;
+    }
+
+    function animateXScan(timestamp) {
+        if (currentPhase !== 'x-scan') return;
+        
+        if (!scanStartTime) scanStartTime = timestamp;
+        const elapsed = timestamp - scanStartTime;
+        const progress = Math.min(elapsed / scanDurationMs, 1);
+        
+        // Triangle wave: go right then left
+        const cycleProgress = (elapsed % (scanDurationMs * 2)) / (scanDurationMs * 2);
+        let positionFactor;
+        if (cycleProgress < 0.5) {
+            positionFactor = cycleProgress * 2;
+        } else {
+            positionFactor = 1 - ((cycleProgress - 0.5) * 2);
+        }
+
+        const containerW = bsContainer.clientWidth;
+        const travelW = containerW * TRAVEL_PERCENTAGE;
+        const marginX = (containerW - travelW) / 2;
+        const xPos = marginX + travelW * positionFactor - pointerSize / 2;
+        const yPos = bsContainer.clientHeight / 2 - pointerSize / 2;
+
+        pointer.style.left = `${xPos}px`;
+        pointer.style.top = `${yPos}px`;
+
+        updateBiolateralAudio(positionFactor);
+        sendSessionUpdate();
+
+        animationFrameId = requestAnimationFrame(animateXScan);
+    }
+
+    function animateYScan(timestamp) {
+        if (currentPhase !== 'y-scan') return;
+        
+        if (!scanStartTime) scanStartTime = timestamp;
+        const elapsed = timestamp - scanStartTime;
+        
+        // Triangle wave for Y
+        const cycleProgress = (elapsed % (scanDurationMs * 2)) / (scanDurationMs * 2);
+        let positionFactor;
+        if (cycleProgress < 0.5) {
+            positionFactor = cycleProgress * 2;
+        } else {
+            positionFactor = 1 - ((cycleProgress - 0.5) * 2);
+        }
+
+        const containerH = bsContainer.clientHeight;
+        const travelH = containerH * TRAVEL_PERCENTAGE;
+        const marginY = (containerH - travelH) / 2;
+        const yPos = marginY + travelH * positionFactor - pointerSize / 2;
+
+        pointer.style.left = `${lockedX - pointerSize / 2}px`;
+        pointer.style.top = `${yPos}px`;
+
+        updateBiolateralAudio(positionFactor);
+        sendSessionUpdate();
+
+        animationFrameId = requestAnimationFrame(animateYScan);
+    }
+
+    /*************** Manual Mode ***************/
+    function handleMouseMove(e) {
+        if (currentPhase !== 'manual') return;
+        
+        const rect = bsContainer.getBoundingClientRect();
+        let x = e.clientX - rect.left - pointerSize / 2;
+        let y = e.clientY - rect.top - pointerSize / 2;
+        
+        // Clamp to container bounds
+        x = Math.max(0, Math.min(x, rect.width - pointerSize));
+        y = Math.max(0, Math.min(y, rect.height - pointerSize));
+        
+        pointer.style.left = `${x}px`;
+        pointer.style.top = `${y}px`;
+
+        // Update audio based on X position
+        const positionFactor = (x + pointerSize / 2) / rect.width;
+        updateBiolateralAudio(positionFactor);
+        sendSessionUpdate();
+    }
+
+    function handleManualClick(e) {
+        if (currentPhase !== 'manual') return;
+        if (e.target.closest('button') || e.target.closest('a')) return;
+
+        const rect = bsContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Lock the brainspot
+        lockedX = x;
+        lockedY = y;
+
+        // Store normalized coordinates
+        sessionData.brainspot = {
+            x: x / rect.width,
+            y: y / rect.height
+        };
+
+        // Show brainspot indicator
+        brainspotLocked.style.left = `${x}px`;
+        brainspotLocked.style.top = `${y}px`;
+        brainspotLocked.classList.add('visible');
+
+        // Transition to holding
+        startHolding();
+    }
+
+    /*************** Phase Control ***************/
+    function startXScan() {
+        currentPhase = 'x-scan';
+        scanStartTime = 0;
+        pointer.classList.add('smooth-move');
+        
+        phaseIndicator.classList.remove('hidden');
+        phaseText.textContent = 'Therapist: watch for activation while the client follows horizontally. Click or SPACE to lock X.';
+        
+        startBtn.classList.add('hidden');
+        xMarker.style.display = 'none';
+        
+        animationFrameId = requestAnimationFrame(animateXScan);
+    }
+
+    function lockXPosition() {
+        if (currentPhase !== 'x-scan') return;
+        
+        cancelAnimationFrame(animationFrameId);
+        
+        // Get current X position
+        const currentLeft = parseFloat(pointer.style.left) + pointerSize / 2;
+        lockedX = currentLeft;
+        
+        // Show X marker and make it draggable
+        xMarker.style.left = `${lockedX}px`;
+        xMarker.style.display = 'block';
+        xMarker.classList.add('draggable');
+        
+        // Start Y scan
+        startYScan();
+        showAdjustmentHint();
+    }
+
+    function startYScan() {
+        currentPhase = 'y-scan';
+        scanStartTime = 0;
+        
+        phaseText.textContent = 'Therapist: continue vertically, then click or SPACE to lock the brainspot.';
+        
+        animationFrameId = requestAnimationFrame(animateYScan);
+    }
+
+    function lockYPosition() {
+        if (currentPhase !== 'y-scan') return;
+        
+        cancelAnimationFrame(animationFrameId);
+        
+        // Get current Y position
+        const currentTop = parseFloat(pointer.style.top) + pointerSize / 2;
+        lockedY = currentTop;
+        
+        // Store normalized coordinates
+        const containerW = bsContainer.clientWidth;
+        const containerH = bsContainer.clientHeight;
+        sessionData.brainspot = {
+            x: lockedX / containerW,
+            y: lockedY / containerH
+        };
+        
+        // Show brainspot indicator
+        brainspotLocked.style.left = `${lockedX}px`;
+        brainspotLocked.style.top = `${lockedY}px`;
+        brainspotLocked.classList.add('visible');
+        
+        // Hide X marker
+        xMarker.style.display = 'none';
+        
+        // Start holding phase
+        startHolding();
+    }
+
+    function startHolding() {
+        currentPhase = 'holding';
+        holdingStartTime = Date.now();
+        
+        // Position pointer at brainspot
+        pointer.style.left = `${lockedX - pointerSize / 2}px`;
+        pointer.style.top = `${lockedY - pointerSize / 2}px`;
+        pointer.classList.remove('smooth-move');
+        pointer.classList.add('draggable');
+        
+        // Remove draggable from X marker
+        xMarker.classList.remove('draggable');
+        
+        phaseIndicator.classList.add('hidden');
+        
+        // Show holding controls
+        holdingControls.classList.remove('hidden');
+        
+        // Start timer display
+        timerDisplay.classList.remove('hidden');
+        holdingTimerInterval = setInterval(updateHoldingTimer, 1000);
+        
+        stopAudio();
+        sendSessionUpdate();
+        showAdjustmentHint();
+    }
+
+    function updateHoldingTimer() {
+        if (isPaused) return;
+        const elapsed = Math.floor((Date.now() - holdingStartTime) / 1000) - pausedElapsed;
+        sessionData.processingTime = elapsed;
+        const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const secs = (elapsed % 60).toString().padStart(2, '0');
+        timerDisplay.textContent = `${mins}:${secs}`;
+    }
+
+    let pauseStartedAt = 0;
+    function togglePause() {
+        if (isPaused) {
+            // Resume
+            pausedElapsed += Math.floor((Date.now() - pauseStartedAt) / 1000);
+            isPaused = false;
+            pauseBtn.innerHTML = '⏸ Pause';
+            pauseBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            pauseBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+            pauseBadge.classList.add('hidden');
+        } else {
+            // Pause
+            isPaused = true;
+            pauseStartedAt = Date.now();
+            pauseBtn.innerHTML = '▶ Resume';
+            pauseBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+            pauseBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            pauseBadge.classList.remove('hidden');
+        }
+    }
+
+    function startManualMode() {
+        currentPhase = 'manual';
+        pointer.classList.add('smooth-move');
+        
+        phaseIndicator.classList.remove('hidden');
+        phaseText.textContent = 'Therapist: guide the pointer manually, then click to lock the brainspot.';
+        
+        startBtn.classList.add('hidden');
+        
+        bsContainer.addEventListener('mousemove', handleMouseMove);
+        bsContainer.addEventListener('click', handleManualClick);
+        
+        sendSessionUpdate();
+    }
+
+    function stopManualMode() {
+        bsContainer.removeEventListener('mousemove', handleMouseMove);
+        bsContainer.removeEventListener('click', handleManualClick);
+    }
+
+    /*************** Position Adjustment ***************/
+    const NUDGE_AMOUNT = 8; // pixels per arrow key press
+    let hintTimeout = null;
+    let hintShownThisSession = false;
+
+    function showAdjustmentHint() {
+        // Only show hint once per session (first lock)
+        if (hintShownThisSession) return;
+        hintShownThisSession = true;
+        
+        // Update hint text based on current phase
+        if (currentPhase === 'y-scan') {
+            adjustmentHint.textContent = 'Arrow keys ←→ to adjust X position';
+        } else if (currentPhase === 'holding') {
+            adjustmentHint.textContent = 'Drag or use arrow keys to adjust';
+        }
+        
+        adjustmentHint.classList.add('visible');
+        adjustmentHint.classList.remove('fading');
+        
+        // Clear existing timeout
+        if (hintTimeout) clearTimeout(hintTimeout);
+        
+        // Fade out after 4 seconds
+        hintTimeout = setTimeout(() => {
+            adjustmentHint.classList.add('fading');
+            setTimeout(() => {
+                adjustmentHint.classList.remove('visible');
+            }, 300);
+        }, 4000);
+    }
+
+    function hideAdjustmentHint() {
+        if (hintTimeout) clearTimeout(hintTimeout);
+        adjustmentHint.classList.remove('visible');
+        adjustmentHint.classList.add('fading');
+        hintShownThisSession = false;
+    }
+
+    function handleNudge(keyCode) {
+        const containerW = bsContainer.clientWidth;
+        const containerH = bsContainer.clientHeight;
+        
+        // During Y-scan: only allow left/right to adjust locked X
+        if (currentPhase === 'y-scan' && lockedX !== null) {
+            if (keyCode === 'ArrowLeft') {
+                lockedX = Math.max(pointerSize / 2, lockedX - NUDGE_AMOUNT);
+            } else if (keyCode === 'ArrowRight') {
+                lockedX = Math.min(containerW - pointerSize / 2, lockedX + NUDGE_AMOUNT);
+            } else {
+                return; // Ignore up/down during Y-scan
+            }
+            // Update X marker position
+            xMarker.style.left = `${lockedX}px`;
+            // Update pointer X position (Y is still animating)
+            sendSessionUpdate();
+            showAdjustmentHint();
+        }
+        
+        // During holding: allow all 4 directions
+        if (currentPhase === 'holding' && lockedX !== null && lockedY !== null) {
+            if (keyCode === 'ArrowLeft') {
+                lockedX = Math.max(pointerSize / 2, lockedX - NUDGE_AMOUNT);
+            } else if (keyCode === 'ArrowRight') {
+                lockedX = Math.min(containerW - pointerSize / 2, lockedX + NUDGE_AMOUNT);
+            } else if (keyCode === 'ArrowUp') {
+                lockedY = Math.max(pointerSize / 2, lockedY - NUDGE_AMOUNT);
+            } else if (keyCode === 'ArrowDown') {
+                lockedY = Math.min(containerH - pointerSize / 2, lockedY + NUDGE_AMOUNT);
+            }
+            
+            // Update pointer position
+            pointer.style.left = `${lockedX - pointerSize / 2}px`;
+            pointer.style.top = `${lockedY - pointerSize / 2}px`;
+            
+            // Update brainspot indicator
+            brainspotLocked.style.left = `${lockedX}px`;
+            brainspotLocked.style.top = `${lockedY}px`;
+            
+            // Update session data
+            sessionData.brainspot = {
+                x: lockedX / containerW,
+                y: lockedY / containerH
+            };
+            
+            sendSessionUpdate();
+            showAdjustmentHint();
+        }
+    }
+
+    function startDrag(e, target) {
+        e.preventDefault();
+        e.stopPropagation();
+        isDragging = true;
+        dragTarget = target;
+        document.body.style.cursor = target === 'x-marker' ? 'ew-resize' : 'move';
+    }
+
+    function handleDrag(e) {
+        if (!isDragging) return;
+        
+        const rect = bsContainer.getBoundingClientRect();
+        const containerW = rect.width;
+        const containerH = rect.height;
+        
+        if (dragTarget === 'x-marker' && currentPhase === 'y-scan' && lockedX !== null) {
+            // Dragging X marker during Y-scan
+            let newX = e.clientX - rect.left;
+            newX = Math.max(pointerSize / 2, Math.min(newX, containerW - pointerSize / 2));
+            lockedX = newX;
+            xMarker.style.left = `${lockedX}px`;
+            showAdjustmentHint();
+            sendSessionUpdate();
+        }
+        
+        if (dragTarget === 'pointer' && currentPhase === 'holding' && lockedX !== null && lockedY !== null) {
+            // Dragging pointer during holding phase
+            let newX = e.clientX - rect.left;
+            let newY = e.clientY - rect.top;
+            newX = Math.max(pointerSize / 2, Math.min(newX, containerW - pointerSize / 2));
+            newY = Math.max(pointerSize / 2, Math.min(newY, containerH - pointerSize / 2));
+            
+            lockedX = newX;
+            lockedY = newY;
+            
+            pointer.style.left = `${lockedX - pointerSize / 2}px`;
+            pointer.style.top = `${lockedY - pointerSize / 2}px`;
+            brainspotLocked.style.left = `${lockedX}px`;
+            brainspotLocked.style.top = `${lockedY}px`;
+            
+            sessionData.brainspot = {
+                x: lockedX / containerW,
+                y: lockedY / containerH
+            };
+            
+            showAdjustmentHint();
+            sendSessionUpdate();
+        }
+    }
+
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        dragTarget = null;
+        document.body.style.cursor = '';
+    }
+
+    function findNewSpot() {
+        // Reset for another round
+        clearInterval(holdingTimerInterval);
+        holdingControls.classList.add('hidden');
+        timerDisplay.classList.add('hidden');
+        brainspotLocked.classList.remove('visible');
+        
+        // Reset pause state
+        isPaused = false;
+        pausedElapsed = 0;
+        pauseBadge.classList.add('hidden');
+        pauseBtn.innerHTML = '⏸ Pause';
+        pauseBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        pauseBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+        
+        // Remove draggable states
+        xMarker.classList.remove('draggable');
+        pointer.classList.remove('draggable');
+        hideAdjustmentHint();
+        
+        lockedX = null;
+        lockedY = null;
+        
+        centerPointer();
+        
+        if (controlMode === 'manual') {
+            startManualMode();
+        } else {
+            startXScan();
+        }
+    }
+
+    function buildSessionSummary() {
+        const typeLabels = { activation: 'Activation Spot', resource: 'Resource Spot', rolling: 'Rolling Brainspotting' };
+        const typeName = typeLabels[sessionData.type] || sessionData.type || 'Unknown';
+        const mins = Math.floor(sessionData.processingTime / 60);
+        const secs = sessionData.processingTime % 60;
+        const duration = `${mins}m ${secs}s`;
+        let summary = `BRAINSPOTTING SESSION SUMMARY\n`;
+        summary += `Date: ${new Date().toLocaleDateString()}\n`;
+        summary += `Session Type: ${typeName}\n`;
+        summary += `Processing Duration: ${duration}\n`;
+        if (sessionData.sudsLog.length > 0) {
+            summary += `\nSUDs Log:\n`;
+            sessionData.sudsLog.forEach(entry => {
+                summary += `  ${entry.time} — SUDs: ${entry.level} (${entry.phase})\n`;
+            });
+        }
+        if (sessionData.notes && sessionData.notes.trim()) {
+            summary += `\nTherapist Notes:\n${sessionData.notes}\n`;
+        }
+        return summary;
+    }
+
+    function showCheckinModal() {
+        // Capture notes from textarea
+        sessionData.notes = sessionNotesInput ? sessionNotesInput.value : '';
+        // Build and display session summary
+        const summaryText = buildSessionSummary();
+        const summaryDiv = document.getElementById('session-summary');
+        summaryDiv.innerHTML = `<pre style="white-space:pre-wrap; color:#d1d5db; font-family:Inter,sans-serif; font-size:0.8rem; margin:0;">${summaryText}</pre>`;
+        checkinModal.classList.remove('hidden');
+        // Wire up copy button
+        const copyBtn = document.getElementById('copy-summary-btn');
+        copyBtn.textContent = 'Copy Summary to Clipboard';
+        copyBtn.onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(summaryText);
+                copyBtn.textContent = 'Copied!';
+            } catch {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = summaryText;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                copyBtn.textContent = 'Copied!';
+            }
+            setTimeout(() => { copyBtn.textContent = 'Copy Summary to Clipboard'; }, 2500);
+        };
+    }
+
+    async function endSession() {
+        // Clean up
+        clearInterval(holdingTimerInterval);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        stopManualMode();
+        await endSharingSession();
+        
+        // Reset UI
+        currentPhase = 'idle';
+        holdingControls.classList.add('hidden');
+        timerDisplay.classList.add('hidden');
+        phaseIndicator.classList.add('hidden');
+        brainspotLocked.classList.remove('visible');
+        xMarker.style.display = 'none';
+        xMarker.classList.remove('draggable');
+        pointer.classList.remove('draggable');
+        checkinModal.classList.add('hidden');
+        startBtn.classList.remove('hidden');
+        hideAdjustmentHint();
+        
+        // Reset session tools while keeping toolbar geometry stable.
+        setSessionToolsEnabled(false);
+        isPaused = false;
+        pausedElapsed = 0;
+        pauseBadge.classList.add('hidden');
+        
+        // Reset state
+        lockedX = null;
+        lockedY = null;
+        sessionData = {
+            date: null,
+            type: null,
+            brainspot: { x: 0.5, y: 0.5 },
+            processingTime: 0,
+            sudsLog: [],
+            notes: ''
+        };
+        if (sessionNotesInput) sessionNotesInput.value = '';
+        
+        centerPointer();
+        stopAudio();
+    }
+
+    /*************** Session Sharing ***************/
+    function collectSessionState() {
+        return {
+            phase: currentPhase,
+            pointerX: parseFloat(pointer.style.left) + pointerSize / 2,
+            pointerY: parseFloat(pointer.style.top) + pointerSize / 2,
+            containerWidth: bsContainer.clientWidth,
+            containerHeight: bsContainer.clientHeight,
+            color: ballColor,
+            audioEnabled: audioEnabled,
+            brainspot: sessionData.brainspot,
+            lastEventId: Date.now()
+        };
+    }
+
+    async function sendSessionUpdate() {
+        if (!currentSessionToken) return;
+        
+        try {
+            const state = collectSessionState();
+            await Auth.apiRequest('/brainspotting/update_session.php', {
+                method: 'POST',
+                body: JSON.stringify({
+                    sessionToken: currentSessionToken,
+                    state: state
+                })
+            });
+        } catch (error) {
+            console.error('Failed to update session:', error);
+        }
+    }
+
+    function endSharingSessionBestEffort() {
+        if (!currentSessionToken) return;
+
+        const payload = JSON.stringify({
+            sessionToken: currentSessionToken,
+            authToken: Auth.getToken()
+        });
+
+        if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon('/api/brainspotting/end_session.php', blob);
+            return;
+        }
+
+        fetch('/api/brainspotting/end_session.php', {
+            method: 'POST',
+            keepalive: true,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: payload
+        }).catch(() => {
+            // Best effort only.
+        });
+    }
+
+    async function createSharingSession() {
+        if (currentSessionToken && currentViewerUrl) {
+            showShareModal(currentViewerUrl);
+            return;
+        }
+
+        // Loading state
+        shareBtn.disabled = true;
+        shareBtn.style.opacity = '0.5';
+        try {
+            const response = await Auth.apiRequest('/brainspotting/create_session.php', {
+                method: 'POST'
+            });
+
+            if (response.success) {
+                currentSessionToken = response.sessionToken;
+                currentViewerUrl = response.viewerUrl;
+                shareBtn.classList.add('share-btn-active');
+                showShareModal(currentViewerUrl);
+                await sendSessionUpdate();
+                
+                // Start periodic updates at a shared-hosting-friendly cadence.
+                if (!sessionUpdateInterval) {
+                    sessionUpdateInterval = setInterval(sendSessionUpdate, 250);
+                }
+            } else {
+                showToast('Failed to create sharing session: ' + (response.error || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Session creation failed:', error);
+            showToast('Unable to start sharing session. Check your connection.', 'error');
+        } finally {
+            shareBtn.disabled = false;
+            shareBtn.style.opacity = '1';
+        }
+    }
+
+    async function endSharingSession() {
+        if (!currentSessionToken) return;
+        
+        try {
+            await Auth.apiRequest('/brainspotting/end_session.php', {
+                method: 'POST',
+                body: JSON.stringify({ sessionToken: currentSessionToken })
+            });
+        } catch (e) {
+            console.error('Failed to end session:', e);
+        }
+        
+        currentSessionToken = null;
+        currentViewerUrl = null;
+        shareBtn.classList.remove('share-btn-active');
+        if (sessionUpdateInterval) {
+            clearInterval(sessionUpdateInterval);
+            sessionUpdateInterval = null;
+        }
+    }
+
+    function showShareModal(viewerUrl) {
+        modalTitle.textContent = 'Share to Client';
+        modalContent.innerHTML = `
+            <p class="mb-2">Share this link with your client to let them watch the current session.</p>
+            <p class="text-xs text-gray-400 mb-4">Reopening Share returns to the same active link until you stop sharing.</p>
+            <div class="bg-gray-700 p-3 rounded-lg mb-4">
+                <input type="text" value="${viewerUrl}" readonly
+                       class="w-full bg-transparent text-white text-sm font-mono"
+                       id="viewer-url-input">
+            </div>
+            <div class="flex space-x-2">
+                <button id="copy-url-btn" class="flex-1 py-2 bg-blue-600 rounded hover:bg-blue-700 transition">
+                    Copy Link
+                </button>
+                <button id="stop-sharing-btn" class="px-4 py-2 bg-red-600 rounded hover:bg-red-700 transition">
+                    Stop Sharing
+                </button>
+            </div>
+            <p class="text-xs text-gray-400 mt-3">
+                The client will see the pointer position in real-time.
+                Session automatically expires after 60 minutes of inactivity. Clipboard contents may remain on this device after copying.
+            </p>
+        `;
+        settingsModal.classList.remove('hidden');
+
+        document.getElementById('copy-url-btn').addEventListener('click', async () => {
+            const input = document.getElementById('viewer-url-input');
+            const btn = document.getElementById('copy-url-btn');
+            try {
+                await navigator.clipboard.writeText(input.value);
+                btn.textContent = 'Copied!';
+            } catch {
+                // Fallback for older browsers
+                input.select();
+                document.execCommand('copy');
+                btn.textContent = 'Copied!';
+            }
+            setTimeout(() => btn.textContent = 'Copy Link', 2000);
+        });
+
+        document.getElementById('stop-sharing-btn').addEventListener('click', async () => {
+            await endSharingSession();
+            closeModal();
+        });
+    }
+
+    /*************** UI Controls ***************/
+    function openModal(title, html) {
+        modalTitle.textContent = title;
+        modalContent.innerHTML = html;
+        settingsModal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        settingsModal.classList.add('hidden');
+    }
+
+    function openSpeedModal() {
+        let html = '<p class="text-sm text-gray-300 mb-3">Select scanning speed (time for one full pass):</p>';
+        Object.keys(SPEED_MAP).forEach(k => {
+            const s = SPEED_MAP[k];
+            const isCurrent = parseInt(k) === currentSpeedIndex;
+            html += `
+              <button data-speed="${k}"
+                      class="w-full text-left p-3 rounded-lg transition mb-2
+                             ${isCurrent ? 'bg-indigo-600' : 'bg-gray-700 hover:bg-gray-600'} speed-option">
+                  <span class="font-semibold">${s.name}</span>
+                  <p class="text-xs text-gray-400 mt-1">${s.desc}</p>
+              </button>`;
+        });
+        openModal('Speed Settings', html);
+        
+        document.querySelectorAll('.speed-option').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const newSpeed = parseInt(e.currentTarget.dataset.speed);
+                currentSpeedIndex = newSpeed;
+                scanDurationMs = SPEED_MAP[newSpeed].ms;
+                closeModal();
+            });
+        });
+    }
+
+    function openColorModal() {
+        let html = '<div class="grid grid-cols-2 gap-4">';
+        Object.values(COLORS_MAP).forEach(c => {
+            const isCurrent = c.hex === ballColor;
+            html += `
+              <button data-color="${c.hex}"
+                      class="color-option p-4 rounded-lg shadow-md flex flex-col items-center justify-center
+                             transition ${isCurrent ? 'bg-indigo-600 ring-2 ring-white' : 'bg-gray-700 hover:bg-gray-600'}">
+                  <div class="h-8 w-8 rounded-full shadow-lg" style="background-color:${c.hex};"></div>
+                  <span class="mt-2 text-sm ${c.class}">${c.name}</span>
+              </button>`;
+        });
+        html += '</div>';
+        openModal('Pointer Color', html);
+        
+        document.querySelectorAll('.color-option').forEach(btn => {
+            btn.addEventListener('click', e => {
+                ballColor = e.currentTarget.dataset.color;
+                pointer.style.backgroundColor = ballColor;
+                pointer.style.boxShadow = `0 0 30px ${ballColor}80`;
+                updateColorBtnStyle();
+                closeModal();
+            });
+        });
+    }
+
+    function updateColorBtnStyle() {
+        const currentColorKey = Object.keys(COLORS_MAP).find(k => COLORS_MAP[k].hex === ballColor);
+        colorBtn.classList.remove('text-white', 'text-teal-300', 'text-indigo-300', 'text-yellow-300', 'text-sky-300');
+        if (currentColorKey) {
+            colorBtn.classList.add(COLORS_MAP[currentColorKey].class);
+        } else {
+            colorBtn.classList.add('text-sky-300');
+        }
+    }
+
+    function toggleControlMode() {
+        if (controlMode === 'scan') {
+            controlMode = 'manual';
+            scanModeIcon.classList.add('hidden');
+            manualModeIcon.classList.remove('hidden');
+            modeBtn.classList.remove('text-green-400');
+            modeBtn.classList.add('text-purple-400');
+        } else {
+            controlMode = 'scan';
+            scanModeIcon.classList.remove('hidden');
+            manualModeIcon.classList.add('hidden');
+            modeBtn.classList.remove('text-purple-400');
+            modeBtn.classList.add('text-green-400');
+        }
+    }
+
+    function openHelpModal() {
+        const html = `
+          <section class="space-y-2">
+            <p class="text-sm text-gray-200 font-semibold">Quick Start</p>
+            <ol class="list-decimal list-inside space-y-1.5 text-xs text-gray-200">
+              <li>Click <span class="font-semibold">Start Session</span> and choose your session type.</li>
+              <li>In <span class="font-semibold">Scan Mode</span>: Follow the pointer horizontally, then vertically. Press SPACE or click to lock each axis.</li>
+              <li>In <span class="font-semibold">Manual Mode</span>: Move your mouse to guide the pointer. Click to lock the brainspot.</li>
+              <li>Once the brainspot is set, the pointer stays fixed while you process.</li>
+              <li>Use <span class="font-semibold">Another Round</span> for another pass or <span class="font-semibold">Review / End</span> to open the wrap-up step.</li>
+            </ol>
+          </section>
+          <section class="pt-3 border-t border-gray-700 mt-3">
+            <p class="text-sm text-gray-200 font-semibold mb-3">Controls</p>
+            <ul class="space-y-2 text-xs text-gray-200">
+              <li><span class="font-semibold">Speed</span> – Adjust scanning pace (Slow/Medium/Fast)</li>
+              <li><span class="font-semibold">Mode</span> – Toggle between Scan and Manual control</li>
+              <li><span class="font-semibold">Color</span> – Change pointer color</li>
+              <li><span class="font-semibold">Audio</span> – Enable/disable biolateral audio</li>
+              <li><span class="font-semibold">Share</span> – Reopen the active viewer link or create one if sharing is not active</li>
+              <li><span class="font-semibold">SUDs / Notes</span> – Stay in the toolbar and become available once a session is active</li>
+            </ul>
+          </section>
+          <section class="pt-3 border-t border-gray-700 mt-3 text-xs text-gray-300">
+            <p class="italic">
+              <span class="font-semibold">Clinical note:</span>
+              This tool is intended for trained Brainspotting practitioners. Monitor your client's activation levels and take breaks as needed.
+            </p>
+          </section>
+        `;
+        openModal('Brainspotting Tool – Quick Guide', html);
+    }
+
+    /*************** Event Listeners ***************/
+    let _bspSessionStart = null;
+    document.addEventListener('DOMContentLoaded', () => {
+        centerPointer();
+
+        // Start session button
+        startBtn.addEventListener('click', () => {
+            setupModal.classList.remove('hidden');
+        });
+
+        // Session type selection
+        document.querySelectorAll('.session-type-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const type = e.currentTarget.dataset.type;
+                sessionData.type = type;
+                sessionData.date = new Date().toISOString();
+                setupModal.classList.add('hidden');
+                if (!_bspSessionStart) {
+                    _bspSessionStart = Date.now();
+                    Auth.trackAppUsage('brainspotting', 'start');
+                }
+                initAudio();
+                setSessionToolsEnabled(true);
+                
+                if (controlMode === 'manual') {
+                    startManualMode();
+                } else {
+                    startXScan();
+                }
+            });
+        });
+
+        // Cancel setup
+        document.getElementById('cancel-setup-btn').addEventListener('click', () => {
+            setupModal.classList.add('hidden');
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (currentSessionToken) {
+                endSharingSessionBestEffort();
+            }
+        });
+        window.addEventListener('pagehide', () => {
+            if (currentSessionToken) {
+                endSharingSessionBestEffort();
+            }
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                const tag = document.activeElement?.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+                e.preventDefault();
+                
+                if (currentPhase === 'x-scan') {
+                    lockXPosition();
+                } else if (currentPhase === 'y-scan') {
+                    lockYPosition();
+                }
+            } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' || 
+                       e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                e.preventDefault();
+                handleNudge(e.code);
+            } else if (e.code === 'Escape') {
+                if (!settingsModal.classList.contains('hidden')) {
+                    closeModal();
+                } else if (!setupModal.classList.contains('hidden')) {
+                    setupModal.classList.add('hidden');
+                } else if (!checkinModal.classList.contains('hidden')) {
+                    checkinModal.classList.add('hidden');
+                }
+            }
+        });
+
+        // Click to lock in scan mode
+        bsContainer.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('a')) return;
+            
+            if (currentPhase === 'x-scan') {
+                lockXPosition();
+            } else if (currentPhase === 'y-scan') {
+                lockYPosition();
+            }
+        });
+
+        // Holding phase controls
+        findNewBtn.addEventListener('click', findNewSpot);
+        endSessionBtn.addEventListener('click', showCheckinModal);
+
+        // Check-in modal controls
+        document.getElementById('another-round-btn').addEventListener('click', () => {
+            checkinModal.classList.add('hidden');
+            findNewSpot();
+        });
+        document.getElementById('end-complete-btn').addEventListener('click', endSession);
+
+        // Control buttons
+        speedBtn.addEventListener('click', openSpeedModal);
+        modeBtn.addEventListener('click', toggleControlMode);
+        colorBtn.addEventListener('click', openColorModal);
+        audioBtn.addEventListener('click', () => {
+            initAudio();
+            setAudioEnabled(!audioEnabled);
+        });
+        shareBtn.addEventListener('click', createSharingSession);
+        helpBtn.addEventListener('click', openHelpModal);
+        toolsToggleBtn?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleMobileTools();
+        });
+        modalCloseBtn.addEventListener('click', closeModal);
+        setSessionToolsEnabled(false);
+
+        // Fullscreen
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.error(err));
+            } else {
+                document.exitFullscreen && document.exitFullscreen();
+            }
+        });
+
+        // Click outside modal to close
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) closeModal();
+        });
+        setupModal.addEventListener('click', (e) => {
+            if (e.target === setupModal) setupModal.classList.add('hidden');
+        });
+        checkinModal.addEventListener('click', (e) => {
+            if (e.target === checkinModal) checkinModal.classList.add('hidden');
+        });
+        document.addEventListener('click', (event) => {
+            if (window.innerWidth > 900 || !settingsPanel.classList.contains('is-open')) return;
+            if (settingsPanel.contains(event.target) || toolsToggleBtn?.contains(event.target)) return;
+            toggleMobileTools(false);
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            syncMobileToolsState();
+            if (currentPhase === 'idle') {
+                centerPointer();
+            }
+        });
+
+        // Drag handlers for position adjustment (mouse)
+        xMarker.addEventListener('mousedown', (e) => {
+            if (currentPhase === 'y-scan' && xMarker.classList.contains('draggable')) {
+                startDrag(e, 'x-marker');
+            }
+        });
+        
+        pointer.addEventListener('mousedown', (e) => {
+            if (currentPhase === 'holding' && pointer.classList.contains('draggable')) {
+                startDrag(e, 'pointer');
+            }
+        });
+        
+        document.addEventListener('mousemove', handleDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('mouseleave', endDrag);
+
+        // Touch support for iPad/tablets
+        function getTouchPos(e) {
+            const touch = e.touches[0] || e.changedTouches[0];
+            return { clientX: touch.clientX, clientY: touch.clientY };
+        }
+
+        bsContainer.addEventListener('touchmove', (e) => {
+            if (currentPhase === 'manual') {
+                e.preventDefault();
+                const t = getTouchPos(e);
+                const rect = bsContainer.getBoundingClientRect();
+                pointer.style.left = `${t.clientX - rect.left - pointerSize / 2}px`;
+                pointer.style.top = `${t.clientY - rect.top - pointerSize / 2}px`;
+                sendSessionUpdate();
+            }
+        }, { passive: false });
+
+        bsContainer.addEventListener('touchend', (e) => {
+            if (currentPhase === 'manual') {
+                e.preventDefault();
+                const t = getTouchPos(e);
+                const rect = bsContainer.getBoundingClientRect();
+                lockedX = t.clientX - rect.left;
+                lockedY = t.clientY - rect.top;
+                stopManualMode();
+                sessionData.brainspot = {
+                    x: lockedX / rect.width,
+                    y: lockedY / rect.height
+                };
+                brainspotLocked.style.left = `${lockedX}px`;
+                brainspotLocked.style.top = `${lockedY}px`;
+                brainspotLocked.classList.add('visible');
+                startHolding();
+            }
+        });
+
+        // Touch drag for holding phase
+        pointer.addEventListener('touchstart', (e) => {
+            if (currentPhase === 'holding' && pointer.classList.contains('draggable')) {
+                e.preventDefault();
+                isDragging = true;
+                dragTarget = 'pointer';
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const t = getTouchPos(e);
+            handleDrag({ clientX: t.clientX, clientY: t.clientY });
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
+            if (isDragging) endDrag();
+        });
+
+        // Pause button
+        pauseBtn.addEventListener('click', togglePause);
+
+        // SUDs button toggle
+        sudsBtn.addEventListener('click', () => {
+            sudsPanel.classList.toggle('hidden');
+        });
+
+        // SUDs toggle collapse
+        document.getElementById('suds-toggle').addEventListener('click', () => {
+            sudsPanel.classList.toggle('collapsed');
+            document.getElementById('suds-toggle').textContent = sudsPanel.classList.contains('collapsed') ? 'expand' : 'collapse';
+        });
+
+        // Build SUDs picker (0-10)
+        const sudsPicker = document.getElementById('suds-picker');
+        for (let i = 0; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'suds-btn';
+            btn.textContent = i;
+            btn.addEventListener('click', () => logSuds(i));
+            sudsPicker.appendChild(btn);
+        }
+
+        // Notes button toggle
+        notesBtn.addEventListener('click', () => {
+            notesPanel.classList.toggle('hidden');
+            if (!notesPanel.classList.contains('hidden') && sessionNotesInput) {
+                sessionNotesInput.focus();
+            }
+        });
+
+        // Notes close
+        document.getElementById('notes-close').addEventListener('click', () => {
+            notesPanel.classList.add('hidden');
+        });
+
+        // Persist notes on change
+        if (sessionNotesInput) {
+            sessionNotesInput.addEventListener('input', () => {
+                sessionData.notes = sessionNotesInput.value;
+            });
+        }
+    });
+
+    /*************** Toast System ***************/
+    function showToast(message, type = 'info') {
+        let container = document.querySelector('.bsp-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'bsp-toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `bsp-toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3600);
+    }
+
+    /*************** SUDs Logging ***************/
+    function logSuds(level) {
+        const phaseLabels = { 'x-scan': 'Scanning', 'y-scan': 'Scanning', 'holding': 'Processing', 'manual': 'Manual', 'idle': 'Idle' };
+        const entry = {
+            level: level,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            phase: phaseLabels[currentPhase] || currentPhase,
+            timestamp: Date.now()
+        };
+        sessionData.sudsLog.push(entry);
+        renderSudsLog();
+        showToast(`SUDs: ${level} logged`, 'info');
+    }
+
+    function renderSudsLog() {
+        const logEl = document.getElementById('suds-log');
+        if (!logEl) return;
+        logEl.innerHTML = '';
+        sessionData.sudsLog.forEach(entry => {
+            const div = document.createElement('div');
+            div.className = 'suds-entry';
+            div.innerHTML = `<span>${entry.time} · ${entry.phase}</span><span class="suds-val">${entry.level}</span>`;
+            logEl.appendChild(div);
+        });
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    /*************** Show/Hide Session UI ***************/
+    // Patch: show session tools when session type is selected
+    (function() {
+        const sessionTypeBtns = document.querySelectorAll('.session-type-btn');
+        sessionTypeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Show SUDs and Notes buttons once session starts
+                sudsBtn.classList.remove('hidden');
+                notesBtn.classList.remove('hidden');
+            });
+        });
+    })();
+
+    window.addEventListener('beforeunload', () => {
+        if (_bspSessionStart) {
+            const dur = Math.round((Date.now() - _bspSessionStart) / 1000);
+            Auth.trackAppUsage('brainspotting', 'end', dur);
+        }
+    });
+</script>
+</body>
+</html>
+

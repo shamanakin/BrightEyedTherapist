@@ -6,10 +6,19 @@
     <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
     <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
     <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
-    <title>Bright Eyed Therapist - Professional Clinical Tools</title>
+    <title>Bright Eyed Therapist — Free EMDR Bilateral Stimulation for Telehealth</title>
+    <meta name="description" content="Free EMDR bilateral stimulation for telehealth. Founding Member suite: guided EMDR protocol, Brainspotting, Life Map, and Genogram Genie from $5/mo. Built by a therapist, for therapists.">
+    <meta property="og:title" content="Bright Eyed Therapist — Free EMDR for Telehealth">
+    <meta property="og:description" content="Free bilateral stimulation with share-to-client links. Guided EMDR, Brainspotting, Life Map, and Genogram Genie for $5/mo founding pricing.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://brighteyedtherapist.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bright Eyed Therapist — Free EMDR for Telehealth">
+    <meta name="twitter:description" content="Free bilateral stimulation tool with share-to-client links. Built by a therapist, for therapists.">
+    <link rel="canonical" href="https://brighteyedtherapist.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="auth.js"></script>
@@ -17,6 +26,7 @@
 </head>
 <body>
 
+    <!-- ====== NAVIGATION ====== -->
     <header class="container animate-on-scroll">
         <nav>
             <a href="index.html" class="nav-logo">
@@ -24,215 +34,374 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html" class="active">Features</a>
-                <a href="demo.html">Demo</a>
+                <a href="#tools">Tools</a>
+                <a href="#pricing">Pricing</a>
                 <a href="about.html">About</a>
-                <a href="contact.html">Contact</a>
                 <a href="feedback.html">Feedback</a>
+                <a href="contact.html">Contact</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <!-- Mobile menu -->
+        <div class="mobile-menu">
+            <a href="#tools">Tools</a>
+            <a href="#pricing">Pricing</a>
+            <a href="about.html">About</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="contact.html">Contact</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main>
+
+        <!-- ====== SECTION 1: HERO ====== -->
         <section class="hero container">
-            <div class="early-access-box animate-on-scroll">
-                <span class="badge">Beta Access</span>
-                <span class="early-access-text">Join the Pilot Program for just <strong>$10/month</strong></span>
+            <div class="animate-on-scroll" style="margin-bottom: 1.5rem;">
+                <span style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(16,185,129,0.1);color:#059669;padding:0.4rem 1rem;border-radius:999px;font-size:0.85rem;font-weight:600;">
+                    <i class="fa-solid fa-gift"></i> Free forever — no credit card
+                </span>
             </div>
             
             <h1 class="animate-on-scroll delay-100">
-                <span>Clinical</span> <span>tools</span> <span>that</span> <br>
-                <span>restore</span> <span>focus</span>.
+                <span>Professional</span> <span>EMDR</span> <br>
+                <span>for</span> <span>telehealth.</span> <span style="color:var(--col-accent);font-style:italic;">Free.</span>
             </h1>
             
             <p class="hero-subtitle animate-on-scroll delay-200">
-                Streamline your practice with a modern suite of therapeutic tools designed by a therapist, for therapists. Reduce administrative burden and enhance client engagement.
+                Bilateral stimulation with share-to-client links, built by a therapist who does this work. Plus Brainspotting, trauma timelines, and genograms for just $5/mo.
             </p>
             
-            <div class="animate-on-scroll delay-300" style="display: flex; gap: 1rem; justify-content: center;">
-                <a href="register.html" id="hero-cta" class="btn btn-beam">Start Free Trial</a>
-                <a href="about.html" class="btn btn-secondary">Learn More</a>
+            <div class="animate-on-scroll delay-300" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="register.html" id="hero-cta" class="btn btn-beam">Start Free — No Card Needed</a>
+                <a href="#tools" class="btn btn-secondary">See All Tools</a>
             </div>
-            
-            <p id="hero-subtext" class="animate-on-scroll delay-300" style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--col-text-muted);">
-                No credit card required for trial • Cancel anytime
-            </p>
+
+            <!-- Inline EMDR demo -->
+            <div class="animate-on-scroll delay-300" style="margin-top: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                <div style="background:#1a1a1a;border-radius:16px;padding:2rem 2rem 1.5rem;position:relative;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+                    <div style="position:absolute;top:10px;left:16px;display:flex;gap:6px;">
+                        <span style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></span>
+                        <span style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></span>
+                        <span style="width:10px;height:10px;border-radius:50%;background:#28c840;"></span>
+                    </div>
+                    <div style="height:120px;display:flex;align-items:center;justify-content:center;">
+                        <div style="width:36px;height:36px;background:#4ade80;border-radius:50%;box-shadow:0 0 30px rgba(74,222,128,0.5);animation:emdr-move 2s ease-in-out infinite;"></div>
+                    </div>
+                    <p style="text-align:center;color:rgba(255,255,255,0.35);font-size:0.75rem;font-family:'Inter',sans-serif;margin-top:0.5rem;">Live preview — the actual tool is full-screen with adjustable speed, color, direction, and audio</p>
+                </div>
+            </div>
         </section>
 
-        <!-- Feature Marquee -->
+        <!-- ====== SECTION 2: TRUST BAR ====== -->
         <div class="marquee-container" style="padding: 2rem 0; background: #fff; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6;">
             <div class="marquee-inner" style="display: flex; gap: 4rem; align-items: center; opacity: 0.6;">
-                <span style="font-family: 'Playfair Display'; font-style: italic;">Trusted by Clinicians</span>
-                <span><i class="fa-solid fa-shield-halved"></i> HIPAA Compliant Standards</span>
-                <span><i class="fa-solid fa-bolt"></i> Lightweight & Fast</span>
-                <span><i class="fa-solid fa-lock"></i> Secure Encryption</span>
-                <span><i class="fa-solid fa-code"></i> Developer-Therapist Built</span>
-                <span><i class="fa-solid fa-users"></i> Community Driven</span>
+                <span><i class="fa-solid fa-shield-halved"></i> Privacy-minded clinical tools</span>
+                <span><i class="fa-solid fa-file-contract"></i> BAA not included by default</span>
+                <span><i class="fa-solid fa-laptop-medical"></i> Core tool content stays in your browser by default</span>
+                <span><i class="fa-solid fa-user-doctor"></i> Built by a Practicing Therapist</span>
+                <span><i class="fa-solid fa-lock"></i> Account, billing, and support data remain server-side</span>
+                <span><i class="fa-solid fa-share-nodes"></i> Encrypted client viewer links</span>
             </div>
         </div>
 
-        <section class="services-section container">
-            <h2 class="animate-on-scroll" style="text-align: center; margin-bottom: 2.5rem; font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--col-text-main);">
-                A Growing Suite of Clinical Tools
-            </h2>
-            <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+        <!-- ====== SECTION 3: HOW IT WORKS ====== -->
+        <section class="container" style="padding: 5rem 24px;">
+            <h2 class="animate-on-scroll" style="text-align:center;font-size:2.2rem;margin-bottom:0.75rem;">How It Works</h2>
+            <p class="animate-on-scroll" style="text-align:center;color:var(--col-text-muted);margin-bottom:3rem;max-width:500px;margin-left:auto;margin-right:auto;">Start a bilateral stimulation session with your telehealth client in under 60 seconds.</p>
+            
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2.5rem;max-width:900px;margin:0 auto;" class="how-it-works-grid">
+                <div class="animate-on-scroll" style="text-align:center;">
+                    <div style="width:64px;height:64px;background:rgba(44,85,88,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.5rem;color:var(--col-primary);">
+                        <i class="fa-solid fa-play"></i>
+                    </div>
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">1. Open the Tool</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.9rem;">Launch the EMDR suite from your dashboard. Customize speed, color, and direction.</p>
+                </div>
+                <div class="animate-on-scroll delay-100" style="text-align:center;">
+                    <div style="width:64px;height:64px;background:rgba(44,85,88,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.5rem;color:var(--col-primary);">
+                        <i class="fa-solid fa-share-from-square"></i>
+                    </div>
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">2. Share the Link</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.9rem;">Send your client a secure viewer link. They see the stimulus on their own screen.</p>
+                </div>
+                <div class="animate-on-scroll delay-200" style="text-align:center;">
+                    <div style="width:64px;height:64px;background:rgba(44,85,88,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:1.5rem;color:var(--col-primary);">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">3. Process Together</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.9rem;">You control the stimulus in real-time. They follow. Focus on the clinical work.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== SECTION 4: PRODUCT SHOWCASE ====== -->
+        <section id="tools" class="container" style="padding: 3rem 24px 5rem;">
+            <h2 class="animate-on-scroll" style="text-align: center; font-size: 2.2rem; margin-bottom: 0.5rem;">Clinical tools for trauma telehealth</h2>
+            <p class="animate-on-scroll" style="text-align: center; color: var(--col-text-muted); margin-bottom: 2.5rem; max-width: 520px; margin-left: auto; margin-right: auto;">
+                Free EMDR bilateral stimulation, plus a founding-member suite for guided protocol work and case conceptualization.
+            </p>
+            <h3 class="animate-on-scroll" style="text-align: center; margin-bottom: 1rem; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--col-text-muted);">
+                Processing
+            </h3>
+            <div class="grid" style="grid-template-columns: repeat(2, 1fr); max-width: 800px; margin: 0 auto 3rem;">
                 <!-- EMDR Suite -->
                 <div class="card flashlight-card animate-on-scroll" style="position: relative;">
-                    <span style="position: absolute; top: 12px; right: 12px; background: #D1FAE5; color: #065F46; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">v1.0</span>
+                    <span style="position:absolute;top:12px;right:12px;background:#D1FAE5;color:#065F46;padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Free</span>
                     <div class="card-icon">
                         <i class="fa-regular fa-eye"></i>
                     </div>
                     <h3>EMDR Suite</h3>
-                    <p>Customizable bilateral stimulation with shareable client links. Control speed, color, sound, and visual patterns.</p>
+                    <p>Full bilateral stimulation with adjustable speed, color, direction, and audio. Share-to-client viewer links for telehealth sessions.</p>
                     <div class="card-meta">
-                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Share-to-Client Links
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> v1.0 Stable &middot; Free Forever
                     </div>
                 </div>
 
-                <!-- Note Genie -->
-                <div class="card flashlight-card animate-on-scroll delay-100" style="position: relative;">
-                    <span style="position: absolute; top: 12px; right: 12px; background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Alpha</span>
+                <!-- Brainspotting -->
+                <div class="card flashlight-card animate-on-scroll" style="position: relative;">
+                    <span style="position:absolute;top:12px;right:12px;background:var(--col-accent-soft);color:var(--col-accent);padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">$5/mo</span>
                     <div class="card-icon" style="background-color: #FEF3C7; color: #92400E;">
-                        <i class="fa-solid fa-scale-balanced"></i>
+                        <i class="fa-solid fa-bullseye"></i>
                     </div>
-                    <h3>Note Genie</h3>
-                    <p>AI-powered clinical documentation assistant. Generate SOAP, DAP, or BIRP notes in seconds with your own OpenAI key.</p>
+                    <h3>Brainspotting</h3>
+                    <p>Guided X/Y gaze scanning to locate brainspots. Biolateral audio integration and share-to-client viewing.</p>
                     <div class="card-meta">
-                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> BYOK Privacy Model
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Manual &amp; Scan Modes
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Conceptualization -->
+            <h3 class="animate-on-scroll" style="text-align: center; margin-bottom: 1rem; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--col-text-muted);">
+                Case Conceptualization
+            </h3>
+            <div class="grid" style="grid-template-columns: repeat(2, 1fr); max-width: 800px; margin: 0 auto;">
+                <!-- Trauma Timeline -->
+                <div class="card flashlight-card animate-on-scroll delay-100" style="position: relative;">
+                    <span style="position:absolute;top:12px;right:12px;background:var(--col-accent-soft);color:var(--col-accent);padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">$5/mo</span>
+                    <div class="card-icon">
+                        <i class="fa-solid fa-timeline"></i>
+                    </div>
+                    <h3>Trauma Timeline</h3>
+                    <p>Plot life events and trauma markers on a visual timeline. See patterns, track progress, and build case narratives collaboratively.</p>
+                    <div class="card-meta">
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Interactive &amp; Exportable
                     </div>
                 </div>
 
                 <!-- Genogram Genie -->
                 <div class="card flashlight-card animate-on-scroll delay-100" style="position: relative;">
-                    <span style="position: absolute; top: 12px; right: 12px; background: #DBEAFE; color: #1E40AF; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Beta</span>
+                    <span style="position:absolute;top:12px;right:12px;background:var(--col-accent-soft);color:var(--col-accent);padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">$5/mo</span>
                     <div class="card-icon accent">
                         <i class="fa-solid fa-sitemap"></i>
                     </div>
                     <h3>Genogram Genie</h3>
-                    <p>Map complex family dynamics with intuitive drag-and-drop tools. Create clinical-grade family trees that visualize patterns.</p>
+                    <p>Map complex family dynamics with drag-and-drop tools. Standard genogram symbols, relationship lines, and exportable reports.</p>
                     <div class="card-meta">
-                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Exportable Reports
+                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Save &amp; Load Locally
                     </div>
                 </div>
+            </div>
 
-                <!-- Trauma Timeline -->
-                <div class="card flashlight-card animate-on-scroll delay-200" style="position: relative;">
-                    <span style="position: absolute; top: 12px; right: 12px; background: #DBEAFE; color: #1E40AF; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Beta</span>
-                    <div class="card-icon">
-                        <i class="fa-solid fa-timeline"></i>
-                    </div>
-                    <h3>Trauma Timeline</h3>
-                    <p>Transform case history into a clear visual narrative. Plot life events and trauma markers to see patterns and progress.</p>
-                    <div class="card-meta">
-                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Interactive & Collaborative
-                    </div>
-                </div>
+            <p class="animate-on-scroll" style="text-align:center;margin-top:2rem;color:var(--col-text-muted);font-size:0.9rem;">
+                More clinical tools launching soon — all included in the $5/mo Founding Member plan at no extra cost.
+            </p>
+        </section>
 
-                <!-- Guided Clarity -->
-                <div class="card flashlight-card animate-on-scroll delay-200" style="position: relative;">
-                    <span style="position: absolute; top: 12px; right: 12px; background: #DBEAFE; color: #1E40AF; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Beta</span>
-                    <div class="card-icon" style="background-color: #DBEAFE; color: #1E40AF;">
-                        <i class="fa-solid fa-compass"></i>
-                    </div>
-                    <h3>Guided Clarity</h3>
-                    <p>Structured motivational interviewing tool. Guide clients through decision-making and create a printable "Clarity Card" takeaway.</p>
-                    <div class="card-meta">
-                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Values-Based Approach
-                    </div>
-                </div>
+        <!-- ====== SECTION 5: PRICING ====== -->
+        <section id="pricing" style="padding:5rem 24px;background:linear-gradient(180deg,rgba(44,85,88,0.03),rgba(44,85,88,0.06));">
+            <div class="container">
+                <h2 class="animate-on-scroll" style="text-align:center;font-size:2.2rem;margin-bottom:0.5rem;">Simple, Honest Pricing</h2>
+                <p class="animate-on-scroll" style="text-align:center;color:var(--col-text-muted);margin-bottom:3rem;max-width:550px;margin-left:auto;margin-right:auto;">
+                    No hidden fees. No per-session charges. No "contact us for pricing."<br>Other EMDR tools charge $15–20/mo. We start at free.
+                </p>
 
-                <!-- ERP Fear Facer -->
-                <div class="card flashlight-card animate-on-scroll delay-300" style="position: relative;">
-                    <span style="position: absolute; top: 12px; right: 12px; background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Alpha</span>
-                    <div class="card-icon" style="background-color: #FEF3C7; color: #92400E;">
-                        <i class="fa-solid fa-mountain"></i>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:800px;margin:0 auto;" class="pricing-grid">
+                    <!-- Free Tier -->
+                    <div class="card flashlight-card animate-on-scroll" style="padding:2.5rem;">
+                        <div style="margin-bottom:1.5rem;">
+                            <h3 style="font-family:'Inter',sans-serif;font-size:1.25rem;font-weight:700;color:var(--col-text-main);margin-bottom:0.25rem;">Free</h3>
+                            <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:0.5rem;">
+                                <span style="font-size:2.5rem;font-weight:700;color:var(--col-text-main);font-family:'Inter',sans-serif;">$0</span>
+                                <span style="color:var(--col-text-muted);font-size:0.9rem;">/forever</span>
+                            </div>
+                            <p style="color:var(--col-text-muted);font-size:0.85rem;">Full EMDR bilateral stimulation. No trial. No card.</p>
+                        </div>
+                        <ul style="list-style:none;padding:0;margin:0 0 2rem 0;">
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> EMDR bilateral stimulation</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> Adjustable speed, color, direction</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> Dot and lightbar modes</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> Audio bilateral tones</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> Share-to-client viewer links</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> Session set counter</li>
+                        </ul>
+                        <a href="register.html" class="btn btn-secondary" style="width:100%;text-align:center;">Create Free Account</a>
                     </div>
-                    <h3>ERP Fear Facer</h3>
-                    <p>Build fear hierarchies and track exposure therapy sessions. SUDS tracking with printable session summaries for OCD/anxiety work.</p>
-                    <div class="card-meta">
-                        <i class="fa-solid fa-check-circle" style="color: var(--col-primary);"></i> Session Logging
+
+                    <!-- Founding Member -->
+                    <div class="card flashlight-card animate-on-scroll delay-100" style="padding:2.5rem;border:2px solid var(--col-primary);position:relative;overflow:visible;">
+                        <span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--col-primary);color:#fff;padding:4px 16px;border-radius:999px;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;">Earlybird Launch Price</span>
+                        <div style="margin-bottom:1.5rem;">
+                            <h3 style="font-family:'Inter',sans-serif;font-size:1.25rem;font-weight:700;color:var(--col-text-main);margin-bottom:0.25rem;">Founding Member</h3>
+                            <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:0.5rem;">
+                                <span style="font-size:2.5rem;font-weight:700;color:var(--col-text-main);font-family:'Inter',sans-serif;">$5</span>
+                                <span style="color:var(--col-text-muted);font-size:0.9rem;">/month</span>
+                            </div>
+                            <p style="color:var(--col-text-muted);font-size:0.85rem;">Everything in Free, plus the full clinical suite. Price locked in forever.</p>
+                        </div>
+                        <ul style="list-style:none;padding:0;margin:0 0 2rem 0;">
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-check" style="color:#10b981;width:16px;"></i> Everything in Free</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-main);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;font-weight:500;"><i class="fa-solid fa-plus" style="color:var(--col-accent);width:16px;"></i> Brainspotting tool</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-main);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;font-weight:500;"><i class="fa-solid fa-plus" style="color:var(--col-accent);width:16px;"></i> Trauma Timeline</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-main);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;font-weight:500;"><i class="fa-solid fa-plus" style="color:var(--col-accent);width:16px;"></i> Genogram Genie</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-main);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;font-weight:500;"><i class="fa-solid fa-plus" style="color:var(--col-accent);width:16px;"></i> All future tools included</li>
+                            <li style="padding:0.5rem 0;color:var(--col-text-muted);display:flex;align-items:center;gap:0.75rem;font-size:0.95rem;"><i class="fa-solid fa-lock" style="color:var(--col-primary);width:16px;"></i> $5/mo locked in forever</li>
+                        </ul>
+                        <a href="register.html" class="btn btn-beam" style="width:100%;text-align:center;">Get Started</a>
                     </div>
                 </div>
             </div>
         </section>
+
+        <!-- ====== SECTION 6: SOCIAL PROOF ======
+             TODO: Uncomment this section once real testimonials are collected.
+             Replace the placeholder quotes, initials, titles, and credentials
+             with actual clinician feedback. The 3-card grid layout is ready to go.
+        -->
+        <!--
+        <section class="container" style="padding:5rem 24px;">
+            <h2 class="animate-on-scroll" style="text-align:center;font-size:2.2rem;margin-bottom:3rem;">What Clinicians Say</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;max-width:1000px;margin:0 auto;" class="testimonials-grid">
+                <div class="card flashlight-card animate-on-scroll" style="padding:2rem;">
+                    <p style="color:var(--col-text-muted);font-style:italic;margin-bottom:1.5rem;line-height:1.7;">"Finally, an EMDR tool that doesn't feel like it was designed in 2005. Clean, fast, and my clients actually comment on how smooth the experience is."</p>
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:40px;height:40px;background:var(--col-accent-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--col-accent);font-weight:600;font-size:0.85rem;">LT</div>
+                        <div>
+                            <p style="font-weight:600;font-size:0.9rem;color:var(--col-text-main);margin:0;">Licensed Therapist</p>
+                            <p style="font-size:0.8rem;color:var(--col-text-muted);margin:0;">EMDR-trained, Telehealth Practice</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card flashlight-card animate-on-scroll delay-100" style="padding:2rem;">
+                    <p style="color:var(--col-text-muted);font-style:italic;margin-bottom:1.5rem;line-height:1.7;">"I was paying $20/month for a clunky BLS tool. This is free, works better, and the share-to-client link is exactly what I needed for telehealth sessions."</p>
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:40px;height:40px;background:rgba(44,85,88,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--col-primary);font-weight:600;font-size:0.85rem;">MC</div>
+                        <div>
+                            <p style="font-weight:600;font-size:0.9rem;color:var(--col-text-main);margin:0;">Mental Health Counselor</p>
+                            <p style="font-size:0.8rem;color:var(--col-text-muted);margin:0;">Private Practice, LMHC</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card flashlight-card animate-on-scroll delay-200" style="padding:2rem;">
+                    <p style="color:var(--col-text-muted);font-style:italic;margin-bottom:1.5rem;line-height:1.7;">"The local-first feel matters. I can use the visual tools without turning them into a full cloud chart, and the genogram tool is genuinely useful."</p>
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:40px;height:40px;background:#FEF3C7;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#92400E;font-weight:600;font-size:0.85rem;">CP</div>
+                        <div>
+                            <p style="font-weight:600;font-size:0.9rem;color:var(--col-text-main);margin:0;">Clinical Psychologist</p>
+                            <p style="font-size:0.8rem;color:var(--col-text-muted);margin:0;">Trauma Specialist, PsyD</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        -->
+
+        <!-- ====== SECTION 7: ORIGIN STORY ====== -->
+        <section style="padding:4rem 24px;background:rgba(44,85,88,0.03);border-top:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;">
+            <div class="container" style="max-width:750px;">
+                <div class="animate-on-scroll" style="text-align:center;">
+                    <h2 style="font-size:2rem;margin-bottom:1.5rem;">Built by a Therapist<br><span style="color:var(--col-accent);font-style:italic;">Who Sits in the Chair</span></h2>
+                    <p style="color:var(--col-text-muted);font-size:1.05rem;line-height:1.8;margin-bottom:1.5rem;">
+                        Most telehealth trauma software is built by developers interpreting a therapist's needs.
+                        Bright Eyed Therapist was built by a psychotherapist who got tired of paying too much for tools that felt stuck in the past — and decided to build the ones he wished he had.
+                    </p>
+                    <p style="color:var(--col-text-muted);font-size:1.05rem;line-height:1.8;margin-bottom:2rem;">
+                        No bloated dashboards. No feature-stuffing. Just focused, well-crafted tools that stay out of the way of clinical work.
+                    </p>
+                    <a href="about.html" style="color:var(--col-primary);font-weight:600;text-decoration:none;font-size:0.95rem;">Read the full story <i class="fa-solid fa-arrow-right" style="font-size:0.8rem;margin-left:4px;"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== SECTION 8: FAQ + FINAL CTA ====== -->
+        <section class="container" style="padding:5rem 24px;">
+            <h2 class="animate-on-scroll" style="text-align:center;font-size:2.2rem;margin-bottom:3rem;">Frequently Asked Questions</h2>
+            
+            <div style="max-width:700px;margin:0 auto 4rem;" class="faq-list">
+                <div class="animate-on-scroll" style="border-bottom:1px solid #E5E7EB;padding:1.25rem 0;">
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">Is the EMDR tool really free?</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.95rem;line-height:1.6;">Yes. Full bilateral stimulation with share-to-client links, adjustable speed, color, direction, audio tones, and session tracking. Free forever. No trial period, no credit card, no catch.</p>
+                </div>
+                <div class="animate-on-scroll" style="border-bottom:1px solid #E5E7EB;padding:1.25rem 0;">
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">What does "Founding Member" mean?</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.95rem;line-height:1.6;">Founding Members get access to every tool in the suite — now and in the future — for $5/month. This is earlybird launch pricing that will increase as more tools are added. Your rate is locked in at $5 forever.</p>
+                </div>
+                <div class="animate-on-scroll" style="border-bottom:1px solid #E5E7EB;padding:1.25rem 0;">
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">Is this HIPAA compliant? Do you offer a BAA?</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.95rem;line-height:1.6;">Bright Eyed Therapist is designed to minimize server-side clinical content, but your own compliance review still matters. Core visual tools primarily store content in your browser, while account, billing, and support data remain on our servers. A BAA is not included by default.</p>
+                </div>
+                <div class="animate-on-scroll" style="border-bottom:1px solid #E5E7EB;padding:1.25rem 0;">
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">Can I cancel anytime?</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.95rem;line-height:1.6;">Absolutely. Cancel your Founding Member subscription anytime from your account page. You keep your free EMDR access regardless. No contracts, no penalties.</p>
+                </div>
+                <div class="animate-on-scroll" style="padding:1.25rem 0;">
+                    <h3 style="font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;color:var(--col-text-main);margin-bottom:0.5rem;">What makes this different from other EMDR tools?</h3>
+                    <p style="color:var(--col-text-muted);font-size:0.95rem;line-height:1.6;">Built by a practicing therapist, not a dev shop. Free EMDR (competitors charge $15–20/mo). A local-first approach for the core visual tools. Modern, clean interface. And Brainspotting + case conceptualization tools bundled at $5/mo — not $20+.</p>
+                </div>
+            </div>
+
+            <!-- Final CTA -->
+            <div class="animate-on-scroll" style="text-align:center;padding:3rem;background:var(--col-primary);border-radius:var(--radius-lg);color:white;background-image:radial-gradient(circle at top right,rgba(255,255,255,0.1),transparent);">
+                <h2 style="color:white;font-size:2rem;margin-bottom:0.75rem;">Ready to Try It?</h2>
+                <p style="opacity:0.9;margin-bottom:2rem;max-width:450px;margin-left:auto;margin-right:auto;">Create your free account in 30 seconds. Start using the EMDR tool immediately.</p>
+                <a href="register.html" class="btn" style="background:white;color:var(--col-primary);box-shadow:0 4px 6px rgba(0,0,0,0.15);">Create Free Account</a>
+            </div>
+        </section>
+
     </main>
 
     <footer>
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
             <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-                Empowering mental health professionals with digital tools that bring clarity to complex clinical work.
+                Trauma telehealth tools for clinicians who do this work.
             </p>
-            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 
+    <style>
+        @keyframes emdr-move {
+            0%, 100% { transform: translateX(-100px); }
+            50% { transform: translateX(100px); }
+        }
+        @media (max-width: 768px) {
+            .how-it-works-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+            .pricing-grid { grid-template-columns: 1fr !important; }
+            .testimonials-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+
     <script>
-        // Update hero CTA based on auth/subscription status
+        // Update hero CTA based on auth status
         document.addEventListener('DOMContentLoaded', async () => {
             const heroCta = document.getElementById('hero-cta');
-            const heroSubtext = document.getElementById('hero-subtext');
+            if (!heroCta || !Auth.getToken()) return;
             
-            if (!heroCta) return;
-            
-            // Check if user is logged in
-            if (!Auth.getToken()) {
-                // Not logged in - keep default "Start Free Trial"
-                return;
-            }
-            
-            // User has a token - check their status
             try {
                 const user = await Auth.getCurrentUser();
+                if (!user) return;
                 
-                if (!user) {
-                    // Token invalid - keep default
-                    return;
-                }
-                
-                const subscription = user.subscription;
-                const hasAccess = Auth.checkAccess();
-                
-                if (hasAccess) {
-                    // User has active access - show dashboard CTA
+                if (Auth.checkFreeAccess()) {
                     heroCta.textContent = 'Go to Dashboard';
                     heroCta.href = 'dashboard.html';
-                    heroSubtext.textContent = `Welcome back, ${user.firstName || 'there'}!`;
-                } else if (subscription && subscription.status === 'trialing') {
-                    // Trial expired
-                    heroCta.textContent = 'Subscribe Now';
-                    heroCta.href = '#';
-                    heroCta.onclick = async (e) => {
-                        e.preventDefault();
-                        heroCta.textContent = 'Loading...';
-                        try {
-                            await Auth.createCheckoutSession('early_access');
-                        } catch (err) {
-                            heroCta.textContent = 'Subscribe Now';
-                            alert('Unable to start checkout. Please try again.');
-                        }
-                    };
-                    heroSubtext.textContent = 'Your trial has ended. Subscribe to continue.';
-                } else {
-                    // No subscription at all
-                    heroCta.textContent = 'Subscribe Now';
-                    heroCta.href = '#';
-                    heroCta.onclick = async (e) => {
-                        e.preventDefault();
-                        heroCta.textContent = 'Loading...';
-                        try {
-                            await Auth.createCheckoutSession('early_access');
-                        } catch (err) {
-                            heroCta.textContent = 'Subscribe Now';
-                            alert('Unable to start checkout. Please try again.');
-                        }
-                    };
-                    heroSubtext.textContent = 'Get full access for just $10/month.';
                 }
             } catch (err) {
                 console.error('Error checking user status:', err);
-                // Keep default on error
             }
         });
     </script>

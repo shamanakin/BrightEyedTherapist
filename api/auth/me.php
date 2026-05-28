@@ -19,7 +19,7 @@ try {
     
     // Get user
     $user = $db->fetchOne(
-        "SELECT id, email, first_name, last_name, created_at, email_verified 
+        "SELECT id, email, first_name, last_name, clinical_email, created_at, email_verified 
          FROM users 
          WHERE id = :id",
         ['id' => $userId]
@@ -29,32 +29,21 @@ try {
         Utils::errorResponse('User not found', 404);
     }
     
-    // Get subscription
-    $subscription = $db->fetchOne(
-        "SELECT status, plan_name, trial_start, trial_end, current_period_start, 
-                current_period_end, cancel_at_period_end, amount, currency,
-                stripe_customer_id, stripe_subscription_id
-         FROM subscriptions 
-         WHERE user_id = :user_id 
-         ORDER BY created_at DESC 
-         LIMIT 1",
-        ['user_id' => $userId]
-    );
-    
-    // Check if trial has expired
+    $subscription = Utils::fetchLatestSubscriptionRow($db, $userId);
+
+    // Check if trial has expired -- scope update to this exact row to avoid touching other subscription rows
     if ($subscription && $subscription['status'] === 'trialing') {
         $trialEnd = strtotime($subscription['trial_end']);
         if ($trialEnd < time()) {
-            // Update status to expired
             $db->update('subscriptions',
                 ['status' => 'incomplete_expired'],
-                'user_id = :user_id',
-                ['user_id' => $userId]
+                'id = :id AND status = :status',
+                ['id' => $subscription['id'], 'status' => 'trialing']
             );
             $subscription['status'] = 'incomplete_expired';
         }
     }
-    
+
     Utils::jsonResponse([
         'success' => true,
         'user' => [
@@ -64,8 +53,9 @@ try {
             'lastName' => $user['last_name'],
             'emailVerified' => (bool)$user['email_verified'],
             'isAdmin' => Utils::isAdminEmail($user['email']),
+            'clinicalEmail' => $user['clinical_email'] ?? '',
             'createdAt' => $user['created_at'],
-            'subscription' => $subscription ?: null
+            'subscription' => Utils::formatSubscriptionForClient($subscription),
         ]
     ]);
     

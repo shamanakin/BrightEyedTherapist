@@ -14,6 +14,25 @@
     --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
     --radius-md: 12px;
     --radius-lg: 20px;
+
+    /* ===== Semantic Color Tokens (App Suite) ===== */
+    --col-danger: #ef4444;        /* Trauma / errors / destructive */
+    --col-danger-dark: #b91c1c;
+    --col-success: #10b981;       /* Resolved / completed / positive events */
+    --col-success-dark: #059669;
+    --col-resource: #f59e0b;      /* Resources / supports (gold) */
+    --col-resource-dark: #d97706;
+    --col-positive: #10b981;      /* Positive events (bright green) */
+    --col-positive-dark: #059669;
+    --col-neutral: #9ca3af;       /* Neutral events / system */
+    --col-neutral-dark: #6b7280;
+    --col-warning: #fbbf24;       /* In-progress / caution */
+    
+    /* ===== Control Token (consistent button sizing) ===== */
+    --control-btn-size: 44px;
+    --control-gap: 8px;
+    --safe-area-bottom: 20px;
+    --safe-area-side: 20px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -255,6 +274,33 @@ nav {
     font-weight: 300;
 }
 
+/* Beta Access Badge (Homepage Hero) */
+.early-access-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(217, 119, 87, 0.12);
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+}
+
+.early-access-box .badge {
+    background: var(--col-accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.early-access-text {
+    color: var(--col-text-muted);
+    font-size: 0.9rem;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;
@@ -271,7 +317,7 @@ nav {
 }
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(44, 85, 88, 0.3);
+    box-shadow: 0 8px 20px rgba(44, 85, 88, 0.35), 0 0 0 1px rgba(44, 85, 88, 0.1);
     background-color: var(--col-primary-light);
 }
 
@@ -308,8 +354,8 @@ nav {
 
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: #E5E7EB;
+    box-shadow: 0 12px 24px -4px rgba(0,0,0,0.12), 0 4px 8px -2px rgba(0,0,0,0.06);
+    border-color: rgba(44, 85, 88, 0.15);
 }
 
 .card-icon {
@@ -331,12 +377,16 @@ nav {
 
 /* Footer */
 footer {
-    background-color: white;
+    background: linear-gradient(180deg, rgba(249, 250, 251, 0) 0%, rgba(44, 85, 88, 0.03) 100%);
     padding: 4rem 0;
     margin-top: auto;
     border-top: 1px solid #E5E7EB;
 }
 .footer-content { text-align: center; color: var(--col-text-muted); }
+.footer-content h4 {
+    color: var(--col-primary);
+    margin-bottom: 0.5rem;
+}
 
 /* Forms */
 .form-group { margin-bottom: 1.5rem; }
@@ -378,8 +428,8 @@ footer {
 /* --- FLOATING DASHBOARD BUTTON --- */
 .floating-dashboard-btn {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    bottom: var(--safe-area-bottom, 20px);
+    left: var(--safe-area-side, 20px);
     z-index: 999;
     display: flex;
     align-items: center;
@@ -410,8 +460,151 @@ footer {
     height: 16px;
 }
 
+/* ===== SHARED APP CHROME (Bottom-right cluster) ===== */
+/* Watermark + Feedback combo for consistent placement across tools */
+.app-chrome-bottom-right {
+    position: fixed;
+    bottom: var(--safe-area-bottom, 20px);
+    right: var(--safe-area-side, 20px);
+    z-index: 10;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.app-chrome-watermark {
+    color: #6b7280; /* Gray-500 */
+    font-size: 0.7rem;
+    opacity: 0.35;
+    white-space: nowrap;
+    pointer-events: none;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.01em;
+}
+
+.app-chrome-feedback {
+    color: #6b7280;
+    font-size: 0.7rem;
+    opacity: 0.35;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.app-chrome-feedback:hover {
+    opacity: 0.8;
+}
+
+.app-chrome-feedback svg {
+    width: 12px;
+    height: 12px;
+}
+
+@media (max-width: 640px) {
+    .floating-dashboard-btn {
+        padding: 8px 14px;
+    }
+
+    .app-chrome-bottom-right {
+        right: 12px;
+        bottom: 12px;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .app-chrome-watermark,
+    .app-chrome-feedback {
+        font-size: 0.66rem;
+    }
+}
+
+/* ===== Shared Control Button Styles ===== */
+.tool-control-btn {
+    width: var(--control-btn-size, 44px);
+    height: var(--control-btn-size, 44px);
+    border-radius: 9999px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+    transition: background-color 0.2s, transform 0.1s;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    background-color: #1f2937; /* Gray-800 */
+}
+
+.tool-control-btn:hover {
+    background-color: #374151; /* Gray-700 */
+}
+
+.tool-control-btn:active {
+    transform: scale(0.95);
+}
+
+.tool-control-btn:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--col-text-main);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 0 1rem;
+    border-top: 1px solid #E5E7EB;
+}
+
+.mobile-menu a {
+    display: block;
+    padding: 0.75rem 0;
+    color: var(--col-text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.mobile-menu a:hover {
+    color: var(--col-primary);
+}
+
+.mobile-menu.open {
+    display: flex;
+}
+
+/* Card meta */
+.card-meta {
+    font-size: 0.85rem;
+    color: var(--col-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .hero h1 { font-size: 2.8rem; }
+    .hero h1 { font-size: 2.5rem; }
     .nav-links { display: none; }
+    .nav-cta { display: none; }
+    .nav-signout { display: none; }
+    .mobile-menu-toggle { display: block; }
 }

@@ -20,13 +20,21 @@ $updates = [];
 $params = [];
 
 if (isset($data['firstName'])) {
+    $val = trim($data['firstName']);
+    if ($val === '') {
+        Utils::errorResponse('First name cannot be empty', 400);
+    }
     $updates[] = "first_name = :first_name";
-    $params['first_name'] = trim($data['firstName']);
+    $params['first_name'] = $val;
 }
 
 if (isset($data['lastName'])) {
+    $val = trim($data['lastName']);
+    if ($val === '') {
+        Utils::errorResponse('Last name cannot be empty', 400);
+    }
     $updates[] = "last_name = :last_name";
-    $params['last_name'] = trim($data['lastName']);
+    $params['last_name'] = $val;
 }
 
 if (isset($data['clinicalEmail'])) {
@@ -58,16 +66,7 @@ try {
         ['id' => $userId]
     );
     
-    // Get subscription (to return full user object format)
-    $subscription = $db->fetchOne(
-        "SELECT status, plan_name, trial_start, trial_end, current_period_start, 
-                current_period_end, cancel_at_period_end, amount, currency
-         FROM subscriptions 
-         WHERE user_id = :user_id 
-         ORDER BY created_at DESC 
-         LIMIT 1",
-        ['user_id' => $userId]
-    );
+    $subscription = Utils::fetchLatestSubscriptionRow($db, $userId);
 
     Utils::jsonResponse([
         'success' => true,
@@ -79,8 +78,9 @@ try {
             'lastName' => $user['last_name'],
             'clinicalEmail' => $user['clinical_email'],
             'emailVerified' => (bool)$user['email_verified'],
+            'isAdmin' => Utils::isAdminEmail($user['email']),
             'createdAt' => $user['created_at'],
-            'subscription' => $subscription ?: null
+            'subscription' => Utils::formatSubscriptionForClient($subscription),
         ]
     ]);
 

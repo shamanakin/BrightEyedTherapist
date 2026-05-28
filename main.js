@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFlashlightEffect();
     updateNavState();
     initMarquee();
+    initMobileMenu();
 });
 
 /* 1. Scroll Reveal Animation */
@@ -56,22 +57,8 @@ function updateNavState() {
         window.location.pathname.includes('tool_');
     
     if (isAuthenticatedPage) return;  // Skip ALL nav modifications on authenticated pages
-    
-    // Add Apps link ONLY if logged in AND no Apps link exists
-    if (user && navLinks) {
-        const allNavLinks = Array.from(navLinks.querySelectorAll('a'));
-        const hasAppsLink = allNavLinks.some(link => 
-            link.textContent.trim().toLowerCase() === 'apps'
-        );
-        
-        if (!hasAppsLink) {
-            const appsLink = document.createElement('a');
-            appsLink.href = 'dashboard.html';
-            appsLink.textContent = 'Apps';
-            appsLink.className = 'nav-apps-link';
-            navLinks.insertBefore(appsLink, navLinks.children[1] || null);
-        }
-    }
+
+    syncMarketingNav(user);
 
     // Update nav CTA
     if (navCta) {
@@ -88,12 +75,67 @@ function updateNavState() {
     }
 }
 
+/**
+ * One nav label for the product suite: "Tools" when logged out (marketing),
+ * "Dashboard" when logged in. Avoids a redundant Tools + Apps pair.
+ */
+function syncMarketingNav(user) {
+    const toolsHrefs = ['#tools', 'index.html#tools'];
+    const navAnchors = document.querySelectorAll('header nav a, header .mobile-menu a');
+
+    navAnchors.forEach((link) => {
+        const label = link.textContent.trim().toLowerCase();
+        const href = (link.getAttribute('href') || '').trim();
+
+        if (label === 'apps') {
+            link.remove();
+            return;
+        }
+
+        const isToolsLink =
+            label === 'tools' ||
+            label === 'dashboard' ||
+            toolsHrefs.includes(href);
+
+        if (!isToolsLink) return;
+
+        if (user) {
+            link.href = 'dashboard.html';
+            link.textContent = 'Dashboard';
+        } else {
+            const onHome = /index\.html$/.test(window.location.pathname) || window.location.pathname.endsWith('/');
+            link.href = onHome ? '#tools' : 'index.html#tools';
+            link.textContent = 'Tools';
+        }
+    });
+}
+
 /* 4. Marquee Animation (Clones content for seamless loop) */
 function initMarquee() {
     const marquees = document.querySelectorAll('.marquee-inner');
     marquees.forEach(marquee => {
         const content = marquee.innerHTML;
         marquee.innerHTML = content + content + content; // Triple content for smooth looping
+    });
+}
+
+/* 5. Mobile Menu Toggle */
+function initMobileMenu() {
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    const menu = document.querySelector('.mobile-menu');
+    if (!toggle || !menu) return;
+    
+    toggle.addEventListener('click', () => {
+        const isOpen = menu.classList.toggle('open');
+        toggle.querySelector('i').className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+    });
+    
+    // Close on link click
+    menu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            menu.classList.remove('open');
+            toggle.querySelector('i').className = 'fa-solid fa-bars';
+        });
     });
 }
 

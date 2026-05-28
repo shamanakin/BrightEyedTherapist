@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>ERP Fear Facer - Bright Eyed Therapist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
+    <script src="subscription_overlay.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sage: {
+                            50: '#E8F0EC',
+                            100: '#D1E1D9',
+                            200: '#A3C4B4',
+                            300: '#75A68E',
+                            400: '#5D8A6E',
+                            500: '#4A6E58',
+                            600: '#3A5846',
+                            700: '#2B4234',
+                            800: '#1B2C22',
+                            900: '#0E1611'
+                        },
+                        accent: {
+                            DEFAULT: '#D4A574',
+                            light: '#E8C9A6',
+                            dark: '#B8864F'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white;
+            }
+            .shadow-md, .shadow-sm, .shadow-lg {
+                box-shadow: none !important;
+            }
+            .rounded-2xl, .rounded-lg, .rounded-full {
+                border-radius: 0 !important;
+            }
+            .card-print {
+                border: 1px solid #ccc !important;
+                break-inside: avoid;
+                box-shadow: none !important;
+            }
+            .grid, .lg\:grid-cols-5 {
+                display: block !important;
+            }
+            .lg\:col-span-2 {
+                width: 100% !important;
+            }
+            body, #app-content {
+                background: white !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .floating-dashboard-btn {
+                display: none !important;
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Floating Dashboard Button -->
+    <a href="dashboard.html" class="floating-dashboard-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" />
+        </svg>
+        Dashboard
+    </a>
+    
+    <div class="app-chrome-bottom-right no-print">
+        <span class="app-chrome-watermark">ERP Fear Facer · Bright Eyed Therapist</span>
+        <a href="feedback.html?app=fearfacer" class="app-chrome-feedback" title="Send Feedback">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Feedback
+        </a>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-5xl mx-auto px-4 py-6 md:py-8 w-full flex-grow flex flex-col">
+        
+        <!-- Main Card -->
+        <div class="bg-white rounded-2xl shadow-md flex flex-col overflow-hidden min-h-[600px] flex-grow relative">
+            
+            <!-- Header -->
+            <header class="px-6 py-5 border-b border-slate-100 flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-leaf text-sage-400"></i>
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">ERP Fear Facer</h1>
+                    </div>
+                    <p class="text-sm md:text-base text-slate-500 mt-1">Map feared situations, build a graded ladder, and track ERP sessions.</p>
+                </div>
+                <button onclick="app.confirmReset()" class="no-print text-sm text-slate-400 hover:text-red-500 transition-colors mt-1">
+                    Reset App
+                </button>
+            </header>
+
+            <!-- Stepper -->
+            <div class="no-print px-6 py-6 bg-slate-50 border-b border-slate-100">
+                <div class="relative flex justify-between max-w-3xl mx-auto">
+                    <div class="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -translate-y-1/2 z-0"></div>
+                    <div id="stepper-container" class="relative z-10 flex justify-between w-full"></div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <main id="app-content" class="flex-grow p-6 md:p-8 overflow-y-auto">
+                <!-- Dynamic content goes here -->
+            </main>
+
+            <!-- Footer Navigation -->
+            <footer class="no-print px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                <button id="btn-back" onclick="app.changeStep(-1)" class="px-4 py-2 rounded-lg font-medium transition-colors text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Back
+                </button>
+                <button id="btn-next" onclick="app.changeStep(1)" class="px-6 py-2 rounded-lg font-medium transition-colors bg-sage-400 text-white hover:bg-sage-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next
+                </button>
+            </footer>
+        </div>
+
+        <!-- Attribution Footer -->
+        <div class="text-center text-slate-400 text-sm py-4 no-print">
+            <p>ERP Fear Facer · <a href="index.html" class="text-sage-400 hover:text-sage-500 transition-colors">Bright Eyed Therapist</a></p>
+            <p class="mt-1">Private, client-side tool. No data is sent to any server.</p>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        const app = {
+            state: {
+                currentStep: 1,
+                config: {
+                    title: '',
+                    sudsMax: 100
+                },
+                items: [],
+                exposures: []
+            },
+
+            steps: [
+                { number: 1, label: 'Setup' },
+                { number: 2, label: 'Hierarchy' },
+                { number: 3, label: 'Ladder' },
+                { number: 4, label: 'Exposure' }
+            ],
+
+            init() {
+                this.renderApp();
+                
+                // Track app usage
+                if (typeof Auth !== 'undefined' && Auth.trackAppUsage) {
+                    Auth.trackAppUsage('fear_facer');
+                }
+            },
+
+            confirmReset() {
+                if (confirm("Are you sure you want to reset? All data will be lost.")) {
+                    this.resetApp();
+                }
+            },
+
+            resetApp() {
+                this.state = {
+                    currentStep: 1,
+                    config: { title: '', sudsMax: 100 },
+                    items: [],
+                    exposures: []
+                };
+                this.renderApp();
+            },
+
+            changeStep(delta) {
+                const newStep = this.state.currentStep + delta;
+                if (newStep >= 1 && newStep <= 4) {
+                    if (delta > 0) {
+                        if (this.state.currentStep === 1 && !this.validateStep1()) return;
+                        if (this.state.currentStep === 2 && !this.validateStep2()) return;
+                        if (this.state.currentStep === 3 && !this.validateStep3()) return;
+                    }
+                    this.state.currentStep = newStep;
+                    this.renderApp();
+                }
+            },
+
+            goToStep(step) {
+                if (step < this.state.currentStep) {
+                    this.state.currentStep = step;
+                    this.renderApp();
+                }
+            },
+
+            updateConfigTitle(title) {
+                this.state.config.title = title;
+                this.updateFooterState();
+            },
+
+            updateSudsMax(max) {
+                this.state.config.sudsMax = parseInt(max);
+                this.renderApp(); 
+            },
+
+            addItem(description, suds, notes) {
+                const newItem = {
+                    id: Date.now().toString(),
+                    description,
+                    suds: parseInt(suds),
+                    notes,
+                    isTarget: false
+                };
+                this.state.items.push(newItem);
+                this.renderApp();
+            },
+
+            deleteItem(id) {
+                if(confirm("Remove this item from the hierarchy?")) {
+                    this.state.items = this.state.items.filter(i => i.id !== id);
+                    this.renderApp();
+                }
+            },
+
+            toggleTarget(id) {
+                const item = this.state.items.find(i => i.id === id);
+                if (item) {
+                    item.isTarget = !item.isTarget;
+                    this.renderApp();
+                }
+            },
+
+            saveExposure(exposureData) {
+                const newExposure = {
+                    id: Date.now().toString(),
+                    ...exposureData,
+                    dateISO: new Date().toISOString()
+                };
+                this.state.exposures.push(newExposure);
+                alert("Exposure logged. You can print or copy the summary.");
+                this.renderApp();
+            },
+
+            getSortedItems() {
+                return [...this.state.items].sort((a, b) => a.suds - b.suds);
+            },
+
+            getTargets() {
+                return this.state.items.filter(i => i.isTarget);
+            },
+
+            getSuggestedRange() {
+                const max = this.state.config.sudsMax;
+                return {
+                    min: max === 10 ? 3 : 30,
+                    max: max === 10 ? 6 : 60
+                };
+            },
+
+            validateStep1() {
+                return this.state.config.title.trim().length > 0;
+            },
+
+            validateStep2() {
+                return this.state.items.length >= 5;
+            },
+
+            validateStep3() {
+                return this.state.items.some(i => i.isTarget);
+            },
+
+            renderApp() {
+                this.renderStepper();
+                const container = document.getElementById('app-content');
+                container.innerHTML = '';
+
+                switch (this.state.currentStep) {
+                    case 1: this.renderStep1(container); break;
+                    case 2: this.renderStep2(container); break;
+                    case 3: this.renderStep3(container); break;
+                    case 4: this.renderStep4(container); break;
+                }
+
+                this.updateFooterState();
+            },
+
+            updateFooterState() {
+                const btnBack = document.getElementById('btn-back');
+                const btnNext = document.getElementById('btn-next');
+                
+                btnBack.disabled = this.state.currentStep === 1;
+                
+                let canProceed = false;
+                if (this.state.currentStep === 1) canProceed = this.validateStep1();
+                if (this.state.currentStep === 2) canProceed = this.validateStep2();
+                if (this.state.currentStep === 3) canProceed = this.validateStep3();
+                if (this.state.currentStep === 4) canProceed = false;
+
+                btnNext.disabled = !canProceed;
+                btnNext.style.display = this.state.currentStep === 4 ? 'none' : 'block';
+            },
+
+            renderStepper() {
+                const container = document.getElementById('stepper-container');
+                container.innerHTML = this.steps.map(step => {
+                    let stateClass = '';
+                    let onClick = '';
+                    
+                    if (step.number === this.state.currentStep) {
+                        stateClass = 'bg-sage-400 text-white border-sage-400 shadow-md';
+                    } else if (step.number < this.state.currentStep) {
+                        stateClass = 'bg-sage-100 text-sage-700 border-sage-200 cursor-pointer hover:bg-sage-200';
+                        onClick = `onclick="app.goToStep(${step.number})"`;
+                    } else {
+                        stateClass = 'bg-white text-slate-400 border-slate-200 cursor-not-allowed';
+                    }
+
+                    return `
+                        <div class="flex flex-col items-center relative group" ${onClick}>
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 font-bold text-sm md:text-base transition-all z-10 ${stateClass}">
+                                ${step.number}
+                            </div>
+                            <span class="absolute top-full mt-2 text-xs md:text-sm font-medium text-slate-600 whitespace-nowrap">
+                                ${step.label}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            renderStep1(container) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full max-w-2xl mx-auto w-full animate-fade-in">
+                        <div class="w-full space-y-8">
+                            <div class="text-center space-y-2">
+                                <h2 class="text-2xl font-bold text-slate-800">Let's set up your hierarchy</h2>
+                                <p class="text-slate-500">Give it a name and choose a scale to measure distress.</p>
+                            </div>
+
+                            <div class="space-y-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-slate-700">Hierarchy Name</label>
+                                    <input type="text" 
+                                        value="${this.state.config.title}"
+                                        oninput="app.updateConfigTitle(this.value)"
+                                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 focus:border-sage-400 outline-none transition-all"
+                                        placeholder="e.g. Contamination – Public Bathrooms">
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-slate-700">SUDS Scale (Subjective Units of Distress)</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors ${this.state.config.sudsMax === 10 ? 'border-sage-400 bg-sage-50 text-sage-700 ring-1 ring-sage-400' : 'border-slate-200'}">
+                                            <input type="radio" name="sudsMax" value="10" 
+                                                class="sr-only"
+                                                ${this.state.config.sudsMax === 10 ? 'checked' : ''}
+                                                onchange="app.updateSudsMax(10)">
+                                            <span class="font-medium">0 – 10</span>
+                                        </label>
+                                        <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors ${this.state.config.sudsMax === 100 ? 'border-sage-400 bg-sage-50 text-sage-700 ring-1 ring-sage-400' : 'border-slate-200'}">
+                                            <input type="radio" name="sudsMax" value="100" 
+                                                class="sr-only"
+                                                ${this.state.config.sudsMax === 100 ? 'checked' : ''}
+                                                onchange="app.updateSudsMax(100)">
+                                            <span class="font-medium">0 – 100</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="bg-sage-50 p-4 rounded-lg border border-sage-100 text-sm text-sage-700">
+                                    <p class="font-semibold mb-1">What is SUDS?</p>
+                                    <p>SUDS measures anxiety/distress levels. <strong>0</strong> is completely calm/relaxed, and <strong>${this.state.config.sudsMax}</strong> is the worst distress imaginable.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderStep2(container) {
+                const sortedItems = this.getSortedItems();
+                
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+                        <!-- Left: Form -->
+                        <div class="space-y-6">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Build the Hierarchy</h2>
+                                <p class="text-sm text-slate-500 mt-1">List feared situations. Include some that are a little uncomfortable (low SUDS) and some that are very challenging (high SUDS).</p>
+                            </div>
+
+                            <form id="add-item-form" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4" onsubmit="event.preventDefault(); app.handleAddItem(event)">
+                                <div class="space-y-1">
+                                    <label class="text-sm font-semibold text-slate-700">Situation / Trigger</label>
+                                    <textarea id="item-desc" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-sm" placeholder="e.g. Touching a public restroom door handle..."></textarea>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-sm font-semibold text-slate-700">Est. SUDS (0-${this.state.config.sudsMax})</label>
+                                        <input type="number" id="item-suds" min="0" max="${this.state.config.sudsMax}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-sm" placeholder="0">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-sm font-semibold text-slate-700">Scale Guide</label>
+                                        <div class="text-xs text-slate-500 pt-2">
+                                            0 = Calm<br>
+                                            ${Math.round(this.state.config.sudsMax * 0.5)} = Moderate<br>
+                                            ${this.state.config.sudsMax} = Extreme
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="text-sm font-semibold text-slate-700">Avoidance / Rituals (Optional)</label>
+                                    <textarea id="item-notes" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-sm" placeholder="Safety behaviors..."></textarea>
+                                </div>
+
+                                <button type="submit" class="w-full py-2 bg-sage-400 text-white rounded-lg font-medium hover:bg-sage-500 transition-colors">
+                                    Add Item
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Right: List -->
+                        <div class="flex flex-col h-full min-h-[400px] bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+                            <div class="p-4 border-b border-slate-200 bg-white flex justify-between items-center">
+                                <h3 class="font-semibold text-slate-700">Current Items (Sorted)</h3>
+                                <span class="text-xs font-medium px-2 py-1 bg-slate-100 rounded-full text-slate-600">${sortedItems.length} Items</span>
+                            </div>
+                            
+                            <div class="flex-grow overflow-y-auto p-4 space-y-3">
+                                ${sortedItems.length === 0 ? 
+                                    `<div class="h-full flex flex-col items-center justify-center text-slate-400 italic text-center px-6">
+                                        <p>No items yet.</p>
+                                        <p class="text-sm mt-2">Add a few feared situations on the left to begin building the ladder.</p>
+                                    </div>` : 
+                                    sortedItems.map(item => this.renderItemCard(item)).join('')
+                                }
+                            </div>
+
+                            <div class="p-3 border-t border-slate-200 bg-white text-xs text-slate-500 flex justify-between">
+                                <span>Lowest: ${sortedItems.length ? sortedItems[0].suds : '-'}</span>
+                                <span>Highest: ${sortedItems.length ? sortedItems[sortedItems.length-1].suds : '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            handleAddItem(e) {
+                const desc = document.getElementById('item-desc').value;
+                const suds = document.getElementById('item-suds').value;
+                const notes = document.getElementById('item-notes').value;
+
+                if (!desc.trim() || suds === '') {
+                    alert("Please enter a description and a SUDS rating.");
+                    return;
+                }
+
+                const sudsNum = parseInt(suds);
+                if (isNaN(sudsNum) || sudsNum < 0 || sudsNum > this.state.config.sudsMax) {
+                    alert(`SUDS must be between 0 and ${this.state.config.sudsMax}.`);
+                    return;
+                }
+
+                this.addItem(desc, sudsNum, notes);
+                
+                document.getElementById('item-desc').value = '';
+                document.getElementById('item-suds').value = '';
+                document.getElementById('item-notes').value = '';
+                document.getElementById('item-desc').focus();
+            },
+
+            renderItemCard(item) {
+                const sudsPct = item.suds / this.state.config.sudsMax;
+                let badgeColor = 'bg-green-100 text-green-700';
+                if (sudsPct > 0.3) badgeColor = 'bg-amber-100 text-amber-700';
+                if (sudsPct > 0.7) badgeColor = 'bg-red-100 text-red-700';
+
+                return `
+                    <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex gap-3 hover:border-sage-300 transition-colors group relative">
+                        <div class="flex flex-col items-center justify-center min-w-[3rem]">
+                            <span class="${badgeColor} px-2 py-1 rounded-full text-xs font-bold">
+                                ${item.suds}
+                            </span>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <p class="text-sm text-slate-800 font-medium leading-snug break-words">${item.description}</p>
+                            ${item.notes ? `<p class="text-xs text-slate-400 mt-1 truncate"><span class="font-semibold">Note:</span> ${item.notes}</p>` : ''}
+                        </div>
+                        <button onclick="app.deleteItem('${item.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-2" title="Delete Item">
+                            &times;
+                        </button>
+                    </div>
+                `;
+            },
+
+            renderStep3(container) {
+                const sortedItems = this.getSortedItems().reverse();
+                const range = this.getSuggestedRange();
+
+                container.innerHTML = `
+                    <div class="max-w-3xl mx-auto space-y-6">
+                        <div class="text-center space-y-2">
+                            <h2 class="text-xl font-bold text-slate-800">Fear Ladder & Target Selection</h2>
+                            <p class="text-slate-500">We typically start ERP in the middle zone (SUDS ${range.min}-${range.max}) — not the easiest, but not the hardest.</p>
+                            <p class="text-sm font-medium text-sage-500">Select 1-3 items below as targets for today's exposure.</p>
+                        </div>
+
+                        <div class="space-y-3 relative pb-8">
+                            <div class="absolute left-8 top-4 bottom-4 w-0.5 bg-gradient-to-b from-red-200 via-amber-200 to-green-200 -z-10"></div>
+
+                            ${sortedItems.map((item, idx) => {
+                                const rank = sortedItems.length - idx;
+                                const isSuggested = item.suds >= range.min && item.suds <= range.max;
+                                const sudsPct = item.suds / this.state.config.sudsMax;
+                                let badgeColor = 'bg-green-100 text-green-700';
+                                if (sudsPct > 0.3) badgeColor = 'bg-amber-100 text-amber-700';
+                                if (sudsPct > 0.7) badgeColor = 'bg-red-100 text-red-700';
+
+                                return `
+                                    <div onclick="app.toggleTarget('${item.id}')" 
+                                        class="relative ml-0 md:ml-4 p-4 rounded-xl border transition-all cursor-pointer flex items-center gap-4 group
+                                        ${item.isTarget ? 'border-sage-500 ring-1 ring-sage-500 bg-sage-50 shadow-md' : 'border-slate-200 bg-white hover:border-sage-300 shadow-sm'}
+                                        ${isSuggested && !item.isTarget ? 'border-amber-300 bg-amber-50/30' : ''}
+                                    ">
+                                        <div class="w-8 h-8 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 shrink-0 z-10 group-hover:border-sage-300">
+                                            ${rank}
+                                        </div>
+
+                                        <div class="flex-grow">
+                                            <div class="flex justify-between items-start">
+                                                <p class="font-medium text-slate-800 ${item.isTarget ? 'text-sage-900' : ''}">${item.description}</p>
+                                                <span class="${badgeColor} px-2 py-0.5 rounded-full text-xs font-bold shrink-0 ml-2">
+                                                    ${item.suds}
+                                                </span>
+                                            </div>
+                                            ${item.notes ? `<p class="text-xs text-slate-500 mt-1 line-clamp-1">${item.notes}</p>` : ''}
+                                            
+                                            ${isSuggested ? `<div class="text-[10px] font-bold uppercase tracking-wide text-amber-600 mt-2 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Suggested Start
+                                            </div>` : ''}
+                                        </div>
+
+                                        <div class="w-6 h-6 rounded border-2 flex items-center justify-center transition-colors shrink-0
+                                            ${item.isTarget ? 'bg-sage-500 border-sage-500' : 'border-slate-300 bg-white'}
+                                        ">
+                                            ${item.isTarget ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div class="sticky bottom-4 bg-white/90 backdrop-blur p-4 rounded-lg border border-slate-200 shadow-lg text-center text-sm font-medium text-slate-700">
+                            ${this.state.items.filter(i => i.isTarget).length} items selected for exposure.
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderStep4(container) {
+                const targets = this.getTargets();
+
+                if (!this.state.activeTargetId && targets.length > 0) {
+                    this.state.activeTargetId = targets[0].id;
+                }
+                if (!targets.find(t => t.id === this.state.activeTargetId) && targets.length > 0) {
+                    this.state.activeTargetId = targets[0].id;
+                }
+
+                const activeTarget = targets.find(t => t.id === this.state.activeTargetId);
+
+                container.innerHTML = `
+                    <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        <!-- Left: Input Form -->
+                        <div class="lg:col-span-3 space-y-6 no-print">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Exposure Tracker</h2>
+                                <p class="text-sm text-slate-500">Record your distress levels during the exercise.</p>
+                            </div>
+
+                            ${targets.length > 1 ? `
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-slate-700">Select Target Item</label>
+                                    <select onchange="app.setActiveTarget(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-sage-400 outline-none">
+                                        ${targets.map(t => `<option value="${t.id}" ${t.id === this.state.activeTargetId ? 'selected' : ''}>${t.description.substring(0, 50)}${t.description.length>50?'...':''} (SUDS: ${t.suds})</option>`).join('')}
+                                    </select>
+                                </div>
+                            ` : ''}
+
+                            ${activeTarget ? `
+                                <div class="bg-sage-50 border border-sage-100 p-4 rounded-lg">
+                                    <p class="text-xs font-bold text-sage-500 uppercase tracking-wide mb-1">Current Target</p>
+                                    <p class="font-medium text-sage-900">${activeTarget.description}</p>
+                                    <p class="text-sm text-sage-700 mt-1">Baseline Hierarchy SUDS: <strong>${activeTarget.suds}</strong></p>
+                                </div>
+
+                                <form onsubmit="event.preventDefault(); app.handleSaveExposure(event)" class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                    <input type="hidden" id="exp-target-id" value="${activeTarget.id}">
+                                    
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div class="space-y-1">
+                                            <label class="text-xs font-bold text-slate-500 uppercase">Pre</label>
+                                            <input type="number" id="exp-pre" min="0" max="${this.state.config.sudsMax}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-center font-bold text-lg" placeholder="-">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-xs font-bold text-slate-500 uppercase">Peak</label>
+                                            <input type="number" id="exp-peak" min="0" max="${this.state.config.sudsMax}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-center font-bold text-lg" placeholder="-">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-xs font-bold text-slate-500 uppercase">End</label>
+                                            <input type="number" id="exp-end" min="0" max="${this.state.config.sudsMax}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-center font-bold text-lg" placeholder="-">
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <label class="text-sm font-semibold text-slate-700">Session Notes</label>
+                                        <textarea id="exp-notes" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sage-400 outline-none text-sm" placeholder="What did you notice? Any learning or surprises?"></textarea>
+                                    </div>
+
+                                    <button type="submit" class="w-full py-2 bg-sage-400 text-white rounded-lg font-medium hover:bg-sage-500 transition-colors shadow-md">
+                                        Log Session Entry
+                                    </button>
+                                </form>
+                            ` : `<p class="text-red-500">Error: No target selected.</p>`}
+                        </div>
+
+                        <!-- Right: Summary & Export -->
+                        <div class="lg:col-span-2 space-y-6">
+                             <div class="flex justify-between items-center no-print">
+                                <h2 class="text-xl font-bold text-slate-800">Summary</h2>
+                                <div class="flex gap-2">
+                                    <button onclick="app.copyToClipboard()" class="text-xs bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-50">Copy Text</button>
+                                    <button onclick="window.print()" class="text-xs bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-50">Print PDF</button>
+                                </div>
+                            </div>
+
+                            <div id="summary-card" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm card-print text-sm">
+                                <div class="border-b border-slate-100 pb-4 mb-4">
+                                    <h3 class="text-lg font-bold text-slate-900">${this.state.config.title || 'ERP Hierarchy'}</h3>
+                                    <p class="text-slate-500 text-xs">Date: ${new Date().toLocaleDateString()}</p>
+                                </div>
+
+                                ${this.state.exposures.length > 0 ? `
+                                    <div class="mb-6">
+                                        <h4 class="font-bold text-slate-800 mb-3 uppercase text-xs tracking-wider">Session Log</h4>
+                                        <div class="space-y-4">
+                                            ${this.state.exposures.map(exp => {
+                                                const item = this.state.items.find(i => i.id === exp.itemId);
+                                                return `
+                                                    <div class="bg-slate-50 p-3 rounded border border-slate-100 break-inside-avoid">
+                                                        <p class="font-semibold text-slate-800 mb-1">${item ? item.description : 'Unknown Item'}</p>
+                                                        <div class="flex gap-4 text-xs text-slate-600 mb-2">
+                                                            <span><strong class="text-slate-400">PRE:</strong> ${exp.preSuds}</span>
+                                                            <span><strong class="text-slate-400">PEAK:</strong> ${exp.peakSuds}</span>
+                                                            <span><strong class="text-slate-400">END:</strong> ${exp.endSuds}</span>
+                                                        </div>
+                                                        ${exp.notes ? `<p class="text-slate-700 italic border-l-2 border-slate-300 pl-2">${exp.notes}</p>` : ''}
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                ` : `<p class="text-slate-400 italic mb-6">No exposures logged yet.</p>`}
+
+                                <div>
+                                    <h4 class="font-bold text-slate-800 mb-3 uppercase text-xs tracking-wider">Full Hierarchy</h4>
+                                    <ul class="space-y-2">
+                                        ${this.getSortedItems().reverse().map((item, idx, arr) => `
+                                            <li class="flex gap-2 items-start text-xs break-inside-avoid">
+                                                <span class="font-mono text-slate-400 w-4">${arr.length - idx}.</span>
+                                                <span class="font-bold text-slate-700 w-8 text-right">${item.suds}</span>
+                                                <span class="flex-1 text-slate-800 ${item.isTarget ? 'font-semibold text-sage-700' : ''}">${item.description}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            setActiveTarget(id) {
+                this.state.activeTargetId = id;
+                this.renderApp();
+            },
+
+            handleSaveExposure(e) {
+                const targetId = document.getElementById('exp-target-id').value;
+                const pre = parseInt(document.getElementById('exp-pre').value);
+                const peak = parseInt(document.getElementById('exp-peak').value);
+                const end = parseInt(document.getElementById('exp-end').value);
+                const notes = document.getElementById('exp-notes').value;
+
+                if (isNaN(pre) || isNaN(peak) || isNaN(end)) {
+                    alert("Please enter valid SUDS numbers.");
+                    return;
+                }
+
+                this.saveExposure({
+                    itemId: targetId,
+                    preSuds: pre,
+                    peakSuds: peak,
+                    endSuds: end,
+                    notes: notes
+                });
+                
+                document.getElementById('exp-pre').value = '';
+                document.getElementById('exp-peak').value = '';
+                document.getElementById('exp-end').value = '';
+                document.getElementById('exp-notes').value = '';
+            },
+
+            copyToClipboard() {
+                const lines = [];
+                lines.push(`ERP HIERARCHY: ${this.state.config.title}`);
+                lines.push(`Date: ${new Date().toLocaleDateString()}\n`);
+                
+                if (this.state.exposures.length > 0) {
+                    lines.push(`SESSION LOG:`);
+                    this.state.exposures.forEach(exp => {
+                        const item = this.state.items.find(i => i.id === exp.itemId);
+                        lines.push(`- Target: ${item ? item.description : 'Unknown'}`);
+                        lines.push(`  SUDS: Pre ${exp.preSuds} | Peak ${exp.peakSuds} | End ${exp.endSuds}`);
+                        if (exp.notes) lines.push(`  Notes: ${exp.notes}`);
+                        lines.push('');
+                    });
+                }
+
+                lines.push(`HIERARCHY LIST:`);
+                const sorted = this.getSortedItems().reverse();
+                sorted.forEach((item, idx) => {
+                    lines.push(`${sorted.length - idx}. [SUDS ${item.suds}] ${item.description}`);
+                });
+
+                const text = lines.join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("Summary copied to clipboard!");
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert("Failed to copy to clipboard.");
+                });
+            }
+        };
+
+        // Start the app
+        app.init();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

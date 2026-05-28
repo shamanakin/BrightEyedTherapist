@@ -55,10 +55,13 @@ try {
         ]);
     }
     
-    // Generate new verification token
+    // Generate new verification token (reset expiry to 48 hours from now)
     $newToken = Utils::generateToken();
     $db->update('users',
-        ['verification_token' => $newToken],
+        [
+            'verification_token' => $newToken,
+            'verification_token_expires' => date('Y-m-d H:i:s', time() + 172800)
+        ],
         'id = :id',
         ['id' => $user['id']]
     );

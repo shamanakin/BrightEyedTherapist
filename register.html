@@ -6,12 +6,16 @@
     <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
     <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
     <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
-    <title>Start Trial - Bright Eyed Therapist</title>
+    <title>Create Free Account - Bright Eyed Therapist</title>
+    <meta name="description" content="Create your free Bright Eyed Therapist account. Get instant access to the EMDR bilateral stimulation tool. No credit card required.">
+    <link rel="canonical" href="https://brighteyedtherapist.com/register.html">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://challenges.cloudflare.com">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="auth.js"></script>
     <script src="main.js" defer></script>
 </head>
@@ -29,9 +33,12 @@
     <main class="container" style="padding-top: 4rem; padding-bottom: 6rem; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
         <div style="width: 100%; max-width: 500px;">
             <div class="card flashlight-card animate-on-scroll delay-100" style="padding: 2.5rem;">
-                <h2 style="text-align: center; margin-bottom: 0.5rem;">Create Your Account</h2>
-                <p style="text-align: center; color: var(--col-text-muted); margin-bottom: 2rem; font-size: 0.9rem;">
-                    Join the community of therapists modernizing their practice.
+                <h2 style="text-align: center; margin-bottom: 0.5rem;">Create Your Free Account</h2>
+                <p style="text-align: center; color: var(--col-text-muted); margin-bottom: 0.75rem; font-size: 0.9rem;">
+                    Get instant access to the EMDR bilateral stimulation tool — free forever.
+                </p>
+                <p style="text-align: center; color: var(--col-accent); margin-bottom: 2rem; font-size: 0.8rem; font-weight: 500;">
+                    No credit card required
                 </p>
                 
                 <form id="register-form">
@@ -55,37 +62,21 @@
                         <input type="password" id="password" class="form-input" required minlength="8">
                         <small style="color: var(--col-text-muted); font-size: 0.8rem;">Minimum 8 characters</small>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Select Plan</label>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <label class="plan-option" style="display: flex; align-items: center; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; cursor: pointer;">
-                                <input type="radio" name="plan" value="trial" checked style="margin-right: 10px;">
-                                <div>
-                                    <span style="font-weight: 600; display: block;">14-Day Free Trial</span>
-                                    <span style="font-size: 0.8rem; color: #666;">Full access, no card required.</span>
-                                </div>
-                            </label>
-                            <label class="plan-option" style="display: flex; align-items: center; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; cursor: pointer;">
-                                <input type="radio" name="plan" value="early_access" style="margin-right: 10px;">
-                                <div>
-                                    <span style="font-weight: 600; display: block;">Early Access Beta ($10/mo)</span>
-                                    <span style="font-size: 0.8rem; color: #666;">Support development & get locked-in pricing.</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
                     
                     <div style="margin-bottom: 1.5rem; display: flex; align-items: start; gap: 10px;">
                         <input type="checkbox" id="terms" style="margin-top: 5px;" required>
                         <label for="terms" style="font-size: 0.85rem; color: var(--col-text-muted);">
-                            By creating an account you confirm that you are a trained mental health professional and, if using the EMDR Suite, that you are appropriately trained in EMDR or equivalent bilateral stimulation. You agree to the 
+                            By creating an account you confirm that you are a trained mental health professional and, if using the EMDR Suite or Brainspotting Tool, that you are appropriately trained in those modalities. You agree to the 
                             <a href="terms.html" style="color: var(--col-primary);">Terms of Service</a> and 
                             <a href="privacy.html" style="color: var(--col-primary);">Privacy Policy</a>.
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-beam" style="width: 100%;">Create Account</button>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACJ-0h6h1yEChpyb" data-callback="onTurnstileSuccess" data-error-callback="onTurnstileError" data-expired-callback="onTurnstileExpired"></div>
+                    <p style="font-size: 0.75rem; color: var(--col-text-muted); margin-top: 0.5rem; margin-bottom: 1rem;">Complete the check above to continue.</p>
+
+                    <div id="register-error" style="display:none; background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:0.75rem 1rem; border-radius:8px; font-size:0.85rem; margin-bottom:1rem;"></div>
+                    <button type="submit" class="btn btn-beam" id="register-submit" style="width: 100%;" disabled>Create Free Account</button>
                 </form>
             </div>
             
@@ -96,35 +87,52 @@
     </main>
 
     <script>
+        let turnstileToken = null;
+
+        function onTurnstileSuccess(token) {
+            turnstileToken = token;
+            document.getElementById('register-submit').disabled = false;
+        }
+        function onTurnstileError() {
+            turnstileToken = null;
+            document.getElementById('register-submit').disabled = true;
+        }
+        function onTurnstileExpired() {
+            turnstileToken = null;
+            document.getElementById('register-submit').disabled = true;
+        }
+
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const tokenInput = document.querySelector('input[name="cf-turnstile-response"]');
+            const token = turnstileToken || (tokenInput && tokenInput.value);
+            if (!token) {
+                const errorDiv = document.getElementById('register-error');
+                errorDiv.textContent = 'Please complete the security check above.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
             const fname = document.getElementById('fname').value.trim();
             const lname = document.getElementById('lname').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const plan = document.querySelector('input[name="plan"]:checked').value;
             
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Creating Account...';
             
+            const errorDiv = document.getElementById('register-error');
+            errorDiv.style.display = 'none';
+            
             try {
-                // Register user via API
-                const user = await Auth.register(email, password, fname, lname, plan);
-                
-                // If they chose early access, redirect to Stripe checkout
-                if (plan === 'early_access') {
-                    await Auth.createCheckoutSession('early_access');
-                } else {
-                    // Redirect to dashboard for trial users
-                    window.location.href = 'dashboard.html';
-                }
+                const user = await Auth.register(email, password, fname, lname, 'free', token);
+                window.location.href = 'dashboard.html';
             } catch (error) {
                 console.error('Registration error:', error);
                 
-                // Show user-friendly error message
                 let errorMsg = 'Registration failed. ';
                 if (error.message.includes('Email already registered')) {
                     errorMsg += 'This email is already registered. Please sign in instead.';
@@ -134,12 +142,17 @@
                     errorMsg += error.message;
                 }
                 
-                alert(errorMsg);
+                errorDiv.textContent = errorMsg;
+                errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
         });
     </script>
+
+    <footer style="padding: 2rem 0; text-align: center;">
+        <p style="font-size: 0.85rem; color: var(--col-text-muted);">&copy; 2025–2026 Bright Eyed Therapist.</p>
+    </footer>
 
 </body>
 </html>

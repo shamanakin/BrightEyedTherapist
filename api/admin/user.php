@@ -52,30 +52,10 @@ try {
         ['user_id' => $userId]
     );
     
-    // Compute subscription flags
     $subscriptionFlags = [];
     if ($subscription) {
-        $subscriptionFlags['is_active'] = $subscription['status'] === 'active';
-        $subscriptionFlags['is_trialing'] = $subscription['status'] === 'trialing';
-        $subscriptionFlags['is_canceled'] = $subscription['status'] === 'canceled' || $subscription['cancel_at_period_end'];
-        $subscriptionFlags['is_expired'] = $subscription['status'] === 'incomplete_expired';
-        
-        // Calculate trial days remaining if trialing
-        if ($subscription['status'] === 'trialing' && $subscription['trial_end']) {
-            $trialEnd = strtotime($subscription['trial_end']);
-            $now = time();
-            $subscriptionFlags['trial_days_remaining'] = max(0, ceil(($trialEnd - $now) / 86400));
-        }
-        
-        // Check if trial has actually expired
-        if ($subscription['status'] === 'trialing' && $subscription['trial_end']) {
-            $trialEnd = strtotime($subscription['trial_end']);
-            if ($trialEnd < time()) {
-                $subscriptionFlags['is_trialing'] = false;
-                $subscriptionFlags['is_expired'] = true;
-                $subscriptionFlags['trial_days_remaining'] = 0;
-            }
-        }
+        $subscription = Utils::enrichSubscriptionForAdmin($subscription);
+        $subscriptionFlags = $subscription['subscription_flags'];
     }
     
     // Get recent payments (last 10)
@@ -110,6 +90,21 @@ try {
         ['user_id' => $userId]
     )['count'];
     
+    // Get email delivery history
+    $emailLogs = [];
+    try {
+        $emailLogs = $db->fetchAll(
+            "SELECT id, email_type, subject, status, created_at
+             FROM email_logs
+             WHERE user_id = :user_id
+             ORDER BY created_at DESC
+             LIMIT 20",
+            ['user_id' => $userId]
+        );
+    } catch (Exception $e) {
+        error_log("Failed to fetch email logs for user {$userId}: " . $e->getMessage());
+    }
+    
     Utils::jsonResponse([
         'success' => true,
         'user' => [
@@ -127,6 +122,7 @@ try {
         'subscription_flags' => $subscriptionFlags,
         'payments' => $payments,
         'app_usage' => $appUsage,
+        'email_logs' => $emailLogs,
         'stats' => [
             'session_count' => (int)$sessionCount,
             'page_view_count' => (int)$pageViewCount

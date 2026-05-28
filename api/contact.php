@@ -20,6 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Utils::errorResponse('Invalid email address.');
     }
     
+    // Rate limiting: prevent spam (5 messages per hour per IP)
+    $clientIP = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $rateLimitKey = 'contact:' . $clientIP;
+    if (!Utils::checkRateLimit($rateLimitKey, 'contact', 5, 3600)) {
+        Utils::errorResponse('Too many messages. Please try again later.', 429);
+    }
+    
     // Prepare email
     $to = 'matthew@brighteyedtherapist.com';
     $subject = "New Contact Form Submission from $name";
@@ -39,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($emailResult) {
         // Log successful email for debugging
         error_log("Contact email sent successfully to: $to, from: $email");
+        Utils::recordRateLimitAttempt($rateLimitKey, 'contact', true);
         Utils::jsonResponse(['message' => 'Message sent successfully. We will get back to you soon!']);
     } else {
         // Log failed email attempt

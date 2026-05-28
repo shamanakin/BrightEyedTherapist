@@ -1,0 +1,204 @@
+/* EMDR BLS therapist bottom toolbar */
+.bls-toolbar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 25;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1rem 1.25rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.35) 70%, transparent 100%);
+    pointer-events: none;
+}
+
+.bls-toolbar > * {
+    pointer-events: auto;
+}
+
+.bls-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 100%;
+}
+
+.bls-toolbar-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s, transform 0.1s;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(31, 41, 55, 0.92);
+    border: none;
+    cursor: pointer;
+}
+
+.bls-toolbar-btn:hover {
+    background-color: #374151;
+}
+
+.bls-toolbar-btn:active {
+    transform: scale(0.95);
+}
+
+.bls-toolbar-btn.is-active {
+    outline: 2px solid rgba(129, 140, 248, 0.8);
+}
+
+.bls-toolbar-btn.share-btn-active {
+    background-color: #dc2626 !important;
+    animation: bls-pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bls-pulse-red {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.bls-toolbar-label {
+    display: none;
+    font-size: 0.65rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.bls-toolbar-start {
+    margin-top: 0.65rem;
+    padding: 0.65rem 1.75rem;
+    background-color: rgba(31, 41, 55, 0.95);
+    color: #fff;
+    font-size: 1.05rem;
+    border-radius: 9999px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.bls-toolbar-start:hover {
+    background-color: #374151;
+}
+
+.bls-toolbar-start:active {
+    transform: scale(0.97);
+}
+
+.bls-set-count {
+    color: #9ca3af;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+}
+
+.bls-path-saccadic .bls-path-icon-saccadic {
+    display: block;
+}
+
+.bls-path-saccadic .bls-path-icon-lateral,
+.bls-path-saccadic .bls-path-icon-diagonal {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .bls-toolbar-btn {
+        width: 40px;
+        height: 40px;
+    }
+    .bls-toolbar-start {
+        font-size: 0.95rem;
+        padding: 0.55rem 1.25rem;
+    }
+}
+
+@media (min-width: 901px) {
+    .bls-toolbar-btn.has-label {
+        width: auto;
+        min-width: 44px;
+        padding: 0 0.65rem;
+        flex-direction: column;
+        height: auto;
+        min-height: 44px;
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
+    }
+    .bls-toolbar-btn.has-label .bls-toolbar-label {
+        display: block;
+    }
+}
+
+.bls-size-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    min-width: 5.5rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 10px;
+    background: rgba(31, 41, 55, 0.72);
+}
+
+.bls-size-control-hidden {
+    display: none;
+}
+
+.bls-size-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    line-height: 1;
+    user-select: none;
+}
+
+.bls-size-slider {
+    width: 5.25rem;
+    height: 4px;
+    margin: 0.35rem 0 0.15rem;
+    accent-color: #818cf8;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+
+.bls-size-slider::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: rgba(156, 163, 175, 0.45);
+}
+
+.bls-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    border: 2px solid #4f46e5;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.bls-size-slider::-moz-range-track {
+    height: 4px;
+    border-radius: 9999px;
+    background: rgba(156, 163, 175, 0.45);
+}
+
+.bls-size-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    border: 2px solid #4f46e5;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}

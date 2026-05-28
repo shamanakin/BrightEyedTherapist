@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motivational Interviewer - Clarity Tool</title>
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #E0E7FF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --bg-page: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+        }
+
+        .progress-bar-container {
+            background: var(--border);
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--primary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 700; }
+        h2 { font-size: 1.5rem; font-weight: 600; }
+        h3 { font-size: 1.2rem; font-weight: 500; }
+        
+        p { margin-bottom: 1rem; color: var(--text-muted); }
+
+        .question-prompt {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Controls */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #4338CA; }
+        
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary-light); }
+
+        .btn-text { background: transparent; color: var(--text-muted); text-decoration: underline; }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: flex-end;
+        }
+
+        input[type="text"], textarea, select, input[type="number"], input[type="date"], input[type="email"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Specific Components */
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chip {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: var(--bg-page);
+            cursor: pointer;
+            border: 2px solid transparent;
+            user-select: none;
+        }
+
+        .chip.selected {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .slider-container {
+            margin-bottom: 2rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .option-card {
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .columns-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 640px) {
+            .columns-2 { grid-template-columns: 1fr; }
+        }
+
+        .print-only { display: none; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block; }
+            .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+            body { background: white; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+        }
+
+        .step-hidden { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .helper-text {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .card { padding: 1.25rem; }
+            h1 { font-size: 1.5rem; }
+            .btn { width: 100%; margin-bottom: 0.5rem; }
+            .btn-group { flex-direction: column-reverse; } /* Primary button on top */
+            .btn-group button { width: 100%; }
+            .chip-container { gap: 0.35rem; }
+            .chip { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
+        }
+
+        /* Dashboard & Overlay Styles */
+        .motivational-dashboard-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 50;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: auto;
+            height: auto;
+        }
+        .motivational-dashboard-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .motivational-dashboard-btn svg { width: 18px; height: 18px; }
+        @media (max-width: 640px) {
+            .motivational-dashboard-btn {
+                bottom: 16px;
+                left: 16px;
+            }
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+            z-index: 40;
+            pointer-events: none;
+        }
+
+        /* Access Overlay */
+        .access-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(31, 41, 55, 0.95);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .access-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .access-modal {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dashboard Button (Hidden in Client Mode) -->
+    <a href="dashboard.html" class="motivational-dashboard-btn no-print" id="dash-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Dashboard
+    </a>
+
+    <div class="app-chrome-bottom-right no-print">
+        <span class="app-chrome-watermark">Motivational Interviewer · Bright Eyed Therapist</span>
+        <a href="feedback.html?app=motivational" class="app-chrome-feedback" title="Send Feedback">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Feedback
+        </a>
+    </div>
+
+    <div class="header no-print" style="margin-top: 40px;">
+        <div style="font-weight: bold; color: var(--primary); margin-left: auto; margin-right: auto;" id="app-title">Guided Clarity</div>
+        <button onclick="app.saveDraft()" class="btn-text" style="font-size: 0.8rem; position: absolute; right: 20px;">Save Draft</button>
+    </div>
+
+    <div class="container" id="app">
+        <!-- Content injected by JS -->
+    </div>
+
+    <!-- Access Overlay -->
+    <div id="access-overlay" class="access-overlay">
+        <div class="access-modal">
+            <h2 style="margin-bottom: 1rem; color: var(--text-main);">Access Locked</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                Please sign in with an active subscription to use this tool.
+            </p>
+            <a href="login.html" class="btn btn-primary">Sign In</a>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Motivational Interviewer Logic
+         */
+
+        // Helper to parse URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const isClientMode = urlParams.get('mode') === 'client';
+        const therapistEmailRef = urlParams.get('ref'); // Base64 encoded email
+        
+        // Storage Key: separate for client mode to avoid conflicts
+        const STORAGE_KEY = isClientMode ? 'mi_client_session' : 'mi_session';
+
+        // Initial State
+        const initialState = {
+            step: 0,
+            shortTrack: false,
+            focus: {
+                title: "",
+                type: "",
+                horizon: ""
+            },
+            context: {
+                what: "",
+                why: "",
+                cost: ""
+            },
+            values: [], // Array of strings
+            valuesCustom: "", // Custom value input
+            options: [
+                // { id: 1, text: "", importance: 5, confidence: 5, worthIt: "" }
+            ],
+            decisionalBalance: {
+                optionId: null, // Selected leading option
+                prosChange: "",
+                consChange: "",
+                prosStay: "",
+                consStay: "",
+                mostTrue: "" // "prosChange" | "consChange" | ...
+            },
+            barriers: [
+                // { id: 1, text: "", reaction: "", alternative: "" }
+            ],
+            supports: {
+                people: "",
+                environment: "",
+                tools: ""
+            },
+            plan: {
+                nextStep: "",
+                when: "",
+                where: "",
+                ifThen: "",
+                fallback: "",
+                commitment: 8,
+                whyNotLower: ""
+            }
+        };
+
+        // Application Logic
+        const app = {
+            data: JSON.parse(JSON.stringify(initialState)),
+            
+            init() {
+                // Always start with a fresh session - clear any cached data
+                localStorage.removeItem(STORAGE_KEY);
+                this.data = JSON.parse(JSON.stringify(initialState));
+                
+                if (isClientMode) {
+                    document.getElementById('dash-btn').style.display = 'none';
+                    document.getElementById('app-title').innerText = "Guided Clarity (Client Session)";
+                    
+                    // Add exit warning
+                    window.onbeforeunload = function() {
+                        return "Are you sure you want to leave? Your session data will be lost.";
+                    };
+                } else {
+                    // Verify Access for Therapists
+                    this.checkAccess();
+                }
+
+                this.render();
+            },
+
+            async checkAccess() {
+                // Simple frontend check - real security is on the backend API, 
+                // but this prevents casual use without login
+                if (!Auth.getToken()) {
+                    document.getElementById('access-overlay').classList.add('active');
+                    return;
+                }
+                const user = await Auth.getCurrentUser();
+                if (!user || !user.subscription || (user.subscription.status !== 'active' && user.subscription.status !== 'trialing')) {
+                     document.getElementById('access-overlay').classList.add('active');
+                }
+            },
+
+            saveDraft() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+                const btn = document.querySelector('.header button');
+                if(btn) {
+                    const origText = btn.innerText;
+                    btn.innerText = "Saved!";
+                    setTimeout(() => btn.innerText = origText, 2000);
+                }
+            },
+
+            reset() {
+                if(confirm("Start a new session? This will clear current progress.")) {
+                    this.data = JSON.parse(JSON.stringify(initialState));
+                    this.saveDraft();
+                    this.render();
+                }
+            },
+
+            // Helper to update deep data paths safely
+            update(path, value) {
+                const parts = path.split('.');
+                let target = this.data;
+                for (let i = 0; i < parts.length - 1; i++) {
+                    target = target[parts[i]];
+                }
+                target[parts[parts.length - 1]] = value;
+                this.saveDraft(); // Auto-save on change
+            },
+
+            getClinicalEmail() {
+                if (!therapistEmailRef) return null;
+                try {
+                    return atob(therapistEmailRef);
+                } catch (e) {
+                    console.error("Failed to decode email ref", e);
+                    return null;
+                }
+            },
+
+            async copyShareLink() {
+                const user = await Auth.getCurrentUser();
+                // Use clinical email if set, otherwise account email
+                const emailToUse = (user && user.clinicalEmail) ? user.clinicalEmail : (user ? user.email : '');
+                
+                if (!emailToUse) {
+                    alert("Could not retrieve email for link generation. Please sign in.");
+                    return;
+                }
+
+                const encodedEmail = btoa(emailToUse);
+                // Construct link relative to current origin
+                const link = `${window.location.origin}${window.location.pathname}?mode=client&ref=${encodedEmail}`;
+                
+                navigator.clipboard.writeText(link).then(() => {
+                    alert("Client Link copied to clipboard!\n\nSend this link to your client. They will be able to email you their results directly.");
+                });
+            },
+
+            copyToClipboard() {
+                const text = this.generateSummaryText();
+                navigator.clipboard.writeText(text).then(() => alert("Copied summary to clipboard!"));
+            },
+
+            downloadTxt() {
+                const text = this.generateSummaryText();
+                const blob = new Blob([text], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `clarity-card-${new Date().toISOString().slice(0,10)}.txt`;
+                a.click();
+            },
+
+            generateSummaryText() {
+                const data = this.data;
+                const selectedOpt = data.options.find(o => o.id === data.decisionalBalance.optionId) || data.options[0] || {};
+                
+                return `CLARITY CARD (${new Date().toLocaleDateString()})\n` + 
+                       `------------------------------------------------\n\n` +
+                       `FOCUS: ${data.focus.title}\n` +
+                       `CONTEXT: ${data.context.what}\n` +
+                       `WHY IT MATTERS: ${data.context.why}\n\n` +
+                       `VALUES: ${data.values.join(', ')} ${data.valuesCustom ? '('+data.valuesCustom+')' : ''}\n\n` +
+                       `CHOSEN OPTION: ${selectedOpt.text || ''}\n` +
+                       `RATIONALE: ${selectedOpt.worthIt || ''}\n\n` +
+                       `THE PLAN:\n` +
+                       `  Action: ${data.plan.nextStep}\n` +
+                       `  When: ${data.plan.when}\n` +
+                       `  Where: ${data.plan.where}\n` +
+                       `  If/Then: ${data.plan.ifThen.replace('||', ' -> ')}\n\n` +
+                       `SCORES:\n` +
+                       `  Confidence: ${selectedOpt.confidence || '-'}/10\n` +
+                       `  Commitment: ${data.plan.commitment}/10 ("${data.plan.whyNotLower}")\n\n` +
+                       `BARRIERS:\n` +
+                       `${data.barriers.map(b => `  - ${b.barrier} (Try: ${b.alternative})`).join('\n')}\n\n` +
+                       `SUPPORTS:\n` +
+                       `  People: ${data.supports.people}\n` +
+                       `  Env: ${data.supports.environment}\n` +
+                       `  Tools: ${data.supports.tools}\n\n` +
+                       `EMERGENCY FALLBACK:\n` +
+                       `  ${data.plan.fallback || 'N/A'}`;
+            },
+            
+            nextStep() {
+                // Short Track Logic
+                const currentStepId = steps[this.data.step].id;
+                if (this.data.shortTrack && currentStepId === 'options_setup') {
+                    // Find index of 'plan' and jump there
+                    const planIdx = steps.findIndex(s => s.id === 'plan');
+                    if (planIdx !== -1) {
+                        this.data.step = planIdx;
+                        this.saveDraft();
+                        this.render();
+                        window.scrollTo(0, 0);
+                        return;
+                    }
+                }
+
+                this.data.step++;
+                this.saveDraft();
+                this.render();
+                window.scrollTo(0, 0);
+            },
+
+            prevStep() {
+                // Short Track Logic Reverse
+                const currentStepId = steps[this.data.step].id;
+                if (this.data.shortTrack && currentStepId === 'plan') {
+                     const optionsIdx = steps.findIndex(s => s.id === 'options_setup');
+                     if (optionsIdx !== -1) {
+                         this.data.step = optionsIdx;
+                         this.saveDraft();
+                         this.render();
+                         window.scrollTo(0, 0);
+                         return;
+                     }
+                }
+
+                if (this.data.step > 0) {
+                    this.data.step--;
+                    this.saveDraft();
+                    this.render();
+                    window.scrollTo(0, 0);
+                }
+            },
+
+            render() {
+                const container = document.getElementById('app');
+                const stepConfig = steps[this.data.step];
+                
+                // Progress Calculation
+                const progress = Math.min(100, (this.data.step / (steps.length - 1)) * 100);
+                
+                let html = `
+                    <div class="no-print" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+                         <span style="font-weight: 600; color: var(--primary);">${stepConfig.label || ''}</span>
+                         <span style="font-size: 0.85rem; color: var(--text-muted);">Step ${this.data.step} of ${steps.length - 1}</span>
+                    </div>
+                    <div class="progress-bar-container no-print">
+                        <div class="progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="card fade-in">
+                        ${stepConfig.render(this.data)}
+                        
+                        <div class="btn-group no-print">
+                            ${this.data.step > 0 ? `<button class="btn btn-outline" onclick="app.prevStep()">Back</button>` : ''}
+                            ${stepConfig.hideNext ? '' : `<button class="btn btn-primary" onclick="app.validateAndNext()">Next</button>`}
+                        </div>
+                    </div>
+                `;
+                
+                // Special case for Summary view (no card container)
+                if (stepConfig.id === 'summary') {
+                     html = stepConfig.render(this.data);
+                }
+
+                container.innerHTML = html;
+                
+                // Re-attach event listeners or init dynamic UI elements if needed
+                if (stepConfig.onMount) stepConfig.onMount();
+            },
+
+            validateAndNext() {
+                const stepConfig = steps[this.data.step];
+                if (stepConfig.validate) {
+                    const isValid = stepConfig.validate(this.data);
+                    if (!isValid) {
+                        alert("Please complete the required fields.");
+                        return;
+                    }
+                }
+                this.nextStep();
+            }
+        };
+
+        // Step Definitions
+        const steps = [
+            {
+                id: 'landing',
+                label: 'Start',
+                render: (data) => `
+                    <div style="text-align: center; padding: 2rem 0;">
+                        <h1>Decision Clarity</h1>
+                        <p style="font-size: 1.2rem;">A guided interview to move from stuck to clear action in 4-7 minutes.</p>
+                        <p style="font-size: 1rem; color: var(--text-muted); margin-bottom: 2rem;">Creates a one-page "Clarity Card" takeaway.</p>
+                        <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                            <button class="btn btn-primary" onclick="app.nextStep()" style="font-size: 1.2rem; padding: 1rem 2rem;">Start Interview</button>
+                            
+                            ${!isClientMode ? `
+                                <button class="btn btn-outline" onclick="app.copyShareLink()" style="font-size: 0.9rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right:8px">
+                                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"/>
+                                    </svg>
+                                    Share with Client
+                                </button>
+                                <p class="helper-text" style="font-size: 0.8rem;">Generate a link for your client to complete this on their own device.</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                `,
+                hideNext: true
+            },
+            {
+                id: 'focus',
+                label: 'Focus',
+                render: (data) => `
+                    <h2 class="question-prompt">What are we working on today?</h2>
+                    <p class="helper-text">Therapist tip: Summarize the client's answer to ensure alignment before moving on.</p>
+                    
+                    <label>Give it a short title</label>
+                    <input type="text" value="${data.focus.title}" oninput="app.update('focus.title', this.value)" placeholder="e.g., Career Change, Resolving Conflict...">
+                    
+                    <label>Type of Challenge</label>
+                    <select onchange="app.update('focus.type', this.value)">
+                        <option value="" disabled ${!data.focus.type ? 'selected' : ''}>Select one...</option>
+                        <option value="Decision" ${data.focus.type === 'Decision' ? 'selected' : ''}>Decision (Choice A vs B)</option>
+                        <option value="Habit" ${data.focus.type === 'Habit' ? 'selected' : ''}>Habit Change (Start/Stop)</option>
+                        <option value="Relationship" ${data.focus.type === 'Relationship' ? 'selected' : ''}>Relationship Conversation</option>
+                        <option value="Anxiety" ${data.focus.type === 'Anxiety' ? 'selected' : ''}>Anxiety/OCD Action</option>
+                        <option value="Project" ${data.focus.type === 'Project' ? 'selected' : ''}>Work Project</option>
+                    </select>
+
+                    <label>Time Horizon</label>
+                    <div class="chip-container">
+                        ${['Today', 'This Week', 'This Month', 'Long Term'].map(h => `
+                            <div class="chip ${data.focus.horizon === h ? 'selected' : ''}" 
+                                 onclick="app.update('focus.horizon', '${h}'); app.render();">
+                                ${h}
+                            </div>
+                        `).join('')}
+                    </div>
+                `,
+                validate: (data) => data.focus.title && data.focus.type && data.focus.horizon
+            },
+            {
+                id: 'context',
+                label: 'Context',
+                render: (data) => `
+                    <h2 class="question-prompt">Quick Context</h2>
+                     <p class="helper-text">Therapist tip: Reflect back the "why" to deepen engagement.</p>
+                    
+                    <label>In one sentence, what is happening right now?</label>
+                    <textarea rows="2" oninput="app.update('context.what', this.value)" placeholder="Current situation...">${data.context.what}</textarea>
+                    
+                    <label>Why does this matter to you deeply?</label>
+                    <textarea rows="2" oninput="app.update('context.why', this.value)" placeholder="Values at stake...">${data.context.why}</textarea>
+                    
+                    <label>What is the cost of staying the same?</label>
+                    <textarea rows="2" oninput="app.update('context.cost', this.value)" placeholder="If nothing changes...">${data.context.cost}</textarea>
+                `,
+                validate: (data) => data.context.what && data.context.why
+            },
+            {
+                id: 'values',
+                label: 'Values',
+                render: (data) => {
+                    const domains = {
+                        "Growth": ["Learning", "Creativity", "Achievement", "Resilience"],
+                        "Relations": ["Trust", "Compassion", "Honesty", "Belonging"],
+                        "Stability": ["Health", "Security", "Peace", "Balance"],
+                        "Purpose": ["Contribution", "Integrity", "Freedom", "Adventure"]
+                    };
+                    
+                    return `
+                        <h2 class="question-prompt">Values Compass</h2>
+                        <p>Select up to 3 core values guiding this situation.</p>
+                        
+                        ${Object.entries(domains).map(([domain, vals]) => `
+                            <div style="margin-bottom: 1rem;">
+                                <strong>${domain}</strong>
+                                <div class="chip-container" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                    ${vals.map(v => `
+                                        <div class="chip ${data.values.includes(v) ? 'selected' : ''}" 
+                                             onclick="(() => { ${data.values.length >= 3 && !data.values.includes(v) ? '' : `app.data.values.includes('${v}') ? app.data.values.splice(app.data.values.indexOf('${v}'), 1) : app.data.values.push('${v}'); app.saveDraft(); app.render();`} })()">
+                                            ${v}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                        
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--primary-light); border-radius: 8px;">
+                            <strong>Selected:</strong> ${data.values.length > 0 ? data.values.join(', ') : 'None yet'}
+                        </div>
+
+                        ${data.values.length <= 1 ? `
+                            <div class="fade-in" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                                <p class="helper-text" style="font-style: italic;">Therapist tip: If values aren't clear, ask: <strong>"What do you want your life to stand for here?"</strong></p>
+                                <input type="text" value="${data.valuesCustom || ''}" oninput="app.update('valuesCustom', this.value)" placeholder="Or write a custom value...">
+                            </div>
+                        ` : ''}
+                    `;
+                },
+                validate: (data) => data.values.length > 0 || (data.valuesCustom && data.valuesCustom.length > 0)
+            },
+            {
+                id: 'options_setup',
+                label: 'Options',
+                render: (data) => {
+                    if (data.options.length === 0) {
+                        // Initialize with at least one option if empty
+                         data.options.push({ id: 1, text: "", importance: 5, confidence: 5, worthIt: "" });
+                    }
+
+                    return `
+                        <h2 class="question-prompt">What are your real options?</h2>
+                        <p class="helper-text">If stuck, consider baseline options like: <em>"Do nothing"</em>, <em>"Delay decision"</em>, or <em>"Ask for help"</em>.</p>
+                        <div style="margin-bottom: 1.5rem; padding: 0.5rem 1rem; background: #F3F4F6; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="shortTrack" ${data.shortTrack ? 'checked' : ''} onchange="app.update('shortTrack', this.checked)">
+                            <label for="shortTrack" style="margin:0; font-size: 0.9rem; user-select: none; cursor: pointer;">Use Short Track (Skip deep analysis)</label>
+                        </div>
+
+                        ${data.options.length > 2 ? `
+                            <div class="fade-in" style="background: #FEF3C7; color: #92400E; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; border: 1px solid #FCD34D;">
+                                <strong>Coach Tip:</strong> That's a good list. To get clear faster, try to pick the <strong>top 1 or 2</strong> most realistic options to focus on today.
+                            </div>
+                        ` : ''}
+                        
+                        ${data.options.map((opt, idx) => `
+                            <div class="option-card">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                                    <label style="font-weight:bold;">Option ${idx + 1}</label>
+                                    ${data.options.length > 1 ? `<button class="btn-text" style="color:red" onclick="(() => { app.data.options.splice(${idx}, 1); app.saveDraft(); app.render(); })()">Remove</button>` : ''}
+                                </div>
+                                <input type="text" value="${opt.text}" oninput="app.data.options[${idx}].text = this.value; app.saveDraft();" placeholder="Describe this option...">
+                                
+                                <div class="columns-2">
+                                    <div>
+                                        <div class="slider-label"><span>Importance</span> <span>${opt.importance}</span></div>
+                                        <!-- FIXED: Removed app.render() from oninput to prevent flashing -->
+                                        <input type="range" min="0" max="10" value="${opt.importance}" 
+                                            oninput="app.data.options[${idx}].importance = parseInt(this.value); this.previousElementSibling.lastElementChild.innerText = this.value; app.saveDraft();">
+                                    </div>
+                                    <div>
+                                        <div class="slider-label"><span>Confidence</span> <span>${opt.confidence}</span></div>
+                                        <!-- FIXED: Removed app.render() from oninput to prevent flashing -->
+                                        <input type="range" min="0" max="10" value="${opt.confidence}" 
+                                            oninput="app.data.options[${idx}].confidence = parseInt(this.value); this.previousElementSibling.lastElementChild.innerText = this.value; app.saveDraft();">
+                                    </div>
+                                </div>
+
+                                ${(() => {
+                                    const imp = opt.importance;
+                                    const conf = opt.confidence;
+                                    let msg = "";
+                                    if (imp >= 8 && conf <= 5) msg = "Important, but feels tough. We'll tackle barriers next.";
+                                    else if (imp <= 4 && conf >= 8) msg = "Easy to do, but does it matter enough?";
+                                    else if (imp >= 8 && conf >= 8) msg = "🌟 Strong candidate for action!";
+                                    return msg ? `<div style="font-size:0.85rem; color:var(--primary); margin-top:-0.5rem; margin-bottom:1rem; font-style:italic;">${msg}</div>` : '';
+                                })()}
+                                
+                                <label style="font-size: 0.9rem; margin-top: 0.5rem; display:block;">What makes this worth considering?</label>
+                                <input type="text" value="${opt.worthIt}" oninput="app.data.options[${idx}].worthIt = this.value; app.saveDraft();" placeholder="Key benefit...">
+                            </div>
+                        `).join('')}
+
+                        ${data.options.length < 4 ? `
+                            <button class="btn btn-outline" style="width:100%" onclick="(() => { app.data.options.push({ id: Date.now(), text: '', importance: 5, confidence: 5, worthIt: '' }); app.saveDraft(); app.render(); })()">+ Add Another Option</button>
+                        ` : ''}
+                    `;
+                },
+                validate: (data) => data.options.length > 0 && data.options[0].text.length > 0
+            },
+            {
+                id: 'decisional_balance',
+                label: 'Weighing',
+                render: (data) => {
+                    // Select leading option (highest importance)
+                    if (!data.decisionalBalance.optionId && data.options.length > 0) {
+                        // Sort by importance desc
+                        const sorted = [...data.options].sort((a,b) => b.importance - a.importance);
+                        data.decisionalBalance.optionId = sorted[0].id;
+                    }
+                    
+                    const selectedOpt = data.options.find(o => o.id === data.decisionalBalance.optionId) || data.options[0];
+
+                    return `
+                        <h2 class="question-prompt">Weighing: "${selectedOpt.text}"</h2>
+                        <p class="helper-text">Let's look at the Pros and Cons of making this change vs staying the same. <span style="color:var(--primary); font-weight:bold;">(Optional Depth)</span></p>
+
+                        <div class="columns-2">
+                            <div>
+                                <label><strong>Pros of Changing</strong></label>
+                                <textarea rows="3" oninput="app.update('decisionalBalance.prosChange', this.value)">${data.decisionalBalance.prosChange}</textarea>
+                            </div>
+                            <div>
+                                <label><strong>Cons of Changing</strong></label>
+                                <textarea rows="3" oninput="app.update('decisionalBalance.consChange', this.value)">${data.decisionalBalance.consChange}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="columns-2">
+                            <div>
+                                <label><strong>Pros of Staying Same</strong></label>
+                                <textarea rows="3" oninput="app.update('decisionalBalance.prosStay', this.value)">${data.decisionalBalance.prosStay}</textarea>
+                            </div>
+                            <div>
+                                <label><strong>Cons of Staying Same</strong></label>
+                                <textarea rows="3" oninput="app.update('decisionalBalance.consStay', this.value)">${data.decisionalBalance.consStay}</textarea>
+                            </div>
+                        </div>
+
+                        <label style="margin-top: 1rem; display: block;"><strong>Which of these feels most true right now?</strong></label>
+                        <select onchange="app.update('decisionalBalance.mostTrue', this.value)">
+                            <option value="" disabled ${!data.decisionalBalance.mostTrue ? 'selected' : ''}>Select one...</option>
+                            <option value="Pros of Changing" ${data.decisionalBalance.mostTrue === 'Pros of Changing' ? 'selected' : ''}>The Pros of Changing</option>
+                            <option value="Cons of Staying" ${data.decisionalBalance.mostTrue === 'Cons of Staying' ? 'selected' : ''}>The Cons of Staying Same</option>
+                            <option value="Pros of Staying" ${data.decisionalBalance.mostTrue === 'Pros of Staying' ? 'selected' : ''}>The Pros of Staying Same</option>
+                            <option value="Cons of Changing" ${data.decisionalBalance.mostTrue === 'Cons of Changing' ? 'selected' : ''}>The Cons of Changing</option>
+                        </select>
+                    `;
+                },
+                validate: (data) => true // Optional depth
+            },
+            {
+                id: 'barriers',
+                label: 'Barriers',
+                render: (data) => {
+                     if (data.barriers.length === 0) {
+                        data.barriers.push({ id: 1, barrier: "", reaction: "", alternative: "" });
+                    }
+                    
+                    // Auto-detect "low confidence / high importance"
+                    const struggleOptions = data.options.filter(o => o.importance >= 7 && o.confidence <= 6);
+                    const struggleMsg = struggleOptions.length > 0 
+                        ? `<div style="background: var(--primary-light); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                            <strong>Observation:</strong> For "${struggleOptions[0].text}", it seems very important to you but confidence is a bit low. Let's focus on what specifically gets in the way of <em>that</em> option.
+                           </div>`
+                        : '';
+
+                    return `
+                        <h2 class="question-prompt">Barriers & Supports</h2>
+                        ${struggleMsg}
+                        <p class="helper-text">It's normal to get stuck. What usually gets in the way?</p>
+                        
+                        <div class="chip-container" style="margin-bottom: 1.5rem;">
+                            ${["Lack of time", "Low energy", "Fear", "Perfectionism", "Overwhelm", "Distraction"].map(b => `
+                                <div class="chip" onclick="(() => { 
+                                    const emptyIdx = app.data.barriers.findIndex(x => !x.barrier);
+                                    if(emptyIdx > -1) { app.data.barriers[emptyIdx].barrier = '${b}'; } 
+                                    else { app.data.barriers.push({ barrier: '${b}', reaction: '', alternative: '' }); }
+                                    app.saveDraft(); app.render(); 
+                                })()">+ ${b}</div>
+                            `).join('')}
+                        </div>
+
+                        ${data.barriers.map((b, idx) => `
+                             <div class="option-card">
+                                <label><strong>Barrier ${idx+1}</strong></label>
+                                <input type="text" value="${b.barrier}" oninput="app.data.barriers[${idx}].barrier = this.value; app.saveDraft();" placeholder="e.g., Lack of time, Fear of failure...">
+                                
+                                <div class="columns-2">
+                                    <div>
+                                        <label class="helper-text">When this shows up, what do you usually do?</label>
+                                        <input type="text" value="${b.reaction}" oninput="app.data.barriers[${idx}].reaction = this.value; app.saveDraft();">
+                                    </div>
+                                    <div>
+                                        <label class="helper-text">What's one small experiment to try?</label>
+                                        <input type="text" value="${b.alternative}" oninput="app.data.barriers[${idx}].alternative = this.value; app.saveDraft();">
+                                    </div>
+                                </div>
+                             </div>
+                        `).join('')}
+                        
+                        <div style="margin-top: 2rem;">
+                             <h3>Support Map</h3>
+                             <label>People (Who can help?)</label>
+                             <input type="text" value="${data.supports.people}" oninput="app.update('supports.people', this.value)">
+                             
+                             <label>Environment (What change to your space helps?)</label>
+                             <input type="text" value="${data.supports.environment}" oninput="app.update('supports.environment', this.value)">
+                             
+                             <label>Tools (What resources do you need?)</label>
+                             <input type="text" value="${data.supports.tools}" oninput="app.update('supports.tools', this.value)">
+                        </div>
+                    `;
+                }
+            },
+            {
+                id: 'plan',
+                label: 'Plan',
+                render: (data) => `
+                    <h2 class="question-prompt">Change Plan</h2>
+                    
+                    <label><strong>My Next Step Is:</strong> (Concrete action)</label>
+                    <input type="text" value="${data.plan.nextStep}" oninput="app.update('plan.nextStep', this.value)" placeholder="e.g., Call John, Draft the email...">
+                    
+                    <div class="columns-2">
+                        <div>
+                            <label>When?</label>
+                            <input type="text" value="${data.plan.when}" oninput="app.update('plan.when', this.value)" placeholder="Date/Time">
+                        </div>
+                        <div>
+                            <label>Where?</label>
+                            <input type="text" value="${data.plan.where}" oninput="app.update('plan.where', this.value)" placeholder="Location">
+                        </div>
+                    </div>
+                    
+                    <label><strong>If-Then Plan</strong></label>
+                    <div style="display:flex; align-items:center; gap: 0.5rem;">
+                        <span>If</span>
+                        <input type="text" style="margin-bottom:0" value="${data.plan.ifThen.split('||')[0] || ''}" oninput="app.update('plan.ifThen', this.value + '||' + (app.data.plan.ifThen.split('||')[1] || ''))" placeholder="obstacle happens...">
+                        <span>then I will</span>
+                        <input type="text" style="margin-bottom:0" value="${data.plan.ifThen.split('||')[1] || ''}" oninput="app.update('plan.ifThen', (app.data.plan.ifThen.split('||')[0] || '') + '||' + this.value)" placeholder="do this...">
+                    </div>
+                    <p class="helper-text" style="margin-top: 0.5rem;">e.g., If I feel tired, then I will do just 5 minutes.</p>
+
+                    <div style="margin-top: 1rem; padding: 1rem; background: #F0F9FF; border-radius: 8px; border: 1px solid #BAE6FD;">
+                        <label style="color: #0369A1;"><strong>Fallback Plan (The "2-Minute Version")</strong></label>
+                        <p class="helper-text" style="color: #0C4A6E; margin-bottom: 0.5rem;">If you stall completely, what is a tiny version of this step you can do in 2 minutes?</p>
+                        <input type="text" value="${data.plan.fallback || ''}" oninput="app.update('plan.fallback', this.value)" placeholder="e.g., Just open the document, Just put on running shoes...">
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <div class="slider-label"><span>Commitment to this plan</span> <span>${data.plan.commitment}/10</span></div>
+                        <!-- FIXED: Removed app.render() from oninput -->
+                        <input type="range" min="0" max="10" value="${data.plan.commitment}" 
+                            oninput="app.update('plan.commitment', parseInt(this.value)); this.previousElementSibling.lastElementChild.innerText = this.value + '/10';">
+                        
+                        ${data.plan.commitment < 7 ? `
+                            <div class="fade-in" style="background: #FFF7ED; border: 1px solid #FDBA74; color: #9A3412; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                                <strong>Coach Mode:</strong> Your commitment is below 7. That's a signal.<br>
+                                <em>"If we cut this step in half, what would that look like?"</em><br>
+                                <button class="btn-text" style="margin-top:0.5rem; font-weight:bold;" onclick="document.querySelector('input[placeholder=\'e.g., Call John, Draft the email...\']').focus()">Adjust Step ↑</button>
+                            </div>
+                        ` : `
+                            <label style="margin-top:1rem; display:block;">Why is it a ${data.plan.commitment} and not a lower number?</label>
+                            <input type="text" value="${data.plan.whyNotLower}" oninput="app.update('plan.whyNotLower', this.value)" placeholder="Because I really want to...">
+                        `}
+                    </div>
+                `,
+                validate: (data) => data.plan.nextStep && data.plan.when
+            },
+            {
+                id: 'summary',
+                label: 'Summary',
+                render: (data) => {
+                    const ifThenParts = data.plan.ifThen.split('||');
+                    const ifText = ifThenParts[0];
+                    const thenText = ifThenParts[1];
+                    
+                    const selectedOpt = data.options.find(o => o.id === data.decisionalBalance.optionId) || data.options[0];
+                    
+                    const clinicalEmail = app.getClinicalEmail();
+                    const emailSubject = encodeURIComponent(`Clarity Card: ${data.focus.title}`);
+                    const emailBody = encodeURIComponent(app.generateSummaryText());
+                    const mailtoLink = clinicalEmail ? `mailto:${clinicalEmail}?subject=${emailSubject}&body=${emailBody}` : null;
+
+                    return `
+                        <div class="no-print" style="margin-bottom: 2rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <button class="btn btn-outline" onclick="app.prevStep()">Back</button>
+                            <button class="btn btn-primary" onclick="window.print()">Print PDF</button>
+                            <button class="btn btn-outline" onclick="app.copyToClipboard()">Copy Text</button>
+                            <button class="btn btn-outline" onclick="app.downloadTxt()">Download .txt</button>
+                            
+                            ${mailtoLink ? `
+                                <a href="${mailtoLink}" class="btn btn-primary" style="background-color: #10B981;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right:8px">
+                                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                                    </svg>
+                                    Email to Therapist
+                                </a>
+                            ` : ''}
+
+                            <button class="btn btn-text" style="margin-left:auto" onclick="app.reset()">Start New Session</button>
+                        </div>
+
+                        <div class="card" id="clarity-card" style="border: 2px solid var(--primary);">
+                            <div style="text-align:center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                                <h1 style="margin-bottom:0.5rem">Clarity Card</h1>
+                                <p style="margin:0; font-size:0.9rem; color:var(--text-muted)">${new Date().toLocaleDateString()}</p>
+                            </div>
+
+                            <!-- Focus Statement -->
+                            <div style="margin-bottom: 2rem;">
+                                <label style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">The Situation</label>
+                                <div style="font-size: 1.1rem; line-height:1.5; margin-top:0.25rem;">
+                                    Working on <strong>${data.focus.title}</strong> because ${data.context.why || 'it matters'}.
+                                </div>
+                                <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+                                    ${data.values.map(v => `<span class="chip selected" style="cursor:default; font-size:0.85rem;">${v}</span>`).join('')}
+                                    ${data.valuesCustom ? `<span class="chip selected" style="cursor:default; font-size:0.85rem;">${data.valuesCustom}</span>` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Chosen Plan -->
+                            <div style="background: var(--bg-page); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid var(--primary);">
+                                <label style="font-size:0.85rem; text-transform:uppercase; color:var(--primary); letter-spacing:1px; font-weight:bold;">The Next Step</label>
+                                <div style="font-size: 1.3rem; font-weight: bold; margin: 0.5rem 0;">
+                                    ${data.plan.nextStep}
+                                </div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; font-size:0.95rem;">
+                                    <div><strong>When:</strong> ${data.plan.when}</div>
+                                    <div><strong>Where:</strong> ${data.plan.where}</div>
+                                </div>
+                                ${(ifText && thenText) ? `
+                                    <div style="margin-top: 1rem; padding-top:1rem; border-top:1px solid rgba(0,0,0,0.05);">
+                                        <em>If ${ifText}, then I will ${thenText}.</em>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Rationale & Scores -->
+                            <div class="columns-2" style="margin-bottom: 2rem;">
+                                <div>
+                                    <label style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">Motivation</label>
+                                    <div style="margin-top:0.5rem;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
+                                            <span>Confidence</span>
+                                            <strong>${selectedOpt.confidence}/10</strong>
+                                        </div>
+                                        <div style="height:4px; background:var(--border); border-radius:2px;"><div style="width:${selectedOpt.confidence*10}%; height:100%; background:var(--primary); border-radius:2px;"></div></div>
+                                    </div>
+                                    <div style="margin-top:0.75rem;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
+                                            <span>Commitment</span>
+                                            <strong>${data.plan.commitment}/10</strong>
+                                        </div>
+                                        <div style="height:4px; background:var(--border); border-radius:2px;"><div style="width:${data.plan.commitment*10}%; height:100%; background:var(--primary); border-radius:2px;"></div></div>
+                                    </div>
+                                    <p style="font-size: 0.85rem; margin-top:0.5rem; font-style:italic;">"${data.plan.whyNotLower}"</p>
+                                </div>
+                                
+                                <div>
+                                    <label style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">Why this option?</label>
+                                    <p style="margin-top:0.5rem; font-size:0.95rem;">${selectedOpt.worthIt || 'It aligns with my values.'}</p>
+                                    ${data.decisionalBalance.mostTrue ? `<p style="font-size:0.85rem; color:var(--text-muted);">Key factor: ${data.decisionalBalance.mostTrue}</p>` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Fallback -->
+                            ${data.plan.fallback ? `
+                                <div style="margin-bottom: 2rem; padding: 1rem; border: 1px dashed var(--text-muted); border-radius: 8px; background: #fff;">
+                                    <strong>🚨 If I stall completely (Emergency Plan):</strong><br>
+                                    ${data.plan.fallback}
+                                </div>
+                            ` : ''}
+
+                            <!-- Barriers & Supports -->
+                            <div class="columns-2">
+                                <div>
+                                    <label style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">Barriers</label>
+                                    <ul style="margin-top:0.5rem; padding-left:1.2rem; font-size:0.9rem;">
+                                    ${data.barriers.filter(b => b.barrier).length > 0 ? 
+                                        data.barriers.filter(b => b.barrier).map(b => `<li>${b.barrier} ${b.alternative ? `(Try: ${b.alternative})` : ''}</li>`).join('') 
+                                        : '<li>None identified</li>'}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">Supports</label>
+                                    <ul style="list-style: none; padding: 0; margin-top:0.5rem; font-size:0.9rem;">
+                                        ${data.supports.people ? `<li>👥 ${data.supports.people}</li>` : ''}
+                                        ${data.supports.environment ? `<li>🏠 ${data.supports.environment}</li>` : ''}
+                                        ${data.supports.tools ? `<li>🛠️ ${data.supports.tools}</li>` : ''}
+                                        ${!data.supports.people && !data.supports.environment && !data.supports.tools ? '<li>Self-reliance</li>' : ''}
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                         <div class="no-print" style="text-align: center; margin-top: 2rem; color: var(--text-muted);">
+                            <p>Motivational Interviewer Tool | Bright Eyed Therapist</p>
+                        </div>
+                    `;
+                },
+                hideNext: true
+            }
+        ];
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+    <script src="subscription_overlay.js"></script>
+</body>
+</html>

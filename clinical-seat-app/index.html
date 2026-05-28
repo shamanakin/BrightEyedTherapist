@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clinical Seat">
+<meta name="theme-color" content="#0f1419">
+<title>Clinical Seat — CA LMFT Exam Prep</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%230f1419%22/><text x=%2250%22 y=%2268%22 text-anchor=%22middle%22 font-size=%2248%22 fill=%22%236ea8fe%22 font-family=%22Georgia,serif%22>CS</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script>
+window.LMFT_BLUEPRINT = {
+  "domains": [
+    {
+      "id": 1, "name": "Clinical Evaluation", "weight": 27,
+      "subsections": [
+        { "id": "1A", "name": "Establishing Therapeutic Relationship / Reason for Therapy", "weight": 4 },
+        { "id": "1B", "name": "Evaluating Physical and Psychological Factors", "weight": 6 },
+        { "id": "1C", "name": "Evaluating Developmental, Psychosocial, Diversity Factors", "weight": 6 },
+        { "id": "1D", "name": "Evaluating Interpersonal and Family Relationships", "weight": 5 },
+        { "id": "1E", "name": "Assessing Trauma, Abuse, Violence", "weight": 3 },
+        { "id": "1F", "name": "Consultations and Further Evaluations", "weight": 3 }
+      ]
+    },
+    {
+      "id": 2, "name": "Developing a Diagnostic Impression", "weight": 11,
+      "subsections": [
+        { "id": "2A", "name": "Mood, Anxiety, Thought Disorders", "weight": 6 },
+        { "id": "2B", "name": "Other Disorders of Clinical Significance", "weight": 5 }
+      ]
+    },
+    {
+      "id": 3, "name": "Managing Crisis Situations", "weight": 11,
+      "subsections": [
+        { "id": "3A", "name": "Managing Imminent Danger", "weight": 5 },
+        { "id": "3B", "name": "Managing Effects of Crisis Exposure or Situations", "weight": 6 }
+      ]
+    },
+    {
+      "id": 4, "name": "Case Conceptualization and Planning", "weight": 12,
+      "subsections": [
+        { "id": "4A", "name": "Planning Goals and Course of Treatment", "weight": 4 },
+        { "id": "4B", "name": "Implementing Theory in Treatment", "weight": 5 },
+        { "id": "4C", "name": "Planning for Termination", "weight": 3 }
+      ]
+    },
+    {
+      "id": 5, "name": "Treatment", "weight": 29,
+      "subsections": [
+        { "id": "5A", "name": "Interpersonal, Couple, Family Relationships", "weight": 5 },
+        { "id": "5B", "name": "Impact of Grief, Trauma, Violence", "weight": 3 },
+        { "id": "5C", "name": "Impact of Physical and Psychological Issues", "weight": 6 },
+        { "id": "5D", "name": "Developmental or Psychosocial Issues", "weight": 8 },
+        { "id": "5E", "name": "Applying Theory in Practice", "weight": 7 }
+      ]
+    },
+    {
+      "id": 6, "name": "Legal and Ethical Obligations", "weight": 10,
+      "subsections": [
+        { "id": "6", "name": "Legal and Ethical Obligations", "weight": 10 }
+      ]
+    }
+  ]
+};
+window.LMFT_BANK = [];
+</script>
+
+<script src="data/questions/01-clinical-eval.js"></script>
+<script src="data/questions/02-diagnostic.js"></script>
+<script src="data/questions/03-crisis.js"></script>
+<script src="data/questions/04-case-planning.js"></script>
+<script src="data/questions/05-treatment.js"></script>
+<script src="data/questions/06-law-ethics.js"></script>
+
+<script>window.LMFT_VIGNETTES = [];</script>
+<script src="data/vignettes/01-crisis-vignettes.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>

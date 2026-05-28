@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
     <title>Subscribe - Bright Eyed Therapist</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="auth.js"></script>
+    <script src="main.js" defer></script>
 </head>
 <body>
 
@@ -22,92 +26,88 @@
         </nav>
     </header>
 
-    <main class="container" style="padding-top: 4rem; padding-bottom: 4rem; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+    <main class="container" style="padding-top: 4rem; padding-bottom: 6rem; flex-grow: 1; display: flex; align-items: center; justify-content: center;">
         <div style="width: 100%; max-width: 500px;">
-            <div class="card" style="padding: 2.5rem;">
-                <div style="text-align: center; margin-bottom: 2rem;">
-                    <span class="badge" style="font-size: 0.9rem; margin-bottom: 1rem;">Early Access Offer</span>
-                    <h2 style="margin-bottom: 0.5rem;">Upgrade to Premium</h2>
-                    <p style="color: var(--col-text-muted);">Unlock full access to all clinical tools.</p>
+            <div class="card flashlight-card" style="padding: 2.5rem; text-align: center;">
+                <span class="badge" style="font-size: 0.9rem; margin-bottom: 1rem; display: inline-block;">Founding Member</span>
+                <h2 style="margin-bottom: 0.5rem;">Become a Founding Member</h2>
+                <p style="color: var(--col-text-muted); margin-bottom: 2rem;">Unlock full access to all clinical tools.</p>
+
+                <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB; margin-bottom: 1.5rem;">
+                    <div style="font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: var(--col-primary);">
+                        $5<span style="font-size: 1rem; font-family: 'Inter', sans-serif; color: var(--col-text-muted); font-weight: 400;">/month</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--col-text-muted); margin-top: 0.5rem;">Locked in at this earlybird price forever. Cancel anytime.</p>
                 </div>
 
-                <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 8px; border: 1px solid #E5E7EB; margin-bottom: 2rem; text-align: center;">
-                    <div style="font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: var(--col-primary);">
-                        $10<span style="font-size: 1rem; font-family: 'Inter', sans-serif; color: var(--col-text-muted); font-weight: 400;">/month</span>
-                    </div>
-                    <p style="font-size: 0.9rem; color: var(--col-text-muted); margin-top: 0.5rem;">Recurring billing. Cancel anytime.</p>
-                </div>
+                <ul style="text-align: left; list-style: none; padding: 0; margin-bottom: 2rem; font-size: 0.9rem; color: var(--col-text-muted);">
+                    <li style="padding: 0.4rem 0;"><i class="fa-solid fa-check" style="color: var(--col-accent); margin-right: 0.5rem;"></i> EMDR Guided</li>
+                    <li style="padding: 0.4rem 0;"><i class="fa-solid fa-check" style="color: var(--col-accent); margin-right: 0.5rem;"></i> Brainspotting</li>
+                    <li style="padding: 0.4rem 0;"><i class="fa-solid fa-check" style="color: var(--col-accent); margin-right: 0.5rem;"></i> Life Map</li>
+                    <li style="padding: 0.4rem 0;"><i class="fa-solid fa-check" style="color: var(--col-accent); margin-right: 0.5rem;"></i> Genogram Genie</li>
+                    <li style="padding: 0.4rem 0;"><i class="fa-solid fa-check" style="color: var(--col-accent); margin-right: 0.5rem;"></i> All future tools included</li>
+                </ul>
+
+                <div id="subscribe-error" style="display:none; background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:0.75rem 1rem; border-radius:8px; font-size:0.85rem; margin-bottom:1rem;"></div>
+
+                <button id="subscribe-btn" onclick="startCheckout()" class="btn btn-beam" style="width: 100%;">
+                    <i class="fa-solid fa-lock" style="margin-right: 8px;"></i> Subscribe — $5/month
+                </button>
                 
-                <form id="payment-form">
-                    <div class="form-group">
-                        <label class="form-label">Cardholder Name</label>
-                        <input type="text" class="form-input" placeholder="Jane Doe" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Card Number</label>
-                        <div style="position: relative;">
-                            <input type="text" class="form-input" placeholder="0000 0000 0000 0000" required>
-                            <i class="fa-regular fa-credit-card" style="position: absolute; right: 12px; top: 12px; color: #9CA3AF;"></i>
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div class="form-group">
-                            <label class="form-label">Expiry</label>
-                            <input type="text" class="form-input" placeholder="MM/YY" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">CVC</label>
-                            <input type="text" class="form-input" placeholder="123" required>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
-                        <i class="fa-solid fa-lock" style="margin-right: 8px;"></i> Pay Securely
-                    </button>
-                </form>
-                
-                <div style="margin-top: 1.5rem; text-align: center;">
-                    <p style="font-size: 0.8rem; color: #9CA3AF;">
-                        <i class="fa-solid fa-shield-halved"></i> Payments processed securely. This is a demo form.
-                    </p>
-                </div>
+                <p style="font-size: 0.8rem; color: #9CA3AF; margin-top: 1rem;">
+                    <i class="fa-solid fa-shield-halved"></i> Secure checkout via Stripe. Your card details never touch our servers.
+                </p>
             </div>
             
             <div style="text-align: center; margin-top: 1rem;">
-                <a href="dashboard.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Cancel and return to Dashboard</a>
+                <a href="dashboard.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Back to Dashboard</a>
             </div>
         </div>
     </main>
 
+    <footer style="padding: 2rem 0; text-align: center;">
+        <p style="font-size: 0.85rem; color: var(--col-text-muted);">&copy; 2025–2026 Bright Eyed Therapist.</p>
+    </footer>
+
     <script>
-        const form = document.getElementById('payment-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Simulate processing delay
-            const btn = form.querySelector('button');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-            
-            setTimeout(() => {
-                // Update mock auth state
-                const success = Auth.subscribe();
-                if (success) {
-                    alert('Subscription successful! Thank you for supporting Bright Eyed Therapist.');
-                    window.location.href = 'dashboard.html';
-                } else {
-                    alert('Error: Could not find user session. Please log in again.');
-                    window.location.href = 'login.html';
-                }
-            }, 1500);
+        // Redirect to login if not authenticated
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.getToken()) {
+                window.location.href = 'login.html';
+            }
         });
+
+        async function startCheckout() {
+            const btn = document.getElementById('subscribe-btn');
+            const errorDiv = document.getElementById('subscribe-error');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Redirecting to checkout...';
+            errorDiv.style.display = 'none';
+
+            try {
+                await Auth.createCheckoutSession('founding_member');
+                // Stripe handles the redirect
+            } catch (error) {
+                console.error('Checkout error:', error);
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                let errorMsg = 'Unable to start checkout. ';
+                if (error.message.includes('verify your email')) {
+                    errorMsg = error.message;
+                } else if (error.message.includes('SDK_MISSING') || error.message.includes('not configured')) {
+                    errorMsg += 'The payment system is being set up. Please try again later or contact support.';
+                } else if (error.message.includes('already have an active subscription')) {
+                    errorMsg = error.message;
+                } else {
+                    errorMsg += 'Please try again. If the problem persists, contact support.';
+                }
+                errorDiv.textContent = errorMsg;
+                errorDiv.style.display = 'block';
+            }
+        }
     </script>
 
 </body>
 </html>
-
-
-
-
-

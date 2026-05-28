@@ -1,99 +1,161 @@
-<!-- 
-  PROPRIETARY: This tool's implementation is not included in the public portfolio.
-  See https://brighteyedtherapist.com for the live version.
-  File: tool_emdr_viewer.html
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
-    <title>EMDR Viewer - Bright Eyed Therapist</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>EMDR Session Viewer</title>
+    <!-- Prevent browser caching of viewer page -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            min-height: 100vh;
+            overscroll-behavior: contain;
+            user-select: none;
+            cursor: default;
+        }
+        .viewer-container {
+            width: 100vw;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            position: relative;
+            background-color: #1a1a1a; /* Dark, low eye strain */
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
         }
-        .placeholder-container {
-            text-align: center;
-            max-width: 600px;
-            padding: 3rem 2rem;
+        /* Uniform circular control buttons (viewer has minimal controls) */
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+            transition: background-color 0.2s, transform 0.1s;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .placeholder-container h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--col-text-main);
+        .control-btn:hover {
+            background-color: #374151;
         }
-        .subtitle {
-            color: var(--col-text-muted);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+        .control-btn:active {
+            transform: scale(0.95);
         }
-        .notice-box {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        #stimulus {
+            position: absolute;
+            will-change: left, top;
+            transition: width 0.14s ease-out, height 0.14s ease-out;
         }
-        .notice-box p {
-            color: var(--col-text-muted);
-            margin-bottom: 1rem;
+        /* Lightbar container is absolutely positioned; geometry & rotation set in JS */
+        #lightbar-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform-origin: center center;
+            transition: transform 0.3s ease, width 0.14s ease-out, height 0.14s ease-out;
+            display: none; /* Shown only in lightbar mode */
         }
-        .ascii-art {
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            line-height: 1.2;
-            color: var(--col-primary);
-            background: #f1f5f9;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            display: inline-block;
+        /* Lightbar acts as the coordinate plane for dots */
+        #lightbar {
+            position: relative;
+            width: 100%;
+            height: 100%;
         }
-        .back-link {
-            color: var(--col-text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
+        .lightbar-dot {
+            position: absolute;
+            border-radius: 9999px;
+            opacity: 0.08; /* base low opacity */
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+            transition: width 0.14s ease-out, height 0.14s ease-out, opacity 0.06s;
         }
-        .back-link:hover {
-            color: var(--col-primary);
+        .viewer-guidance {
+            max-width: 18rem;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            color: #d1d5db;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 0.75rem;
+            padding: 0.65rem 0.85rem;
+        }
+        .viewer-watermark {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            color: #6b7280;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            .viewer-guidance {
+                top: auto;
+                left: 50%;
+                bottom: 4.25rem;
+                transform: translateX(-50%);
+                width: min(calc(100vw - 1.5rem), 22rem);
+                text-align: center;
+            }
+            .viewer-watermark {
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 0.85rem;
+                font-size: 0.68rem;
+            }
         }
     </style>
 </head>
 <body>
-    <main class="placeholder-container">
-        <h1>🔒 EMDR Viewer</h1>
-        <p class="subtitle">Client-side session viewer for remote EMDR therapy</p>
-        
-        <div class="notice-box">
-            <p>This tool's source code is proprietary and not included in the public portfolio.</p>
-            <p>Visit the live site to see it in action!</p>
-            <a href="https://brighteyedtherapist.com" class="btn btn-beam">View Live Site →</a>
+<div id="viewer-container" class="viewer-container">
+    <!-- Status indicator only -->
+    <div id="viewer-controls" class="absolute top-4 right-4 flex space-x-2 z-10">
+        <div id="status-indicator" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-sm">
+            Ready to watch
         </div>
+    </div>
+    <div id="viewer-guidance" class="viewer-guidance absolute top-4 left-4 z-10">
+        Your clinician controls the pace remotely. Watch the moving target and let them know if you need a pause.
+    </div>
 
-        <pre class="ascii-art">
-    /\_/\  
-   ( o.o ) 
-    > ^ <
-   /|   |\
-  (_|   |_)
-  
-  *watching intently*
-        </pre>
+    <!-- Bottom watermark -->
+    <div class="viewer-watermark">
+        EMDR Session Viewer · Built by BrightEyedTherapist
+    </div>
 
-        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
-    </main>
+    <!-- Dot stimulus -->
+    <div id="stimulus"
+         class="rounded-full shadow-2xl"
+         style="background-color: white;"></div>
+    <!-- Lightbar stimulus (static bar; moving lights inside) -->
+    <div id="lightbar-container">
+        <div id="lightbar"></div>
+    </div>
+</div>
+
+<!-- Pre-watch lock overlay -->
+<div id="viewer-lock-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-40" style="backdrop-filter: blur(8px);">
+    <div class="text-center">
+        <button id="start-watching-btn-large" class="px-8 py-4 bg-blue-600 text-white text-xl rounded-xl hover:bg-blue-700 transition shadow-2xl">
+            Start Watching
+        </button>
+        <p class="text-gray-400 mt-4 text-sm max-w-md">Click to begin when your clinician is ready. Follow the moving target and let them know if you need a pause or a slower pace.</p>
+    </div>
+</div>
+
+<script src="js/emdr/bls-constants.js"></script>
+<script src="js/emdr/bls-sync.js"></script>
+<script src="js/emdr/bls-core.js"></script>
+<script src="js/emdr/bls-viewer.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => { BET.BlsViewer.init(); });
+</script>
 </body>
 </html>

@@ -1,105 +1,2048 @@
-<!-- 
-  PROPRIETARY: This tool's implementation is not included in the public portfolio.
-  See https://brighteyedtherapist.com for the live version.
-  File: tool_timeline.html
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
-    <title>Trauma Timeline - Bright Eyed Therapist</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Life Map - Bright Eyed Therapist</title>
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
+    <script src="subscription_overlay.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sage: { 50: '#E8F0EC', 100: '#D1E1D9', 400: '#5D8A6E', 500: '#2C5558', 600: '#1F3D3F' },
+                        accent: { DEFAULT: '#D4A574', 100: '#F5E6E1', 500: '#D97757' }
+                    },
+                    fontFamily: { 'display': ['Playfair Display', 'serif'], 'body': ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
     <style>
-        body {
-            min-height: 100vh;
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        
+        /* CSS Variables for theming */
+        :root {
+            --node-dot-size: 20px;
+            --timeline-height: 50%;
+            --stack-offset: 40px;
+            --marker-padding: 100px;
+            --tt-bg: #f3f4f6; --tt-text: #1f2937; --tt-panel-bg: #ffffff;
+            --tt-border: #e5e7eb; --tt-canvas-bg: #ffffff; --tt-canvas-border: #e5e7eb;
+            --tt-axis: #9ca3af; --tt-year-marker: #6b7280; --tt-year-text: #4b5563;
+            --tt-modal-bg: #ffffff; --tt-modal-overlay: rgba(15, 23, 42, 0.6);
+            --tt-input-bg: #ffffff; --tt-input-border: #d1d5db;
+        }
+        
+        body.tt-dark {
+            --tt-bg: #111827; --tt-text: #f3f4f6; --tt-panel-bg: #1f2937;
+            --tt-border: #374151; --tt-canvas-bg: #1f2937; --tt-canvas-border: #374151;
+            --tt-axis: #4b5563; --tt-year-marker: #9ca3af; --tt-year-text: #d1d5db;
+            --tt-modal-bg: #1f2937; --tt-modal-overlay: rgba(0, 0, 0, 0.8);
+            --tt-input-bg: #374151; --tt-input-border: #4b5563;
+        }
+        
+        .app-container { display: flex; flex-direction: column; height: 100vh; background-color: var(--tt-bg); color: var(--tt-text); transition: background-color 0.3s, color 0.3s; }
+        .main-content { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background-color: var(--tt-panel-bg); border-right: 1px solid var(--tt-border); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; flex-shrink: 0; }
+        .sidebar-section { border-bottom: 1px solid var(--tt-border); padding-bottom: 0.5rem; }
+        .sidebar-section:last-child { border-bottom: none; }
+        .sidebar-title { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.25rem; }
+        body.tt-dark .sidebar-title { color: #9ca3af; }
+        
+        /* Sage text colors with dark mode variants */
+        .app-title-sage { color: #2C5558; }
+        body.tt-dark .app-title-sage { color: #7CB590; }
+        .slider-value { font-size: 0.875rem; font-weight: 600; color: #2C5558; }
+        body.tt-dark .slider-value { color: #7CB590; }
+        .history-item strong { color: #2C5558; }
+        body.tt-dark .history-item strong { color: #7CB590; }
+        .text-sage-dark { color: #2C5558; }
+        body.tt-dark .text-sage-dark { color: #7CB590; }
+        
+        /* View Toggle Buttons */
+        .view-toggles { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+        .view-btn { padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 4px; border: 1px solid var(--tt-border); background: var(--tt-input-bg); color: var(--tt-text); cursor: pointer; transition: all 0.2s; }
+        .view-btn:hover { background: var(--tt-border); }
+        .view-btn.active { background: #2C5558; color: white; border-color: #2C5558; }
+        .quick-add-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.35rem;
+            margin-top: 0.25rem;
+        }
+        .quick-add-btn {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 6px;
+            border: 1px solid var(--tt-border);
+            background: var(--tt-input-bg);
+            color: var(--tt-text);
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.15s, border-color 0.15s;
+            font-family: inherit;
+        }
+        .quick-add-btn:hover {
+            background: var(--tt-border);
+            border-color: #2C5558;
+        }
+        .quick-add-btn .qa-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .quick-add-btn .qa-bar {
+            width: 14px;
+            height: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .quick-add-neutral {
+            width: 100%;
+            margin-top: 0.35rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.4rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--tt-border);
+            background: var(--tt-input-bg);
+            color: var(--tt-text);
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .quick-add-neutral:hover { background: var(--tt-border); }
+        .quick-add-neutral .qa-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        
+        /* Processing Queue */
+        .queue-list { max-height: 150px; overflow-y: auto; }
+        .queue-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; margin-bottom: 0.25rem; background: var(--tt-input-bg); border: 1px solid var(--tt-border); }
+        .queue-item:hover { background: var(--tt-border); }
+        .queue-item.active { border-color: #2C5558; box-shadow: 0 0 0 1px rgba(44,85,88,0.25); }
+        .queue-status { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .queue-status.not_started { background: #6b7280; }
+        .queue-status.in_progress { background: #fbbf24; animation: pulse 2s infinite; }
+        .queue-status.resolved { background: #10b981; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Canvas */
+        #map-container { flex: 1; overflow: auto; position: relative; background-color: var(--tt-bg); padding: 1rem; }
+        #map-canvas { position: relative; min-height: 600px; background-color: var(--tt-canvas-bg); border-radius: 12px; border: 1px solid var(--tt-canvas-border); cursor: grab; }
+        #map-canvas:active { cursor: grabbing; }
+        .map-overlay-layer { position: absolute; inset: 1rem; z-index: 30; pointer-events: none; display: flex; justify-content: center; align-items: flex-start; }
+        #timeline-axis { position: absolute; top: var(--timeline-height); left: 0; right: 0; height: 2px; background-color: var(--tt-axis); z-index: 10; }
+        .year-marker { position: absolute; top: calc(var(--timeline-height) - 10px); width: 1px; height: 20px; background-color: var(--tt-year-marker); transform: translateX(-50%); z-index: 11; }
+        .year-label { position: absolute; top: calc(var(--timeline-height) + 15px); transform: translateX(-50%); font-size: 12px; z-index: 11; color: var(--tt-year-text); }
+        
+        /* Node Styles */
+        .node { position: absolute; width: var(--node-dot-size); height: var(--node-dot-size); border-radius: 50%; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 20; transition: transform 0.1s, box-shadow 0.1s; transform: translate(-50%, -50%); }
+        .node:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.45); transform: translate(-50%, -50%) scale(1.15); }
+        .node.hidden { display: none; }
+        .node.selected-node { box-shadow: 0 0 0 4px rgba(44,85,88,0.22), 0 6px 18px rgba(0,0,0,0.25); transform: translate(-50%, -50%) scale(1.12); }
+        
+        /* Role-based colors (updated for cohesion)
+           - Trauma: red (danger)
+           - Positive: bright green (success) - NOW BELOW AXIS
+           - Neutral: gray
+           - Resource: gold/amber - BELOW AXIS
+        */
+        .node-trauma { background-color: var(--col-danger, #ef4444); border: 2px solid var(--col-danger-dark, #b91c1c); }
+        .node-positive { background-color: var(--col-positive, #10b981); border: 2px solid var(--col-positive-dark, #059669); }
+        .node-neutral { background-color: var(--col-neutral, #9ca3af); border: 2px solid var(--col-neutral-dark, #6b7280); }
+        .node-resource { background-color: var(--col-resource, #f59e0b); border: 2px solid var(--col-resource-dark, #d97706); }
+        body.tt-dark .node-neutral { background-color: #4b5563; border-color: #6b7280; }
+        
+        /* Touchstone indicator */
+        .node-touchstone { box-shadow: 0 0 0 3px #fbbf24, 0 0 12px rgba(251, 191, 36, 0.5) !important; }
+        .node-touchstone::before { content: '★'; position: absolute; top: -12px; right: -8px; font-size: 14px; color: #fbbf24; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        
+        /* Target indicator */
+        .node-target { border-style: dashed !important; border-width: 3px !important; }
+        
+        /* Status dot */
+        .status-dot { position: absolute; top: -4px; left: -4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--tt-panel-bg); }
+        .status-dot.not_started { background: #6b7280; }
+        .status-dot.in_progress { background: #fbbf24; }
+        .status-dot.resolved { background: #10b981; }
+        
+        /* Duration lines */
+        .duration-line { position: absolute; height: 3px; z-index: 15; border-radius: 2px; }
+        .duration-start-dot { position: absolute; width: var(--node-dot-size); height: var(--node-dot-size); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 1px 3px rgba(0,0,0,0.3); z-index: 17; cursor: pointer; }
+        
+        /* Tooltip */
+        .node .tooltip { visibility: hidden; background-color: #111827; color: #fff; text-align: center; border-radius: 6px; padding: 6px 10px; position: absolute; z-index: 50; top: -40px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.75rem; pointer-events: none; }
+        .node:hover .tooltip { visibility: visible; }
+        
+        /* Details Modal */
+        #details-panel-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--tt-modal-overlay); z-index: 100; justify-content: center; align-items: center; overflow-y: auto; padding: 2rem; }
+        #details-panel { background-color: var(--tt-modal-bg); padding: 1.5rem; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); width: 520px; max-width: 95%; color: var(--tt-text); max-height: 90vh; overflow-y: auto; }
+        #details-panel h2 { margin: 0 0 1rem 0; font-size: 1.25rem; color: var(--tt-text); }
+        #details-panel label { display: block; margin-top: 0.75rem; font-weight: 500; font-size: 0.875rem; }
+        #details-panel input[type="number"], #details-panel input[type="text"], #details-panel textarea, #details-panel select { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border: 1px solid var(--tt-input-border); border-radius: 6px; font-size: 0.875rem; background-color: var(--tt-input-bg); color: var(--tt-text); }
+        #details-panel input:focus, #details-panel textarea:focus, #details-panel select:focus { outline: none; border-color: #2C5558; box-shadow: 0 0 0 2px rgba(44,85,88,0.2); }
+        #details-panel textarea { resize: vertical; min-height: 60px; }
+        .conditional-section { margin-top: 1rem; padding: 0.75rem; background: rgba(0,0,0,0.03); border-radius: 8px; border: 1px solid var(--tt-border); }
+        body.tt-dark .conditional-section { background: rgba(255,255,255,0.03); }
+        .section-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6b7280; margin-bottom: 0.5rem; }
+        .checkbox-row { display: flex; gap: 1rem; margin-top: 0.5rem; }
+        .checkbox-row label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer; }
+        .checkbox-help {
+            color: #9ca3af;
+            font-size: 0.78rem;
+            cursor: help;
+            margin-left: 0.3rem;
+            user-select: none;
+        }
+        .checkbox-help:hover { color: #6b7280; }
+        body.tt-dark .checkbox-help { color: #6b7280; }
+        body.tt-dark .checkbox-help:hover { color: #9ca3af; }
+        .slider-row { display: flex; gap: 1rem; margin-top: 0.5rem; }
+        .slider-row > div { flex: 1; }
+        .slider-row input[type="range"] { width: 100%; }
+        /* .slider-value color defined above with dark mode variant */
+        .role-selector { display: flex; gap: 0.25rem; margin-top: 0.25rem; flex-wrap: wrap; }
+        .role-btn { padding: 0.35rem 0.6rem; font-size: 0.75rem; border-radius: 4px; border: 1px solid var(--tt-border); background: var(--tt-input-bg); color: var(--tt-text); cursor: pointer; }
+        .role-btn:hover { background: var(--tt-border); }
+        .role-btn.active { background: #2C5558; color: white; border-color: #2C5558; }
+        .history-item { padding: 0.5rem; background: var(--tt-input-bg); border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.8rem; border: 1px solid var(--tt-border); }
+        /* .history-item strong color defined above with dark mode variant */
+        
+        /* Floating Target Card Panel */
+        #target-card-panel { position: fixed; right: 20px; top: 80px; width: 300px; max-height: calc(100vh - 120px); background: var(--tt-panel-bg); border: 1px solid var(--tt-border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 50; transition: transform 0.2s, opacity 0.2s; overflow: hidden; }
+        #target-card-panel.collapsed { transform: translateX(calc(100% - 40px)); }
+        #target-card-panel.hidden { display: none; }
+        .panel-header { cursor: pointer; padding: 12px; border-bottom: 1px solid var(--tt-border); display: flex; justify-content: space-between; align-items: center; background: var(--tt-input-bg); }
+        .panel-header h3 { margin: 0; font-size: 0.9rem; font-weight: 600; }
+        .panel-toggle { font-size: 0.8rem; color: #6b7280; }
+        .panel-content { padding: 12px; overflow-y: auto; max-height: calc(100vh - 200px); }
+        .card-field { margin-bottom: 0.75rem; }
+        .card-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: #6b7280; margin-bottom: 0.15rem; }
+        .card-value { font-size: 0.875rem; }
+        .card-row { display: flex; gap: 1rem; }
+        .card-row > div { flex: 1; }
+        .scratchpad { width: 100%; min-height: 80px; resize: vertical; font-size: 0.8rem; border: 1px solid var(--tt-border); border-radius: 6px; padding: 8px; background: var(--tt-input-bg); color: var(--tt-text); }
+        .panel-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+        .panel-actions button { flex: 1; min-width: 80px; padding: 0.4rem 0.5rem; font-size: 0.75rem; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background: #2C5558; color: white; }
+        .btn-primary:hover { background: #3A5846; }
+        .btn-secondary { background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border) !important; }
+        .btn-secondary:hover { background: var(--tt-border); }
+        
+        /* Log Session Modal */
+        #log-session-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--tt-modal-overlay); z-index: 110; justify-content: center; align-items: center; }
+        #log-session-modal { background-color: var(--tt-modal-bg); padding: 1.5rem; border-radius: 16px; width: 400px; max-width: 95%; color: var(--tt-text); }
+        
+        /* Print Target Card */
+        #print-target-card { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #print-target-card, #print-target-card * { visibility: visible; }
+            #print-target-card { display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 2rem; background: white; }
+            .no-print { display: none !important; }
+        }
+        
+        /* Form inputs in sidebar */
+        .sidebar input[type="number"], .sidebar select { width: 100%; padding: 0.375rem 0.5rem; border: 1px solid var(--tt-input-border); border-radius: 6px; font-size: 0.8rem; background-color: var(--tt-input-bg); color: var(--tt-text); }
+        .sidebar button { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
+        
+        .tt-watermark { position: fixed; bottom: 16px; right: 24px; font-size: 0.75rem; color: #9ca3af; pointer-events: none; z-index: 5; }
+        body.tt-dark .tt-watermark { color: #4b5563; }
+        
+        /* Toast notifications */
+        .tl-toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+        .tl-toast { pointer-events: auto; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-family: 'Inter', sans-serif; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: tlToastIn 0.3s ease, tlToastOut 0.3s ease 3.2s forwards; max-width: 360px; }
+        .tl-toast.success { background: #2C5558; }
+        .tl-toast.error { background: #dc2626; }
+        .tl-toast.info { background: #374151; }
+        @keyframes tlToastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes tlToastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+        #lifemap-draft-banner {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--tt-panel-bg);
+            border: 1px solid var(--tt-border);
+            border-radius: 10px;
+            padding: 0.65rem 1rem;
+            z-index: 200;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            font-size: 0.85rem;
+            color: var(--tt-text);
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            max-width: calc(100vw - 2rem);
+        }
+        #lifemap-draft-banner .draft-banner-text {
+            line-height: 1.4;
+        }
+        #lifemap-draft-banner button {
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--tt-border);
+            background: var(--tt-input-bg);
+            color: var(--tt-text);
+            font-size: 0.8rem;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        #lifemap-draft-banner button.draft-banner-primary {
+            background: #2C5558;
+            color: #fff;
+            border-color: #2C5558;
+        }
+        .save-state-hint { margin-top: 0.5rem; font-size: 0.72rem; line-height: 1.4; padding: 0.5rem 0.6rem; border-radius: 8px; border: 1px solid var(--tt-border); background: rgba(0,0,0,0.02); }
+        .save-state-hint.is-dirty { border-color: rgba(217,119,87,0.45); background: rgba(217,119,87,0.08); }
+        body.tt-dark .save-state-hint { background: rgba(255,255,255,0.03); }
+        
+        /* Empty state */
+        .timeline-empty-state { margin-top: clamp(3rem, 12vh, 7rem); width: min(340px, calc(100vw - 4rem)); text-align: center; color: #6b7280; pointer-events: auto; padding: 1rem 1.25rem; border-radius: 16px; background: rgba(255,255,255,0.82); border: 1px solid rgba(107,114,128,0.15); box-shadow: 0 16px 40px rgba(15,23,42,0.08); backdrop-filter: blur(6px); position: relative; }
+        .timeline-empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+        .timeline-empty-state p { font-size: 0.9rem; max-width: 280px; line-height: 1.5; margin-left: auto; margin-right: auto; }
+        .empty-state-actions {
+            display: flex;
+            gap: 0.5rem;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
         }
-        .placeholder-container {
-            text-align: center;
-            max-width: 600px;
-            padding: 3rem 2rem;
+        .empty-state-cta {
+            padding: 0.55rem 1.25rem;
+            background: #2C5558;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: inherit;
         }
-        .placeholder-container h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--col-text-main);
+        .empty-state-cta:hover { opacity: 0.92; }
+        .empty-state-dismiss {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--tt-border);
+            background: var(--tt-input-bg);
+            color: var(--tt-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+            font-family: inherit;
         }
-        .subtitle {
-            color: var(--col-text-muted);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-        }
-        .notice-box {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .notice-box p {
-            color: var(--col-text-muted);
-            margin-bottom: 1rem;
-        }
-        .ascii-art {
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            line-height: 1.2;
-            color: var(--col-primary);
-            background: #f1f5f9;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            display: inline-block;
-        }
-        .back-link {
-            color: var(--col-text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        .back-link:hover {
-            color: var(--col-primary);
+        .empty-state-dismiss:hover { background: var(--tt-border); }
+        body.tt-dark .timeline-empty-state { color: #9ca3af; background: rgba(17,24,39,0.84); border-color: rgba(156,163,175,0.18); box-shadow: 0 16px 40px rgba(0,0,0,0.28); }
+
+        /* Mobile-only "Tools" pill in the header — hidden on desktop, opens off-canvas sidebar on narrow viewports */
+        .mobile-tools-toggle { display: none; align-items: center; gap: 0.4rem; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -300px; top: 0; bottom: 0; z-index: 50; transition: left 0.3s ease; }
+            .sidebar.open { left: 0; }
+            #target-card-panel { left: 10px; right: 10px; top: auto; bottom: 10px; width: auto; max-height: 52vh; }
+            #target-card-panel.collapsed { transform: translateY(calc(100% - 46px)); }
+            .panel-content { max-height: calc(52vh - 56px); }
+            .timeline-empty-state { margin-top: clamp(2.5rem, 10vh, 5rem); width: min(320px, calc(100vw - 2.5rem)); }
+            .mobile-tools-toggle { display: flex; }
         }
     </style>
 </head>
-<body>
-    <main class="placeholder-container">
-        <h1>🔒 Trauma Timeline</h1>
-        <p class="subtitle">Visual life event history mapping for therapeutic insight</p>
+<body class="tt-dark">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="no-print" style="background-color: var(--tt-panel-bg); border-bottom: 1px solid var(--tt-border); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 40px; height: 40px; background: rgba(212,165,116,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-timeline" style="color: #D97757;"></i>
+                </div>
+                <div>
+                    <h1 class="app-title-sage" style="font-size: 1.1rem; margin: 0;">Life Map</h1>
+                    <p style="font-size: 0.7rem; opacity: 0.7; margin: 0;">Bright Eyed Therapist</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="toggleTheme()" style="padding: 0.5rem; border-radius: 8px; background: transparent; border: none; cursor: pointer; color: var(--tt-text);" title="Toggle Theme">
+                    <i id="theme-icon-sun" class="fa-solid fa-sun text-amber-400"></i>
+                    <i id="theme-icon-moon" class="fa-solid fa-moon text-indigo-400" style="display: none;"></i>
+                </button>
+                <button onclick="toggleSidebar()" class="mobile-tools-toggle" style="padding: 0.5rem 0.75rem; border-radius: 9999px; background: var(--tt-input-bg); border: 1px solid var(--tt-border); cursor: pointer; color: var(--tt-text);" title="Open tools">
+                    <i class="fa-solid fa-bars"></i>
+                    <span style="font-size:0.78rem; font-weight:600;">Tools</span>
+                </button>
+            </div>
+        </header>
         
-        <div class="notice-box">
-            <p>This tool's source code is proprietary and not included in the public portfolio.</p>
-            <p>Visit the live site to see it in action!</p>
-            <a href="https://brighteyedtherapist.com" class="btn btn-beam">View Live Site →</a>
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="sidebar no-print">
+                <!-- Client Name/ID -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-user"></i> Client</div>
+                    <input type="text" id="client-name" placeholder="Client name or ID" 
+                           style="width:100%; padding:0.4rem 0.5rem; font-size:0.8rem; border:1px solid var(--tt-border); border-radius:6px; background:var(--tt-input-bg); color:var(--tt-text);"
+                           oninput="state.clientName = this.value; markMapChanged();">
+                </div>
+                <!-- View Filter -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-filter"></i> View</div>
+                    <div class="view-toggles">
+                        <button class="view-btn active" data-view="all" onclick="setViewFilter('all')">All</button>
+                        <button class="view-btn" data-view="trauma" onclick="setViewFilter('trauma')">Trauma</button>
+                        <button class="view-btn" data-view="resource" onclick="setViewFilter('resource')">Supports</button>
+                        <button class="view-btn" data-view="targets" onclick="setViewFilter('targets')">Targets</button>
+                    </div>
+                </div>
+                
+                <!-- Timeline Range -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-calendar-days"></i> Timeline Range</div>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="number" id="start-year" value="1990" min="1900" max="2100" style="flex:1;">
+                        <span style="align-self: center;">-</span>
+                        <input type="number" id="end-year" value="2025" min="1900" max="2100" style="flex:1;">
+                    </div>
+                    <button onclick="redrawTimeline(); markMapChanged();" class="w-full bg-sage-500 text-white rounded-md font-medium hover:bg-sage-600 transition" style="padding: 0.4rem;">
+                        <i class="fa-solid fa-check"></i> Apply
+                    </button>
+                </div>
+                
+                <!-- Add Event -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-plus-circle"></i> Add Event</div>
+                    <div class="quick-add-grid">
+                        <button class="quick-add-btn" onclick="quickAddNode('trauma','point')" title="Trauma — single point in time">
+                            <span class="qa-dot" style="background:#ef4444;"></span> Trauma
+                        </button>
+                        <button class="quick-add-btn" onclick="quickAddNode('trauma','duration')" title="Trauma — sustained over a duration">
+                            <span class="qa-bar" style="background:#ef4444;"></span> Duration
+                        </button>
+                        <button class="quick-add-btn" onclick="quickAddNode('positive','point')" title="Positive event">
+                            <span class="qa-dot" style="background:#10b981;"></span> Positive
+                        </button>
+                        <button class="quick-add-btn" onclick="quickAddNode('resource','point')" title="Resource (safe place, anchor, etc.)">
+                            <span class="qa-dot" style="background:#f59e0b;"></span> Resource
+                        </button>
+                    </div>
+                    <button class="quick-add-neutral" onclick="quickAddNode('neutral','point')" title="Neutral event">
+                        <span class="qa-dot" style="background:#9ca3af;"></span> Neutral event
+                    </button>
+                </div>
+                
+                <!-- Processing Queue -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-list-check"></i> Processing Queue <span id="queue-count" style="background: #2C5558; color: white; padding: 0 6px; border-radius: 10px; font-size: 0.65rem; margin-left: auto;">0</span></div>
+                    <div id="processing-queue" class="queue-list"></div>
+                    <button onclick="processNextTarget()" id="btn-process-next" class="w-full rounded-md font-medium transition" style="background: var(--tt-input-bg); color: var(--tt-text); padding: 0.4rem; margin-top: 0.5rem; display: none;">
+                        <i class="fa-solid fa-play"></i> Process Next
+                    </button>
+                </div>
+                
+                <!-- Zoom -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-magnifying-glass"></i> Zoom</div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="zoomTimeline(1.2)" style="flex:1; padding: 0.4rem; background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </button>
+                        <button onclick="zoomTimeline(1/1.2)" style="flex:1; padding: 0.4rem; background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                        </button>
+                    </div>
+                    <div style="margin-top: 0.45rem; font-size: 0.65rem; opacity: 0.65; line-height: 1.35;">
+                        Hold <kbd style="font-family: inherit; padding: 0 4px; border: 1px solid var(--tt-border); border-radius: 3px; font-size: 0.62rem;">⌘</kbd> / <kbd style="font-family: inherit; padding: 0 4px; border: 1px solid var(--tt-border); border-radius: 3px; font-size: 0.62rem;">Ctrl</kbd> and scroll over the canvas to zoom.
+                    </div>
+                </div>
+                
+                <!-- Data -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fa-solid fa-database"></i> Data</div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="saveMap()" style="flex:1; padding: 0.4rem; background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-download"></i> Export JSON
+                        </button>
+                        <input type="file" id="load-file" accept=".json" style="display:none;" onchange="loadMap(event)">
+                        <button onclick="document.getElementById('load-file').click()" style="flex:1; padding: 0.4rem; background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-folder-open"></i> Import JSON
+                        </button>
+                    </div>
+                    <div id="save-state-hint" class="save-state-hint">Working in this tab only. Export a JSON file to keep your map.</div>
+                </div>
+                
+                <!-- Dashboard Button -->
+                <a href="dashboard.html" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem; margin-top: 0.5rem; background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 6px; text-decoration: none; font-size: 0.8rem; transition: background 0.2s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 14px; height: 14px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Dashboard
+                </a>
+                
+                <div style="margin-top: 0.5rem; padding-top: 0.5rem; font-size: 0.65rem; opacity: 0.75; border-top: 1px solid var(--tt-border); line-height: 1.45;">
+                    <i class="fa-solid fa-info-circle"></i> This map is not auto-saved to your account or browser. Export JSON to keep your work.<br>
+                    Use initials if needed. Printed cards and exported notes may contain identifying information.
+                </div>
+            </aside>
+            
+            <!-- Canvas Area -->
+            <div id="map-container">
+                <div id="map-canvas">
+                    <div id="timeline-axis"></div>
+                </div>
+                <div id="map-overlay-layer" class="map-overlay-layer no-print"></div>
+            </div>
         </div>
+    </div>
+    
+    <!-- Floating Target Card Panel -->
+    <div id="target-card-panel" class="hidden no-print">
+        <div class="panel-header" onclick="toggleTargetCardPanel()">
+            <h3 id="target-card-title">No Target Selected</h3>
+            <span class="panel-toggle"><i class="fa-solid fa-chevron-right"></i></span>
+        </div>
+        <div class="panel-content">
+            <div id="target-card-body">
+                <p style="opacity: 0.6; font-size: 0.8rem;">Click a target node or select from the queue to view details here.</p>
+            </div>
+            <div class="card-field" style="margin-top: 1rem;">
+                <div class="card-label">Session Notes (Scratchpad)</div>
+                <textarea id="session-scratchpad" class="scratchpad" placeholder="Quick notes during session..."></textarea>
+                <div style="margin-top: 0.35rem; font-size: 0.72rem; opacity: 0.7;">Included when you export the map JSON. It is not auto-saved anywhere else.</div>
+            </div>
+            <div class="panel-actions">
+                <button class="btn-primary" onclick="openEMDRTool()"><i class="fa-solid fa-play"></i> EMDR</button>
+                <button class="btn-primary" onclick="openLogSessionFromPanel()"><i class="fa-solid fa-plus"></i> Log</button>
+                <button class="btn-secondary" onclick="printTargetCard()"><i class="fa-solid fa-print"></i> Print</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Details Modal -->
+    <div id="details-panel-overlay">
+        <div id="details-panel">
+            <h2><i class="fa-solid fa-edit mr-2 text-sage-dark"></i>Edit Event</h2>
+            <input type="hidden" id="details-node-id">
+            
+            <label>Title</label>
+            <input type="text" id="details-title" maxlength="80" placeholder="Brief description of event">
+            
+            <label>Role</label>
+            <div class="role-selector">
+                <button type="button" class="role-btn" data-role="trauma" onclick="setRole('trauma')">Trauma</button>
+                <button type="button" class="role-btn" data-role="positive" onclick="setRole('positive')">Positive</button>
+                <button type="button" class="role-btn" data-role="neutral" onclick="setRole('neutral')">Neutral</button>
+                <button type="button" class="role-btn" data-role="resource" onclick="setRole('resource')">Resource</button>
+            </div>
+            <input type="hidden" id="details-role" value="trauma">
+            <input type="hidden" id="details-visual-type" value="point">
+            
+            <!-- Date Fields -->
+            <div id="point-fields">
+                <label>Year</label>
+                <input type="number" id="details-date" min="1900" max="2100" placeholder="YYYY">
+            </div>
+            <div id="duration-fields" style="display: none;">
+                <div style="display: flex; gap: 0.5rem;">
+                    <div style="flex:1;"><label>Start Year</label><input type="number" id="details-start-date" min="1900" max="2100"></div>
+                    <div style="flex:1;"><label>End Year</label><input type="number" id="details-end-date" min="1900" max="2100"></div>
+                </div>
+            </div>
+            
+            <!-- Trauma Section -->
+            <div id="trauma-section" class="conditional-section">
+                <div class="section-title">Trauma Details</div>
+                <label>Emotions</label>
+                <textarea id="details-emotions" placeholder="Fear, sadness, anger..."></textarea>
+                <label>Notes</label>
+                <textarea id="details-notes" placeholder="What happened, impact, beliefs..."></textarea>
+                
+                <div class="checkbox-row">
+                    <label>
+                        <input type="checkbox" id="is-touchstone" onchange="updateTargetFields()">
+                        Touchstone Memory
+                        <span class="checkbox-help" title="Earliest related memory in this thread.">&#9432;</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="is-target" onchange="updateTargetFields()">
+                        Processing Target
+                        <span class="checkbox-help" title="Plan to process this in EMDR.">&#9432;</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- EMDR Target Section -->
+            <div id="emdr-section" class="conditional-section" style="display: none;">
+                <div class="section-title">EMDR Target Details</div>
+                
+                <label>Image (Worst Part)</label>
+                <input type="text" id="emdr-image" placeholder="What image represents the worst part?">
+                
+                <label>Negative Cognition</label>
+                <select id="emdr-nc">
+                    <option value="">Select or type below...</option>
+                    <optgroup label="Self-Worth">
+                        <option value="I am worthless">I am worthless</option>
+                        <option value="I am not good enough">I am not good enough</option>
+                        <option value="I am a failure">I am a failure</option>
+                    </optgroup>
+                    <optgroup label="Safety">
+                        <option value="I am unsafe">I am unsafe</option>
+                        <option value="I am in danger">I am in danger</option>
+                        <option value="I cannot protect myself">I cannot protect myself</option>
+                    </optgroup>
+                    <optgroup label="Control">
+                        <option value="I am powerless">I am powerless</option>
+                        <option value="I have no control">I have no control</option>
+                        <option value="I am helpless">I am helpless</option>
+                    </optgroup>
+                    <optgroup label="Responsibility">
+                        <option value="It's my fault">It's my fault</option>
+                        <option value="I should have done something">I should have done something</option>
+                    </optgroup>
+                    <optgroup label="Connection">
+                        <option value="I am unlovable">I am unlovable</option>
+                        <option value="I don't belong">I don't belong</option>
+                        <option value="I am alone">I am alone</option>
+                    </optgroup>
+                </select>
+                <input type="text" id="emdr-nc-custom" placeholder="Or type custom NC..." style="margin-top: 0.25rem;">
+                
+                <label>Positive Cognition</label>
+                <select id="emdr-pc">
+                    <option value="">Select or type below...</option>
+                    <option value="I am worthy">I am worthy</option>
+                    <option value="I am good enough">I am good enough</option>
+                    <option value="I did the best I could">I did the best I could</option>
+                    <option value="I am safe now">I am safe now</option>
+                    <option value="I can protect myself">I can protect myself</option>
+                    <option value="I have choices">I have choices</option>
+                    <option value="I am in control">I am in control</option>
+                    <option value="I am lovable">I am lovable</option>
+                    <option value="I belong">I belong</option>
+                </select>
+                <input type="text" id="emdr-pc-custom" placeholder="Or type custom PC..." style="margin-top: 0.25rem;">
+                
+                <div class="slider-row">
+                    <div>
+                        <label>SUDS (0-10)</label>
+                        <input type="range" id="emdr-suds" min="0" max="10" value="5" oninput="document.getElementById('suds-val').textContent=this.value">
+                        <span class="slider-value" id="suds-val">5</span>
+                    </div>
+                    <div>
+                        <label>VoC (1-7)</label>
+                        <input type="range" id="emdr-voc" min="1" max="7" value="3" oninput="document.getElementById('voc-val').textContent=this.value">
+                        <span class="slider-value" id="voc-val">3</span>
+                    </div>
+                </div>
+                
+                <label>Body Location</label>
+                <input type="text" id="emdr-body" placeholder="chest, stomach, throat...">
+                
+                <label>Processing Status</label>
+                <div class="role-selector">
+                    <button type="button" class="role-btn active" data-status="not_started" onclick="setProcessingStatus('not_started')">Not Started</button>
+                    <button type="button" class="role-btn" data-status="in_progress" onclick="setProcessingStatus('in_progress')">In Progress</button>
+                    <button type="button" class="role-btn" data-status="resolved" onclick="setProcessingStatus('resolved')">Resolved</button>
+                </div>
+                <input type="hidden" id="emdr-status" value="not_started">
+            </div>
+            
+            <!-- Processing History -->
+            <div id="history-section" class="conditional-section" style="display: none;">
+                <div class="section-title">Processing History</div>
+                <div id="session-history"></div>
+                <button type="button" onclick="openLogSession()" style="margin-top: 0.5rem; padding: 0.4rem 0.75rem; background: var(--tt-input-bg); color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
+                    <i class="fa-solid fa-plus"></i> Log Session
+                </button>
+            </div>
+            
+            <!-- Resource Section -->
+            <div id="resource-section" class="conditional-section" style="display: none;">
+                <div class="section-title">Resource Details</div>
+                <label>Resource Type</label>
+                <select id="resource-type">
+                    <option value="safe_place">Safe Place</option>
+                    <option value="calm_state">Calm State</option>
+                    <option value="protective_figure">Protective Figure</option>
+                    <option value="competent_self">Competent Self</option>
+                    <option value="container">Container</option>
+                    <option value="other">Other</option>
+                </select>
+                <label>Anchor Word</label>
+                <input type="text" id="resource-anchor" placeholder="Cue word to access this resource">
+                <label>Accessibility (1-10)</label>
+                <input type="range" id="resource-accessibility" min="1" max="10" value="5" oninput="document.getElementById('access-val').textContent=this.value">
+                <span class="slider-value" id="access-val">5</span>
+            </div>
+            
+            <!-- Actions -->
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap; align-items: center;">
+                <button onclick="deleteNode()" style="padding: 0.6rem 0.9rem; background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 8px; cursor: pointer; font-weight: 500;" title="Delete this event">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+                <div style="flex: 1;"></div>
+                <button onclick="closeDetails()" style="padding: 0.6rem 1rem; background: transparent; color: var(--tt-text); border: 1px solid var(--tt-border); border-radius: 8px; cursor: pointer;">
+                    Cancel
+                </button>
+                <button onclick="saveDetails()" style="padding: 0.6rem 1.25rem; background: #2C5558; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    <i class="fa-solid fa-check"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Log Session Modal -->
+    <div id="log-session-overlay">
+        <div id="log-session-modal">
+            <h2 style="margin: 0 0 1rem 0; font-size: 1.1rem;"><i class="fa-solid fa-clipboard-list mr-2 text-sage-dark"></i>Log Processing Session</h2>
+            <input type="hidden" id="log-node-id">
+            
+            <label style="display: block; margin-top: 0.5rem; font-size: 0.875rem;">Date</label>
+            <input type="date" id="log-date" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text);">
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                <div style="flex:1;"><label style="font-size: 0.875rem;">Pre-SUDS</label><input type="number" id="log-pre-suds" min="0" max="10" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text);"></div>
+                <div style="flex:1;"><label style="font-size: 0.875rem;">Post-SUDS</label><input type="number" id="log-post-suds" min="0" max="10" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text);"></div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <div style="flex:1;"><label style="font-size: 0.875rem;">Pre-VoC</label><input type="number" id="log-pre-voc" min="1" max="7" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text);"></div>
+                <div style="flex:1;"><label style="font-size: 0.875rem;">Post-VoC</label><input type="number" id="log-post-voc" min="1" max="7" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text);"></div>
+            </div>
+            <label style="display: block; margin-top: 0.75rem; font-size: 0.875rem;">Set Count</label>
+            <input type="number" id="log-sets" min="0" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text);">
+            
+            <label style="display: block; margin-top: 0.75rem; font-size: 0.875rem;">Notes</label>
+            <textarea id="log-notes" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid var(--tt-border); border-radius: 6px; background: var(--tt-input-bg); color: var(--tt-text); resize: vertical;"></textarea>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; font-size: 0.875rem; cursor: pointer;">
+                <input type="checkbox" id="log-resolve"> Mark target as Resolved
+            </label>
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button onclick="saveLogSession()" style="flex: 1; padding: 0.6rem; background: #2C5558; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    Save Session
+                </button>
+                <button onclick="closeLogSession()" style="padding: 0.6rem 1rem; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Print Target Card -->
+    <div id="print-target-card"></div>
+    
+    
+    <!-- Bottom-right cluster: watermark + feedback (shared chrome pattern) -->
+    <div class="app-chrome-bottom-right no-print" style="z-index: 5;">
+        <span class="app-chrome-watermark">Life Map · Bright Eyed Therapist</span>
+        <a href="feedback.html?app=lifemap" target="_blank" class="app-chrome-feedback" title="Send Feedback">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Feedback
+        </a>
+    </div>
 
-        <pre class="ascii-art">
-        _____
-      .'     `.
-     /  .-=-.  \    
-    |  /     \  |
-     \|   _   |/
-      `. `-' .'
-   _____|   |_____
-  /               \
- |  .--.     .--.  |
-  \(    )---(    )/
-   `----'   `----'
-   
-  slow and steady
-        </pre>
+    <script>
+        // ============================================
+        // SCHEMA V2 DATA MODEL
+        // ============================================
+        const SCHEMA_VERSION = 2;
+        
+        // In-memory state
+        let state = {
+            schemaVersion: SCHEMA_VERSION,
+            startYear: 1990,
+            endYear: 2026,
+            mapScaleFactor: 30,
+            nextId: 0,
+            clientName: '',
+            nodes: []
+        };
+        
+        let activeNodeId = null;
+        let currentViewFilter = 'all';
+        let selectedTargetId = null; // For target card panel
+        let scratchpadText = '';
+        let hasUnsavedChanges = false;
+        
+        const mapCanvas = document.getElementById('map-canvas');
+        const container = document.getElementById('map-container');
+        const mapOverlayLayer = document.getElementById('map-overlay-layer');
+        const detailsOverlay = document.getElementById('details-panel-overlay');
+        const logSessionOverlay = document.getElementById('log-session-overlay');
 
-        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
-    </main>
+        function updateSaveStateHint() {
+            const hint = document.getElementById('save-state-hint');
+            if (!hint) return;
+
+            hint.classList.toggle('is-dirty', hasUnsavedChanges);
+            hint.textContent = hasUnsavedChanges
+                ? 'Unsaved changes in this tab. Export JSON to keep this map.'
+                : 'Working in this tab only. Export a JSON file to keep your map.';
+        }
+
+        function setDirtyState(isDirty) {
+            hasUnsavedChanges = isDirty;
+            updateSaveStateHint();
+        }
+
+        function markMapChanged() {
+            setDirtyState(true);
+            persistDraft();
+        }
+
+        function parseYearValue(rawValue) {
+            const value = String(rawValue || '').trim();
+            if (!/^\d{4}$/.test(value)) return null;
+            const year = parseInt(value, 10);
+            if (year < 1900 || year > 2100) return null;
+            return year;
+        }
+
+        function validateEventTiming(visualType, date, startDate, endDate) {
+            if (visualType === 'duration') {
+                const startYear = parseYearValue(startDate);
+                const endYear = parseYearValue(endDate);
+                if (startYear === null || endYear === null) {
+                    return { valid: false, message: 'Enter four-digit start and end years between 1900 and 2100.' };
+                }
+                if (startYear > endYear) {
+                    return { valid: false, message: 'Start year must be before or equal to end year.' };
+                }
+                return { valid: true, years: [startYear, endYear] };
+            }
+
+            const year = parseYearValue(date);
+            if (year === null) {
+                return { valid: false, message: 'Enter a four-digit year between 1900 and 2100.' };
+            }
+            return { valid: true, years: [year] };
+        }
+
+        function ensureYearsVisible(years) {
+            const validYears = years.filter(year => Number.isFinite(year));
+            if (validYears.length === 0) return;
+
+            const nextStart = Math.min(state.startYear, ...validYears);
+            const nextEnd = Math.max(state.endYear, ...validYears);
+
+            if (nextStart !== state.startYear) {
+                state.startYear = nextStart;
+                document.getElementById('start-year').value = nextStart;
+            }
+            if (nextEnd !== state.endYear) {
+                state.endYear = nextEnd;
+                document.getElementById('end-year').value = nextEnd;
+            }
+        }
+
+        function getPrioritizedTargets() {
+            return state.nodes
+                .filter(n => n.role === 'trauma' && n.isTarget)
+                .sort((a, b) => {
+                    const aStatus = a.emdrTarget?.processingStatus || 'not_started';
+                    const bStatus = b.emdrTarget?.processingStatus || 'not_started';
+                    if (aStatus === 'resolved' && bStatus !== 'resolved') return 1;
+                    if (bStatus === 'resolved' && aStatus !== 'resolved') return -1;
+
+                    const aSuds = a.emdrTarget?.sudsInitial || 5;
+                    const bSuds = b.emdrTarget?.sudsInitial || 5;
+                    const aMid = aSuds >= 4 && aSuds <= 7;
+                    const bMid = bSuds >= 4 && bSuds <= 7;
+                    if (aMid && !bMid) return -1;
+                    if (bMid && !aMid) return 1;
+                    return aSuds - bSuds;
+                });
+        }
+
+        function centerNodeInView(nodeId) {
+            const targetEl = document.getElementById(nodeId);
+            if (!targetEl) return;
+
+            const targetLeft = targetEl.offsetLeft;
+            const targetTop = targetEl.offsetTop;
+            container.scrollLeft = Math.max(0, targetLeft - (container.clientWidth / 2));
+            container.scrollTop = Math.max(0, targetTop - (container.clientHeight / 2));
+        }
+
+        function updateCanvasHeight(aboveLaneCount = 0, belowLaneCount = 0) {
+            const laneCount = Math.max(aboveLaneCount, belowLaneCount, 1);
+            const requiredHalf = 140 + (laneCount * 40);
+            const nextHeight = Math.max(600, requiredHalf * 2 + 80);
+            mapCanvas.style.minHeight = `${nextHeight}px`;
+            mapCanvas.style.height = `${nextHeight}px`;
+        }
+        
+        // Panning state
+        let isPanning = false, startPanX, startPanY, scrollStartX, scrollStartY;
+        
+        // ============================================
+        // MIGRATION: V1 to V2
+        // ============================================
+        function migrateEventV1toV2(oldEvent) {
+            const typeMapping = {
+                'trauma':   { role: 'trauma',   visualType: 'point' },
+                'duration': { role: 'trauma',   visualType: 'duration' },
+                'strength': { role: 'positive', visualType: 'point' },
+                'neutral':  { role: 'neutral',  visualType: 'point' }
+            };
+            const mapped = typeMapping[oldEvent.type] || { role: 'neutral', visualType: 'point' };
+            
+            return {
+                id: oldEvent.id,
+                schemaVersion: SCHEMA_VERSION,
+                visualType: mapped.visualType,
+                date: oldEvent.date || '',
+                startDate: oldEvent.startDate || '',
+                endDate: oldEvent.endDate || '',
+                role: mapped.role,
+                title: oldEvent.title || '',
+                notes: oldEvent.beliefs || '',
+                emotions: oldEvent.emotions || '',
+                isTouchstone: false,
+                isTarget: false,
+                emdrTarget: null,
+                resource: null
+            };
+        }
+        
+        function migrateMapData(data) {
+            if (data.schemaVersion >= SCHEMA_VERSION) return data;
+            
+            return {
+                schemaVersion: SCHEMA_VERSION,
+                startYear: data.startYear || 1990,
+                endYear: data.endYear || 2026,
+                mapScaleFactor: data.mapScaleFactor || 30,
+                nextId: data.nextId || 0,
+                nodes: (data.nodes || []).map(migrateEventV1toV2)
+            };
+        }
+        
+        // ============================================
+        // NODE CREATION & RENDERING
+        // ============================================
+        function createNodeElement(data) {
+            const el = document.createElement('div');
+            el.id = data.id;
+            el.className = 'node node-' + data.role;
+            if (data.id === activeNodeId || data.id === selectedTargetId) {
+                el.classList.add('selected-node');
+            }
+            
+            // Add modifiers
+            if (data.isTouchstone) el.classList.add('node-touchstone');
+            if (data.isTarget) el.classList.add('node-target');
+            
+            // Status dot for targets
+            if (data.isTarget && data.emdrTarget) {
+                const statusDot = document.createElement('div');
+                statusDot.className = 'status-dot ' + (data.emdrTarget.processingStatus || 'not_started');
+                el.appendChild(statusDot);
+            }
+            
+            // Tooltip
+            const tooltip = document.createElement('span');
+            tooltip.className = 'tooltip';
+            const dateDisplay = data.visualType === 'duration' ? `${data.startDate}-${data.endDate}` : data.date;
+            const roleLabels = { trauma: 'Trauma', positive: 'Positive', neutral: 'Neutral', resource: 'Resource' };
+            const roleLabel = roleLabels[data.role] || '';
+            const markers = [];
+            if (data.isTouchstone) markers.push('Touchstone');
+            if (data.isTarget) {
+                const status = data.emdrTarget && data.emdrTarget.processingStatus;
+                markers.push(status === 'resolved' ? 'Target · Resolved' : 'Target');
+            }
+            const markerSuffix = markers.length ? ` · ${markers.join(' · ')}` : '';
+            tooltip.textContent = `${dateDisplay} · ${data.title} · ${roleLabel}${markerSuffix}`;
+            el.appendChild(tooltip);
+            
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openDetails(data.id);
+            });
+            
+            return el;
+        }
+        
+        function renderAllNodes() {
+            // Clear existing
+            mapCanvas.querySelectorAll('.node, .duration-line, .duration-start-dot').forEach(n => n.remove());
+            
+            // Render each node
+            state.nodes.forEach(data => {
+                const el = createNodeElement(data);
+                mapCanvas.appendChild(el);
+            });
+            
+            repositionAndStackEvents();
+            applyViewFilter();
+        }
+        
+        // ============================================
+        // DUAL-LAYER POSITIONING
+        // ============================================
+        function repositionAndStackEvents() {
+            document.querySelectorAll('.duration-line, .duration-start-dot').forEach(el => el.remove());
+            const nodes = Array.from(document.querySelectorAll('.node'));
+            
+            // Separate above/below axis
+            // ABOVE: trauma, neutral
+            // BELOW: resources, positive (per UX improvement request)
+            const aboveNodes = nodes.filter(n => {
+                const data = state.nodes.find(d => d.id === n.id);
+                return data && (data.role === 'trauma' || data.role === 'neutral');
+            });
+            const belowNodes = nodes.filter(n => {
+                const data = state.nodes.find(d => d.id === n.id);
+                return data && (data.role === 'resource' || data.role === 'positive');
+            });
+            
+            // Stack above axis (trauma, neutral)
+            const aboveLaneCount = stackNodes(aboveNodes, 'above');
+            // Stack below axis (resources, positive)
+            const belowLaneCount = stackNodes(belowNodes, 'below');
+            updateCanvasHeight(aboveLaneCount, belowLaneCount);
+        }
+        
+        function stackNodes(nodes, direction) {
+            const stackOffset = 40;
+            let lanes = [];
+            
+            nodes.sort((a, b) => {
+                const dataA = state.nodes.find(d => d.id === a.id);
+                const dataB = state.nodes.find(d => d.id === b.id);
+                const startA = dataA.visualType === 'duration' ? parseInt(dataA.startDate) : parseInt(dataA.date);
+                const startB = dataB.visualType === 'duration' ? parseInt(dataB.startDate) : parseInt(dataB.date);
+                return startA - startB;
+            }).forEach(node => {
+                const data = state.nodes.find(d => d.id === node.id);
+                const start = data.visualType === 'duration' ? parseInt(data.startDate) : parseInt(data.date);
+                const end = data.visualType === 'duration' ? parseInt(data.endDate) : start;
+                
+                // Find lane
+                let lane = 0;
+                let foundLane = false;
+                while (!foundLane) {
+                    foundLane = true;
+                    if (lanes[lane]) {
+                        for (const existing of lanes[lane]) {
+                            if (start <= existing.end && end >= existing.start) {
+                                foundLane = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!foundLane) lane++;
+                }
+                
+                if (!lanes[lane]) lanes[lane] = [];
+                lanes[lane].push({ start, end });
+                
+                // Position
+                const yPos = direction === 'above'
+                    ? `calc(var(--timeline-height) - ${stackOffset + (lane * stackOffset)}px)`
+                    : `calc(var(--timeline-height) + ${55 + (lane * stackOffset)}px)`;
+                node.style.top = yPos;
+                
+                if (data.visualType === 'duration') {
+                    positionDurationLine(node, data, start, end, yPos);
+                } else {
+                    node.style.left = `${calculateXPos(start)}px`;
+                }
+            });
+            return lanes.length;
+        }
+        
+        function positionDurationLine(node, data, startYear, endYear, yPos) {
+            const startX = calculateXPos(startYear);
+            const endX = calculateXPos(endYear);
+            const nodeStyles = getComputedStyle(node);
+            
+            let line = document.getElementById(`line-${node.id}`);
+            if (!line) {
+                line = document.createElement('div');
+                line.id = `line-${node.id}`;
+                line.className = 'duration-line';
+                mapCanvas.appendChild(line);
+            }
+            line.style.left = `${startX}px`;
+            line.style.width = `${endX - startX}px`;
+            line.style.top = `calc(${yPos} - 1px)`;
+            line.style.backgroundColor = nodeStyles.backgroundColor;
+            
+            let startDot = document.getElementById(`start-${node.id}`);
+            if (!startDot) {
+                startDot = document.createElement('div');
+                startDot.id = `start-${node.id}`;
+                startDot.className = 'duration-start-dot';
+                startDot.addEventListener('click', (e) => { e.stopPropagation(); openDetails(node.id); });
+                mapCanvas.appendChild(startDot);
+            }
+            startDot.style.left = `${startX}px`;
+            startDot.style.top = yPos;
+            startDot.style.backgroundColor = nodeStyles.backgroundColor;
+            startDot.style.border = nodeStyles.border;
+            
+            node.style.left = `${endX}px`;
+        }
+        
+        // ============================================
+        // VIEW FILTERING
+        // ============================================
+        function setViewFilter(filter) {
+            currentViewFilter = filter;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === filter);
+            });
+            applyViewFilter();
+        }
+        
+        function applyViewFilter() {
+            document.querySelectorAll('.node').forEach(el => {
+                const data = state.nodes.find(d => d.id === el.id);
+                if (!data) return;
+                
+                let visible = true;
+                if (currentViewFilter === 'trauma') visible = data.role === 'trauma';
+                else if (currentViewFilter === 'resource') visible = data.role === 'resource';
+                else if (currentViewFilter === 'targets') visible = (data.isTarget === true || data.isTouchstone === true);
+                
+                el.classList.toggle('hidden', !visible);
+                
+                // Also hide duration lines
+                const line = document.getElementById(`line-${el.id}`);
+                const startDot = document.getElementById(`start-${el.id}`);
+                if (line) line.style.display = visible ? '' : 'none';
+                if (startDot) startDot.style.display = visible ? '' : 'none';
+            });
+        }
+        
+        // ============================================
+        // PROCESSING QUEUE
+        // ============================================
+        function updateProcessingQueue() {
+            const targets = getPrioritizedTargets();
+            
+            const queueEl = document.getElementById('processing-queue');
+            const countEl = document.getElementById('queue-count');
+            const nextBtn = document.getElementById('btn-process-next');
+            
+            countEl.textContent = targets.length;
+            nextBtn.style.display = targets.some(t => (t.emdrTarget?.processingStatus || 'not_started') !== 'resolved') ? '' : 'none';
+            
+            if (targets.length === 0) {
+                queueEl.innerHTML = '<p style="font-size: 0.75rem; opacity: 0.6;">No targets marked</p>';
+                return;
+            }
+            
+            queueEl.innerHTML = targets.map(t => {
+                const status = t.emdrTarget?.processingStatus || 'not_started';
+                const suds = t.emdrTarget?.sudsInitial ?? '-';
+                const activeClass = t.id === selectedTargetId ? ' active' : '';
+                return `<div class="queue-item${activeClass}" onclick="selectTarget('${t.id}')">
+                    <div class="queue-status ${status}"></div>
+                    <span style="flex:1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</span>
+                    <span style="opacity: 0.6;">SUDS ${suds}</span>
+                </div>`;
+            }).join('');
+        }
+        
+        function selectTarget(nodeId) {
+            selectedTargetId = nodeId;
+            const data = state.nodes.find(n => n.id === nodeId);
+            if (!data || !data.isTarget) return;
+            
+            updateTargetCardPanel(data);
+            const panel = document.getElementById('target-card-panel');
+            panel.classList.remove('hidden', 'collapsed');
+            renderAllNodes();
+            updateProcessingQueue();
+            centerNodeInView(nodeId);
+            
+            // Restore scratchpad from node data
+            const scratchpad = document.getElementById('session-scratchpad');
+            scratchpadText = data.emdrTarget?.scratchpad || '';
+            if (scratchpad) scratchpad.value = scratchpadText;
+        }
+        
+        function processNextTarget() {
+            const targets = getPrioritizedTargets().filter(n => (n.emdrTarget?.processingStatus || 'not_started') !== 'resolved');
+            if (targets.length > 0) {
+                selectTarget(targets[0].id);
+            }
+        }
+        
+        // ============================================
+        // TARGET CARD PANEL
+        // ============================================
+        function updateTargetCardPanel(data) {
+            const titleEl = document.getElementById('target-card-title');
+            const bodyEl = document.getElementById('target-card-body');
+            
+            if (!data || !data.isTarget) {
+                titleEl.textContent = 'No Target Selected';
+                bodyEl.innerHTML = '<p style="opacity: 0.6; font-size: 0.8rem;">Click a target node or select from the queue.</p>';
+                return;
+            }
+            
+            const t = data.emdrTarget || {};
+            titleEl.textContent = data.title || 'Untitled Target';
+            
+            bodyEl.innerHTML = `
+                <div class="card-field"><div class="card-label">Image</div><div class="card-value">${t.image || '-'}</div></div>
+                <div class="card-field"><div class="card-label">Negative Cognition</div><div class="card-value">"${t.negCognition || '-'}"</div></div>
+                <div class="card-field"><div class="card-label">Positive Cognition</div><div class="card-value">"${t.posCognition || '-'}"</div></div>
+                <div class="card-row">
+                    <div class="card-field"><div class="card-label">SUDS</div><div class="card-value">${t.sudsInitial ?? '-'}/10</div></div>
+                    <div class="card-field"><div class="card-label">VoC</div><div class="card-value">${t.vocInitial ?? '-'}/7</div></div>
+                </div>
+                <div class="card-field"><div class="card-label">Body</div><div class="card-value">${t.bodyLocation || '-'}</div></div>
+                <div class="card-field"><div class="card-label">Status</div><div class="card-value" style="text-transform: capitalize;">${(t.processingStatus || 'not_started').replace('_', ' ')}</div></div>
+                ${t.sessions && t.sessions.length > 0 ? `<div class="card-field"><div class="card-label">Sessions</div><div class="card-value">${t.sessions.length} logged</div></div>` : ''}
+            `;
+        }
+        
+        function toggleTargetCardPanel() {
+            const panel = document.getElementById('target-card-panel');
+            panel.classList.toggle('collapsed');
+        }
+        
+        function openEMDRTool() {
+            window.open('tool_emdr.html', '_blank');
+        }
+        
+        function openLogSessionFromPanel() {
+            if (selectedTargetId) {
+                openLogSession(selectedTargetId);
+            }
+        }
+        
+        function printTargetCard() {
+            if (!selectedTargetId) return;
+            const data = state.nodes.find(n => n.id === selectedTargetId);
+            if (!data) return;
+            
+            const t = data.emdrTarget || {};
+            const sessions = (t.sessions || []).map(s => `<li>${s.date}: ${s.preSuds}→${s.postSuds} (${s.setCount || 0} sets)</li>`).join('') || '<li>No sessions logged</li>';
+            
+            document.getElementById('print-target-card').innerHTML = `
+                <div style="max-width: 500px; margin: 0 auto; font-family: Inter, sans-serif;">
+                    <h1 style="text-align: center; border-bottom: 2px solid #2C5558; padding-bottom: 0.5rem;">TARGET CARD</h1>
+                    <h2 style="text-align: center; color: #2C5558;">${data.title}</h2>
+                    <p><strong>Image:</strong> ${t.image || '-'}</p>
+                    <p><strong>Negative Cognition:</strong> "${t.negCognition || '-'}"</p>
+                    <p><strong>Positive Cognition:</strong> "${t.posCognition || '-'}"</p>
+                    <p><strong>SUDS:</strong> ${t.sudsInitial ?? '-'}/10 &nbsp; <strong>VoC:</strong> ${t.vocInitial ?? '-'}/7</p>
+                    <p><strong>Body:</strong> ${t.bodyLocation || '-'}</p>
+                    <p><strong>Status:</strong> ${(t.processingStatus || 'not_started').replace('_', ' ')}</p>
+                    <h3 style="margin-top: 1.5rem; border-top: 1px solid #ccc; padding-top: 0.5rem;">Processing History</h3>
+                    <ul>${sessions}</ul>
+                </div>
+            `;
+            window.print();
+        }
+        
+        // ============================================
+        // DETAILS MODAL
+        // ============================================
+        /**
+         * Apply a saved value to a combo of a preset <select> and a free-text input.
+         * If the saved value matches one of the select's <option> values, populate the
+         * select. Otherwise, populate the free-text input and leave the select on its
+         * placeholder. Prevents custom values from disappearing on re-open.
+         */
+        function applyComboFieldValue(selectId, customId, savedValue) {
+            const select = document.getElementById(selectId);
+            const custom = document.getElementById(customId);
+            if (!select || !custom) return;
+
+            if (!savedValue) {
+                select.value = '';
+                custom.value = '';
+                return;
+            }
+
+            const hasOption = Array.from(select.options).some(opt => opt.value === savedValue);
+            if (hasOption) {
+                select.value = savedValue;
+                custom.value = '';
+            } else {
+                select.value = '';
+                custom.value = savedValue;
+            }
+        }
+
+        function openDetails(nodeId) {
+            activeNodeId = nodeId;
+            const data = state.nodes.find(n => n.id === nodeId);
+            if (!data) return;
+            
+            document.getElementById('details-node-id').value = nodeId;
+            document.getElementById('details-title').value = data.title || '';
+            document.getElementById('details-role').value = data.role;
+            document.getElementById('details-visual-type').value = data.visualType;
+            document.getElementById('details-date').value = data.date || '';
+            document.getElementById('details-start-date').value = data.startDate || '';
+            document.getElementById('details-end-date').value = data.endDate || '';
+            document.getElementById('details-emotions').value = data.emotions || '';
+            document.getElementById('details-notes').value = data.notes || '';
+            document.getElementById('is-touchstone').checked = data.isTouchstone || false;
+            document.getElementById('is-target').checked = data.isTarget || false;
+            
+            // EMDR fields
+            if (data.emdrTarget) {
+                document.getElementById('emdr-image').value = data.emdrTarget.image || '';
+                applyComboFieldValue('emdr-nc', 'emdr-nc-custom', data.emdrTarget.negCognition);
+                applyComboFieldValue('emdr-pc', 'emdr-pc-custom', data.emdrTarget.posCognition);
+                document.getElementById('emdr-suds').value = data.emdrTarget.sudsInitial ?? 5;
+                document.getElementById('suds-val').textContent = data.emdrTarget.sudsInitial ?? 5;
+                document.getElementById('emdr-voc').value = data.emdrTarget.vocInitial ?? 3;
+                document.getElementById('voc-val').textContent = data.emdrTarget.vocInitial ?? 3;
+                document.getElementById('emdr-body').value = data.emdrTarget.bodyLocation || '';
+                document.getElementById('emdr-status').value = data.emdrTarget.processingStatus || 'not_started';
+                setProcessingStatus(data.emdrTarget.processingStatus || 'not_started');
+                renderSessionHistory(data.emdrTarget.sessions || []);
+            } else {
+                document.getElementById('emdr-image').value = '';
+                applyComboFieldValue('emdr-nc', 'emdr-nc-custom', '');
+                applyComboFieldValue('emdr-pc', 'emdr-pc-custom', '');
+                document.getElementById('emdr-suds').value = 5;
+                document.getElementById('suds-val').textContent = '5';
+                document.getElementById('emdr-voc').value = 3;
+                document.getElementById('voc-val').textContent = '3';
+                document.getElementById('emdr-body').value = '';
+                document.getElementById('emdr-status').value = 'not_started';
+                setProcessingStatus('not_started');
+                renderSessionHistory([]);
+            }
+            
+            // Resource fields
+            if (data.resource) {
+                document.getElementById('resource-type').value = data.resource.type || 'safe_place';
+                document.getElementById('resource-anchor').value = data.resource.anchorWord || '';
+                document.getElementById('resource-accessibility').value = data.resource.accessibility ?? 5;
+                document.getElementById('access-val').textContent = data.resource.accessibility ?? 5;
+            }
+            
+            // Show/hide sections
+            setRole(data.role);
+            updateSectionVisibility();
+            
+            detailsOverlay.style.display = 'flex';
+            renderAllNodes();
+            centerNodeInView(nodeId);
+        }
+        
+        function setRole(role) {
+            document.getElementById('details-role').value = role;
+            document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.role === role);
+            });
+            updateSectionVisibility();
+        }
+        
+        function updateSectionVisibility() {
+            const role = document.getElementById('details-role').value;
+            const visualType = document.getElementById('details-visual-type').value;
+            const isTarget = document.getElementById('is-target').checked;
+            
+            document.getElementById('point-fields').style.display = visualType === 'point' ? '' : 'none';
+            document.getElementById('duration-fields').style.display = visualType === 'duration' ? '' : 'none';
+            document.getElementById('trauma-section').style.display = role === 'trauma' ? '' : 'none';
+            document.getElementById('emdr-section').style.display = (role === 'trauma' && isTarget) ? '' : 'none';
+            document.getElementById('history-section').style.display = (role === 'trauma' && isTarget) ? '' : 'none';
+            document.getElementById('resource-section').style.display = role === 'resource' ? '' : 'none';
+        }
+        
+        function updateTargetFields() {
+            updateSectionVisibility();
+        }
+        
+        function setProcessingStatus(status) {
+            document.getElementById('emdr-status').value = status;
+            document.querySelectorAll('.role-btn[data-status]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === status);
+            });
+        }
+        
+        function renderSessionHistory(sessions) {
+            const el = document.getElementById('session-history');
+            if (!sessions || sessions.length === 0) {
+                el.innerHTML = '<p style="font-size: 0.8rem; opacity: 0.6;">No sessions logged yet.</p>';
+                return;
+            }
+            el.innerHTML = sessions.map(s => `
+                <div class="history-item">
+                    <strong>${s.date}</strong>: Pre ${s.preSuds}→Post ${s.postSuds} | VoC ${s.preVoc || '-'}→${s.postVoc || '-'} | ${s.setCount || 0} sets
+                    ${s.notes ? `<br><small style="opacity: 0.7;">${s.notes}</small>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function saveDetails() {
+            if (!activeNodeId) return;
+            const data = state.nodes.find(n => n.id === activeNodeId);
+            if (!data) return;
+            
+            const title = document.getElementById('details-title').value.trim();
+            if (!title) { showTimelineToast('Title is required.', 'error'); return; }
+            const visualType = document.getElementById('details-visual-type').value;
+            const date = document.getElementById('details-date').value;
+            const startDate = document.getElementById('details-start-date').value;
+            const endDate = document.getElementById('details-end-date').value;
+            const timing = validateEventTiming(visualType, date, startDate, endDate);
+            if (!timing.valid) {
+                showTimelineToast(timing.message, 'error');
+                return;
+            }
+            
+            data.title = title;
+            data.role = document.getElementById('details-role').value;
+            data.date = date;
+            data.startDate = startDate;
+            data.endDate = endDate;
+            data.emotions = document.getElementById('details-emotions').value;
+            data.notes = document.getElementById('details-notes').value;
+            data.isTouchstone = document.getElementById('is-touchstone').checked;
+            data.isTarget = document.getElementById('is-target').checked;
+            
+            // EMDR Target
+            if (data.role === 'trauma' && data.isTarget) {
+                const nc = document.getElementById('emdr-nc-custom').value || document.getElementById('emdr-nc').value;
+                const pc = document.getElementById('emdr-pc-custom').value || document.getElementById('emdr-pc').value;
+                
+                if (!data.emdrTarget) data.emdrTarget = { sessions: [] };
+                data.emdrTarget.image = document.getElementById('emdr-image').value;
+                data.emdrTarget.negCognition = nc;
+                data.emdrTarget.posCognition = pc;
+                data.emdrTarget.sudsInitial = parseInt(document.getElementById('emdr-suds').value);
+                data.emdrTarget.vocInitial = parseInt(document.getElementById('emdr-voc').value);
+                data.emdrTarget.bodyLocation = document.getElementById('emdr-body').value;
+                data.emdrTarget.processingStatus = document.getElementById('emdr-status').value;
+            } else {
+                data.emdrTarget = null;
+            }
+            
+            // Resource
+            if (data.role === 'resource') {
+                data.resource = {
+                    type: document.getElementById('resource-type').value,
+                    anchorWord: document.getElementById('resource-anchor').value,
+                    accessibility: parseInt(document.getElementById('resource-accessibility').value)
+                };
+            } else {
+                data.resource = null;
+            }
+            
+            ensureYearsVisible(timing.years);
+            renderAllNodes();
+            redrawTimeline();
+            updateProcessingQueue();
+            if (selectedTargetId === activeNodeId) {
+                updateTargetCardPanel(data);
+            }
+            markMapChanged();
+            closeDetails();
+        }
+        
+        function deleteNode() {
+            const nodeData = state.nodes.find(n => n.id === activeNodeId);
+            const nodeName = nodeData?.title || 'this event';
+            if (activeNodeId && confirm(`Delete "${nodeName}"? This cannot be undone.`)) {
+                state.nodes = state.nodes.filter(n => n.id !== activeNodeId);
+                renderAllNodes();
+                updateProcessingQueue();
+                if (selectedTargetId === activeNodeId) {
+                    selectedTargetId = null;
+                    document.getElementById('target-card-panel').classList.add('hidden');
+                }
+                markMapChanged();
+                closeDetails();
+            }
+        }
+        
+        function closeDetails() {
+            detailsOverlay.style.display = 'none';
+            activeNodeId = null;
+            renderAllNodes();
+        }
+        
+        // ============================================
+        // SESSION LOGGING
+        // ============================================
+        function openLogSession(nodeId) {
+            const id = nodeId || activeNodeId;
+            if (!id) return;
+            
+            const data = state.nodes.find(n => n.id === id);
+            if (!data || !data.isTarget) return;
+            
+            document.getElementById('log-node-id').value = id;
+            document.getElementById('log-date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('log-pre-suds').value = data.emdrTarget?.sudsCurrent ?? data.emdrTarget?.sudsInitial ?? '';
+            document.getElementById('log-post-suds').value = '';
+            document.getElementById('log-pre-voc').value = data.emdrTarget?.vocCurrent ?? data.emdrTarget?.vocInitial ?? '';
+            document.getElementById('log-post-voc').value = '';
+            document.getElementById('log-sets').value = '';
+            document.getElementById('log-notes').value = scratchpadText;
+            document.getElementById('log-resolve').checked = false;
+            
+            logSessionOverlay.style.display = 'flex';
+        }
+        
+        function saveLogSession() {
+            const nodeId = document.getElementById('log-node-id').value;
+            const data = state.nodes.find(n => n.id === nodeId);
+            if (!data || !data.emdrTarget) return;
+            
+            const session = {
+                id: 'session-' + Date.now(),
+                date: document.getElementById('log-date').value,
+                preSuds: parseInt(document.getElementById('log-pre-suds').value) || null,
+                postSuds: parseInt(document.getElementById('log-post-suds').value) || null,
+                preVoc: parseInt(document.getElementById('log-pre-voc').value) || null,
+                postVoc: parseInt(document.getElementById('log-post-voc').value) || null,
+                setCount: parseInt(document.getElementById('log-sets').value) || 0,
+                notes: document.getElementById('log-notes').value
+            };
+            
+            if (!data.emdrTarget.sessions) data.emdrTarget.sessions = [];
+            data.emdrTarget.sessions.push(session);
+            
+            // Update current values
+            if (session.postSuds !== null) data.emdrTarget.sudsCurrent = session.postSuds;
+            if (session.postVoc !== null) data.emdrTarget.vocCurrent = session.postVoc;
+            
+            // Resolve if checked
+            if (document.getElementById('log-resolve').checked) {
+                data.emdrTarget.processingStatus = 'resolved';
+            }
+            
+            // Clear scratchpad
+            scratchpadText = '';
+            document.getElementById('session-scratchpad').value = '';
+            
+            renderAllNodes();
+            updateProcessingQueue();
+            if (selectedTargetId === nodeId) {
+                updateTargetCardPanel(data);
+            }
+            if (activeNodeId === nodeId) {
+                renderSessionHistory(data.emdrTarget.sessions);
+            }
+            markMapChanged();
+            closeLogSession();
+        }
+        
+        function closeLogSession() {
+            logSessionOverlay.style.display = 'none';
+        }
+        
+        // ============================================
+        // ADD EVENT
+        // ============================================
+        function quickAddNode(role, visualType) {
+            const allowedRoles = ['trauma', 'positive', 'neutral', 'resource'];
+            if (!allowedRoles.includes(role)) role = 'neutral';
+            if (visualType !== 'duration') visualType = 'point';
+
+            const defaultYear = Math.round((state.startYear + state.endYear) / 2);
+            const defaultYearStr = defaultYear.toString();
+
+            state.nextId++;
+            const newId = `node-${state.nextId}`;
+
+            const newData = {
+                id: newId,
+                schemaVersion: SCHEMA_VERSION,
+                visualType: visualType,
+                date: defaultYearStr,
+                startDate: defaultYearStr,
+                endDate: defaultYearStr,
+                role: role,
+                title: role === 'resource' ? 'New Resource' : 'New Event',
+                notes: '',
+                emotions: '',
+                isTouchstone: false,
+                isTarget: false,
+                emdrTarget: null,
+                resource: role === 'resource' ? { type: 'safe_place', anchorWord: '', accessibility: 5 } : null
+            };
+
+            state.nodes.push(newData);
+            renderAllNodes();
+            updateProcessingQueue();
+            markMapChanged();
+
+            const xPos = calculateXPos(defaultYear);
+            container.scrollLeft = Math.max(0, xPos - container.clientWidth / 2);
+
+            openDetails(newId);
+
+            queueMicrotask(() => {
+                const targetInput = visualType === 'duration'
+                    ? document.getElementById('details-start-date')
+                    : document.getElementById('details-date');
+                if (targetInput) {
+                    targetInput.focus();
+                    targetInput.select();
+                }
+            });
+        }
+
+        function addEventFromSelector() {
+            const sel = document.getElementById('add-event-type');
+            if (!sel) return;
+            const val = sel.value;
+            if (val === 'trauma-point') return quickAddNode('trauma', 'point');
+            if (val === 'trauma-duration') return quickAddNode('trauma', 'duration');
+            if (val === 'positive') return quickAddNode('positive', 'point');
+            if (val === 'neutral') return quickAddNode('neutral', 'point');
+            if (val === 'resource') return quickAddNode('resource', 'point');
+            return quickAddNode('neutral', 'point');
+        }
+        
+        // ============================================
+        // TIMELINE RENDERING
+        // ============================================
+        function calculateXPos(year) {
+            return (year - state.startYear) * state.mapScaleFactor + 100;
+        }
+        
+        function redrawTimeline() {
+            const nextStart = parseYearValue(document.getElementById('start-year').value);
+            const nextEnd = parseYearValue(document.getElementById('end-year').value);
+            if (nextStart === null || nextEnd === null || nextStart >= nextEnd) {
+                showTimelineToast('Invalid year range. Start year must be less than end year.', 'error');
+                return;
+            }
+            state.startYear = nextStart;
+            state.endYear = nextEnd;
+            
+            const totalYears = state.endYear - state.startYear;
+            mapCanvas.style.width = `${totalYears * state.mapScaleFactor + 200}px`;
+            
+            document.querySelectorAll('.year-marker, .year-label').forEach(el => el.remove());
+            
+            const _markerRange = state.endYear - state.startYear;
+            const _markerStep = _markerRange > 60 ? 10
+                              : _markerRange > 25 ? 5
+                              : _markerRange > 10 ? 2
+                              : 1;
+            for (let year = state.startYear; year <= state.endYear; year++) {
+                if (year === state.startYear || year === state.endYear || year % _markerStep === 0) {
+                    const xPos = calculateXPos(year);
+                    const marker = document.createElement('div');
+                    marker.className = 'year-marker';
+                    marker.style.left = `${xPos}px`;
+                    mapCanvas.appendChild(marker);
+
+                    const label = document.createElement('div');
+                    label.className = 'year-label';
+                    label.style.left = `${xPos}px`;
+                    label.textContent = year;
+                    mapCanvas.appendChild(label);
+                }
+            }
+            
+            repositionAndStackEvents();
+        }
+        
+        function zoomTimeline(factor) {
+            state.mapScaleFactor = Math.max(10, Math.min(state.mapScaleFactor * factor, 100));
+            redrawTimeline();
+            markMapChanged();
+        }
+        
+        // ============================================
+        // SAVE/LOAD
+        // ============================================
+        function collectMapData() {
+            return {
+                schemaVersion: SCHEMA_VERSION,
+                startYear: state.startYear,
+                endYear: state.endYear,
+                mapScaleFactor: state.mapScaleFactor,
+                nextId: state.nextId,
+                clientName: state.clientName || '',
+                nodes: state.nodes
+            };
+        }
+        
+        function saveMap() {
+            const data = collectMapData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const clientSlug = (state.clientName || '').trim().replace(/\s+/g, '_') || 'Unnamed';
+            a.download = `LifeMap_${clientSlug}_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            setDirtyState(false);
+            clearDraft();
+            showTimelineToast('Life Map exported.', 'success');
+        }
+        
+        function loadMap(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = JSON.parse(e.target.result);
+                    data = migrateMapData(data);
+                    
+                    state = data;
+                    document.getElementById('start-year').value = state.startYear;
+                    document.getElementById('end-year').value = state.endYear;
+                    // Restore client name
+                    const clientInput = document.getElementById('client-name');
+                    if (clientInput) clientInput.value = state.clientName || '';
+                    
+                    renderAllNodes();
+                    redrawTimeline();
+                    updateProcessingQueue();
+                    setDirtyState(false);
+                    clearDraft();
+                    showTimelineToast('Timeline loaded successfully!', 'success');
+                } catch (err) {
+                    showTimelineToast('Could not load file: ' + (err.message || 'Invalid format'), 'error');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        // ============================================
+        // DRAFT RECOVERY (sessionStorage, tab-scoped)
+        // ============================================
+        const LIFEMAP_DRAFT_KEY = 'bet-lifemap-draft';
+        const LIFEMAP_DRAFT_DEBOUNCE_MS = 2000;
+        let _draftPersistTimer = null;
+
+        function persistDraft() {
+            if (_draftPersistTimer) clearTimeout(_draftPersistTimer);
+            _draftPersistTimer = setTimeout(() => {
+                try {
+                    sessionStorage.setItem(LIFEMAP_DRAFT_KEY, JSON.stringify(state));
+                } catch (err) {
+                    console.warn('Life Map draft persist failed:', err);
+                }
+            }, LIFEMAP_DRAFT_DEBOUNCE_MS);
+        }
+
+        function clearDraft() {
+            if (_draftPersistTimer) {
+                clearTimeout(_draftPersistTimer);
+                _draftPersistTimer = null;
+            }
+            try {
+                sessionStorage.removeItem(LIFEMAP_DRAFT_KEY);
+            } catch (err) {
+                // sessionStorage may be unavailable in some embedded contexts; silent.
+            }
+        }
+
+        function maybeOfferDraftRecovery() {
+            let raw;
+            try {
+                raw = sessionStorage.getItem(LIFEMAP_DRAFT_KEY);
+            } catch (err) {
+                return;
+            }
+            if (!raw) return;
+
+            let draft;
+            try {
+                draft = JSON.parse(raw);
+            } catch (err) {
+                clearDraft();
+                return;
+            }
+
+            if (!draft || !Array.isArray(draft.nodes) || draft.nodes.length === 0) {
+                clearDraft();
+                return;
+            }
+
+            showDraftRecoveryBanner(draft);
+        }
+
+        function showDraftRecoveryBanner(draft) {
+            if (document.getElementById('lifemap-draft-banner')) return;
+
+            const banner = document.createElement('div');
+            banner.id = 'lifemap-draft-banner';
+            banner.innerHTML = `
+                <span class="draft-banner-text">
+                    Recovered unsaved Life Map from this tab (${draft.nodes.length} event${draft.nodes.length === 1 ? '' : 's'}).
+                </span>
+                <button id="draft-banner-keep" class="draft-banner-primary">Keep</button>
+                <button id="draft-banner-discard">Discard</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('draft-banner-keep').addEventListener('click', () => {
+                try {
+                    state = migrateMapData(draft);
+                } catch (err) {
+                    console.error('Failed to apply recovered draft:', err);
+                    showTimelineToast('Could not restore draft.', 'error');
+                    banner.remove();
+                    return;
+                }
+                document.getElementById('start-year').value = state.startYear;
+                document.getElementById('end-year').value = state.endYear;
+                const clientInput = document.getElementById('client-name');
+                if (clientInput) clientInput.value = state.clientName || '';
+                renderAllNodes();
+                redrawTimeline();
+                updateProcessingQueue();
+                setDirtyState(true);
+                banner.remove();
+                showTimelineToast('Draft restored. Export JSON to keep it.', 'success');
+            });
+
+            document.getElementById('draft-banner-discard').addEventListener('click', () => {
+                clearDraft();
+                banner.remove();
+            });
+        }
+        
+        // ============================================
+        // THEME & UI
+        // ============================================
+        function toggleTheme() {
+            document.body.classList.toggle('tt-dark');
+            const isDark = document.body.classList.contains('tt-dark');
+            document.getElementById('theme-icon-sun').style.display = isDark ? '' : 'none';
+            document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : '';
+            localStorage.setItem('tt_theme', isDark ? 'dark' : 'light');
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        
+        // Panning
+        mapCanvas.addEventListener('mousedown', e => {
+            if (e.target === mapCanvas || e.target.id === 'timeline-axis') {
+                isPanning = true;
+                startPanX = e.clientX;
+                startPanY = e.clientY;
+                scrollStartX = container.scrollLeft;
+                scrollStartY = container.scrollTop;
+                mapCanvas.style.cursor = 'grabbing';
+            }
+        });
+        document.addEventListener('mousemove', e => {
+            if (!isPanning) return;
+            container.scrollLeft = scrollStartX - (e.clientX - startPanX);
+            container.scrollTop = scrollStartY - (e.clientY - startPanY);
+        });
+        document.addEventListener('mouseup', () => {
+            if (isPanning) {
+                isPanning = false;
+                mapCanvas.style.cursor = 'grab';
+            }
+        });
+        
+        // Zoom wheel
+        mapCanvas.addEventListener('wheel', e => {
+            if (!(e.ctrlKey || e.metaKey)) return;
+            e.preventDefault();
+            zoomTimeline(e.deltaY < 0 ? 1.05 : 1/1.05);
+        }, { passive: false });
+
+        // Esc closes whichever modal is open (matches existing Close / Cancel button behavior).
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (logSessionOverlay && logSessionOverlay.style.display === 'flex') {
+                closeLogSession();
+                return;
+            }
+            if (detailsOverlay && detailsOverlay.style.display === 'flex') {
+                closeDetails();
+                return;
+            }
+            if (state.nodes.length === 0 && !isEmptyIntroDismissed() && mapOverlayLayer && mapOverlayLayer.style.display === 'flex') {
+                dismissEmptyIntro();
+            }
+        });
+        
+        // Click-outside-to-close for modals
+        logSessionOverlay.addEventListener('click', (e) => {
+            if (e.target === logSessionOverlay) closeLogSession();
+        });
+
+        // Scratchpad persistence — save to active target node
+        document.getElementById('session-scratchpad').addEventListener('input', e => {
+            scratchpadText = e.target.value;
+            if (selectedTargetId) {
+                const node = state.nodes.find(n => n.id === selectedTargetId);
+                if (node) {
+                    if (!node.emdrTarget) node.emdrTarget = {};
+                    node.emdrTarget.scratchpad = scratchpadText;
+                    markMapChanged();
+                }
+            }
+        });
+        
+        // ============================================
+        // TOAST NOTIFICATIONS
+        // ============================================
+        function showTimelineToast(message, type = 'info') {
+            let container = document.querySelector('.tl-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'tl-toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `tl-toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3600);
+        }
+
+        // ============================================
+        // EMPTY STATE
+        // ============================================
+        const LIFEMAP_INTRO_DISMISSED_KEY = 'bet-lifemap-intro-dismissed';
+
+        function isEmptyIntroDismissed() {
+            try {
+                return sessionStorage.getItem(LIFEMAP_INTRO_DISMISSED_KEY) === '1';
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function dismissEmptyIntro() {
+            try {
+                sessionStorage.setItem(LIFEMAP_INTRO_DISMISSED_KEY, '1');
+            } catch (err) {
+                // sessionStorage may be unavailable; still hide for this page load.
+            }
+            const emptyEl = document.getElementById('timeline-empty-state');
+            if (emptyEl) emptyEl.style.display = 'none';
+            if (mapOverlayLayer) mapOverlayLayer.style.display = 'none';
+        }
+
+        function updateEmptyState() {
+            let emptyEl = document.getElementById('timeline-empty-state');
+            if (state.nodes.length === 0) {
+                if (!emptyEl) {
+                    emptyEl = document.createElement('div');
+                    emptyEl.id = 'timeline-empty-state';
+                    emptyEl.className = 'timeline-empty-state';
+                    emptyEl.innerHTML = `
+                        <div class="empty-icon"><i class="fa-solid fa-timeline"></i></div>
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.25rem; margin: 0 0 0.5rem; color: var(--tt-text); font-weight: 600;">Build a Life Map</h3>
+                        <p>Plot trauma, supports, and resources on a timeline. Mark targets for processing, log sessions, and track SUDS over time.</p>
+                        <div style="display: flex; gap: 0.75rem; justify-content: center; margin: 1rem 0 1.25rem; flex-wrap: wrap; font-size: 0.7rem; opacity: 0.75;">
+                            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#ef4444;display:inline-block;"></span>Trauma</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#10b981;display:inline-block;"></span>Positive</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#9ca3af;display:inline-block;"></span>Neutral</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>Resource</span>
+                        </div>
+                        <div class="empty-state-actions">
+                            <button type="button" class="empty-state-cta" onclick="quickAddNode('trauma','point')">
+                                <i class="fa-solid fa-plus" style="margin-right:0.35rem;"></i>Add your first event
+                            </button>
+                            <button type="button" class="empty-state-dismiss" onclick="dismissEmptyIntro()" aria-label="Close intro" title="Skip intro">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    `;
+                    mapOverlayLayer.appendChild(emptyEl);
+                }
+                if (isEmptyIntroDismissed()) {
+                    emptyEl.style.display = 'none';
+                    mapOverlayLayer.style.display = 'none';
+                    return;
+                }
+                emptyEl.style.display = 'block';
+                mapOverlayLayer.style.display = 'flex';
+            } else {
+                if (emptyEl) emptyEl.style.display = 'none';
+                mapOverlayLayer.style.display = 'none';
+            }
+        }
+
+        // Patch redrawTimeline and renderAllNodes to update empty state
+        const _origRedrawTimeline = redrawTimeline;
+        redrawTimeline = function() {
+            _origRedrawTimeline();
+            updateEmptyState();
+        };
+        const _origRenderAllNodes = renderAllNodes;
+        renderAllNodes = function() {
+            _origRenderAllNodes();
+            updateEmptyState();
+        };
+
+        const _timelineOpenedAt = Date.now();
+        Auth.trackAppUsage('lifemap', 'start');
+
+        window.addEventListener('load', () => {
+            const savedTheme = localStorage.getItem('tt_theme');
+            if (savedTheme === 'light') {
+                document.body.classList.remove('tt-dark');
+                document.getElementById('theme-icon-sun').style.display = 'none';
+                document.getElementById('theme-icon-moon').style.display = '';
+            }
+            
+            redrawTimeline();
+            updateProcessingQueue();
+            updateEmptyState();
+            updateSaveStateHint();
+            maybeOfferDraftRecovery();
+        });
+
+        window.addEventListener('beforeunload', (event) => {
+            const dur = Math.round((Date.now() - _timelineOpenedAt) / 1000);
+            Auth.trackAppUsage('lifemap', 'end', dur);
+            if (!hasUnsavedChanges) return;
+            event.preventDefault();
+            event.returnValue = '';
+        });
+    </script>
 </body>
 </html>
+
+
+
+

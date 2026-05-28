@@ -75,7 +75,8 @@ class Database {
         $sql = "UPDATE {$table} SET {$setClause} WHERE {$where}";
         $params = array_merge($data, $whereParams);
         
-        return $this->query($sql, $params);
+        $stmt = $this->query($sql, $params);
+        return $stmt->rowCount();
     }
 }
 

@@ -6,7 +6,9 @@
     <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
     <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
     <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
-    <title>See Our Tools in Action - Bright Eyed Therapist</title>
+    <title>Trauma Telehealth Tools - Bright Eyed Therapist</title>
+    <meta name="description" content="Professional EMDR bilateral stimulation, Brainspotting, trauma timeline, and genogram tools for telehealth therapists. Free EMDR, $5/mo for the full suite.">
+    <link rel="canonical" href="https://brighteyedtherapist.com/demo.html">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -216,24 +218,38 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html">Features</a>
-                <a href="demo.html" class="active">Demo</a>
+                <a href="index.html#tools">Tools</a>
                 <a href="about.html">About</a>
                 <a href="contact.html">Contact</a>
                 <a href="feedback.html">Feedback</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main class="container">
         <section class="demo-hero animate-on-scroll">
-            <h1>See Our Tools in Action</h1>
-            <p>Explore the clinical suite designed to streamline your practice. Each tool is built with privacy-first principles — your client data stays on your device.</p>
+            <h1>Trauma Telehealth Tools</h1>
+            <p>Professional tools for EMDR, Brainspotting, and trauma case conceptualization — built for telehealth.</p>
         </section>
 
         <div class="tool-showcase">
             
+            <!-- Processing Tools Section Header -->
+            <h3 class="animate-on-scroll" style="text-align: center; margin: 2rem 0 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--col-text-muted);">
+                Processing Tools
+            </h3>
+
             <!-- EMDR Suite -->
             <div class="tool-item animate-on-scroll">
                 <div class="tool-preview emdr-preview">
@@ -254,27 +270,32 @@
                 </div>
             </div>
 
-            <!-- Note Genie -->
+            <!-- Brainspotting -->
             <div class="tool-item animate-on-scroll">
                 <div class="tool-preview" style="background: linear-gradient(135deg, #92400E 0%, #78350f 100%);">
                     <div class="tool-preview-dots"><span></span><span></span><span></span></div>
                     <div class="tool-preview-content">
-                        <i class="fa-solid fa-scale-balanced"></i>
-                        <div class="preview-label">AI-Powered Documentation</div>
+                        <i class="fa-solid fa-bullseye"></i>
+                        <div class="preview-label">Brainspot Location Tool</div>
                     </div>
                 </div>
                 <div class="tool-info">
                     <span class="tool-badge badge-alpha">Alpha</span>
-                    <h3>Note Genie</h3>
-                    <p>Transform session notes into professional clinical documentation in seconds. Uses your own API key (BYOK) so your data never touches our servers.</p>
+                    <h3>Brainspotting</h3>
+                    <p>Guided gaze scanning tool to help locate brainspots during Brainspotting therapy sessions. Supports both automatic scanning and manual pointer control.</p>
                     <ul>
-                        <li><i class="fa-solid fa-check"></i> SOAP, DAP, BIRP note formats</li>
-                        <li><i class="fa-solid fa-check"></i> Bring Your Own Key (OpenAI, Anthropic, etc.)</li>
-                        <li><i class="fa-solid fa-check"></i> 100% local processing</li>
-                        <li><i class="fa-solid fa-check"></i> Copy-to-clipboard export</li>
+                        <li><i class="fa-solid fa-check"></i> X/Y axis gaze scanning</li>
+                        <li><i class="fa-solid fa-check"></i> Manual or scan control modes</li>
+                        <li><i class="fa-solid fa-check"></i> Biolateral audio integration</li>
+                        <li><i class="fa-solid fa-check"></i> Share-to-client viewer links</li>
                     </ul>
                 </div>
             </div>
+
+            <!-- Case Conceptualization Section Header -->
+            <h3 class="animate-on-scroll" style="text-align: center; margin: 3rem 0 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--col-text-muted);">
+                Case Conceptualization
+            </h3>
 
             <!-- Genogram Genie -->
             <div class="tool-item animate-on-scroll">
@@ -298,7 +319,7 @@
                 </div>
             </div>
 
-            <!-- Trauma Timeline -->
+            <!-- Life Map -->
             <div class="tool-item animate-on-scroll">
                 <div class="tool-preview" style="background: linear-gradient(135deg, var(--col-primary) 0%, #1e4a4d 100%);">
                     <div class="tool-preview-dots"><span></span><span></span><span></span></div>
@@ -309,7 +330,7 @@
                 </div>
                 <div class="tool-info">
                     <span class="tool-badge badge-beta">Beta</span>
-                    <h3>Trauma Timeline</h3>
+                    <h3>Life Map</h3>
                     <p>Create visual narratives of client life histories. Plot significant events, identify patterns, and track therapeutic progress over time.</p>
                     <ul>
                         <li><i class="fa-solid fa-check"></i> Chronological event plotting</li>
@@ -320,57 +341,13 @@
                 </div>
             </div>
 
-            <!-- Guided Clarity -->
-            <div class="tool-item animate-on-scroll">
-                <div class="tool-preview" style="background: linear-gradient(135deg, #1E40AF 0%, #1e3a8a 100%);">
-                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
-                    <div class="tool-preview-content">
-                        <i class="fa-solid fa-compass"></i>
-                        <div class="preview-label">Decision Support Tool</div>
                     </div>
-                </div>
-                <div class="tool-info">
-                    <span class="tool-badge badge-beta">Beta</span>
-                    <h3>Guided Clarity</h3>
-                    <p>Structure motivational interviewing conversations with this values-based decision tool. Clients leave with a printable "Clarity Card" summarizing their insights.</p>
-                    <ul>
-                        <li><i class="fa-solid fa-check"></i> Guided question flow</li>
-                        <li><i class="fa-solid fa-check"></i> Values exploration prompts</li>
-                        <li><i class="fa-solid fa-check"></i> Printable Clarity Card output</li>
-                        <li><i class="fa-solid fa-check"></i> Session draft auto-save</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- ERP Fear Facer -->
-            <div class="tool-item animate-on-scroll">
-                <div class="tool-preview" style="background: linear-gradient(135deg, #92400E 0%, #78350f 100%);">
-                    <div class="tool-preview-dots"><span></span><span></span><span></span></div>
-                    <div class="tool-preview-content">
-                        <i class="fa-solid fa-mountain"></i>
-                        <div class="preview-label">Exposure Therapy Tracker</div>
-                    </div>
-                </div>
-                <div class="tool-info">
-                    <span class="tool-badge badge-alpha">Alpha</span>
-                    <h3>ERP Fear Facer</h3>
-                    <p>Build and track fear hierarchies for exposure and response prevention therapy. Monitor SUDS ratings and celebrate progress with your OCD/anxiety clients.</p>
-                    <ul>
-                        <li><i class="fa-solid fa-check"></i> Fear hierarchy builder</li>
-                        <li><i class="fa-solid fa-check"></i> SUDS tracking per exposure</li>
-                        <li><i class="fa-solid fa-check"></i> Session logging</li>
-                        <li><i class="fa-solid fa-check"></i> Printable progress summaries</li>
-                    </ul>
-                </div>
-            </div>
-
-        </div>
 
         <section class="cta-section animate-on-scroll">
-            <h2>Ready to Streamline Your Practice?</h2>
-            <p>Start your 14-day free trial today. No credit card required. Cancel anytime.</p>
+            <h2>Ready to Try It?</h2>
+            <p>EMDR is free forever. The full suite is just $5/mo. No credit card needed to start.</p>
             <div class="cta-buttons">
-                <a href="register.html" class="btn btn-beam">Start Free Trial</a>
+                <a href="register.html" class="btn btn-beam">Create Free Account</a>
                 <a href="contact.html" class="btn btn-secondary">Have Questions?</a>
             </div>
         </section>
@@ -380,9 +357,9 @@
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
             <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-                Empowering mental health professionals with digital tools that bring clarity to complex clinical work.
+                Trauma telehealth tools for clinicians who do this work.
             </p>
-            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 

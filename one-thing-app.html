@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Thing">
+  <meta name="theme-color" content="#FBF8F3">
+  <title>One Thing</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%234A6741%22/></svg>">
+  <style>
+    :root {
+      --bg: #FBF8F3;
+      --surface: #FFFFFF;
+      --ink: #2D2A26;
+      --ink-soft: #6B655D;
+      --ink-faint: #A39E96;
+      --line: #E8E2D8;
+      --held: #4A6741;
+      --held-bg: #DBE5D4;
+      --tried: #C8A26B;
+      --tried-bg: #F0E4CF;
+      --missed: #A39E96;
+      --shadow: 0 1px 3px rgba(45, 42, 38, 0.06);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; min-height: 100dvh;
+    }
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .app { max-width: 540px; margin: 0 auto; padding: 0 20px 60px; }
+
+    h1, h2, h3 { font-family: Georgia, "New York", serif; font-weight: 400; color: var(--ink); }
+    h1 { font-size: 30px; margin: 20px 0 4px; letter-spacing: -0.5px; }
+    h2 { font-size: 22px; margin: 32px 0 12px; letter-spacing: -0.3px; }
+    h3 { font-size: 18px; margin: 24px 0 8px; }
+    p { margin: 8px 0; color: var(--ink-soft); }
+    .subtitle { color: var(--ink-faint); font-size: 14px; margin: 0 0 16px; }
+    .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-faint); font-weight: 600; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0 0; }
+    .menu-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: var(--ink-soft); }
+    .menu-btn:active { background: var(--line); }
+
+    .why {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 12px 0 24px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+    .why-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ink-faint); font-weight: 600; margin-bottom: 8px; }
+    .why-text { font-family: Georgia, serif; font-size: 17px; color: var(--ink); line-height: 1.45; font-style: italic; }
+    .why-placeholder { color: var(--ink-faint); }
+
+    .vector-card { background: var(--surface); border-radius: 16px; padding: 24px 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+    .vector-name { font-family: Georgia, serif; font-size: 22px; line-height: 1.3; margin: 0 0 4px; }
+    .vector-note { font-size: 14px; color: var(--ink-soft); margin: 0 0 20px; }
+
+    .checkin-prompt { font-size: 14px; color: var(--ink-soft); margin: 16px 0 12px; }
+    .checkin-buttons { display: flex; flex-direction: column; gap: 8px; }
+    .checkin-btn {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 1.5px solid var(--line);
+      background: transparent;
+      font-size: 16px;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .checkin-btn:active { transform: scale(0.98); }
+    .checkin-btn .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .checkin-btn[data-state="held"] .dot { background: var(--held); }
+    .checkin-btn[data-state="tried"] .dot { background: var(--tried); }
+    .checkin-btn[data-state="missed"] .dot { background: transparent; border: 1.5px solid var(--ink-faint); }
+    .checkin-btn.selected[data-state="held"] { background: var(--held-bg); border-color: var(--held); }
+    .checkin-btn.selected[data-state="tried"] { background: var(--tried-bg); border-color: var(--tried); }
+    .checkin-btn.selected[data-state="missed"] { background: var(--line); border-color: var(--ink-faint); }
+
+    .grid-card { background: var(--surface); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin: 12px 0; }
+    .grid-cell { aspect-ratio: 1; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); cursor: pointer; transition: transform 0.1s; }
+    .grid-cell.held { background: var(--held); border-color: var(--held); }
+    .grid-cell.tried { background: var(--tried); border-color: var(--tried); }
+    .grid-cell.missed { background: var(--missed); border-color: var(--missed); }
+    .grid-cell.today { box-shadow: 0 0 0 2px var(--ink); }
+    .grid-cell:active { transform: scale(0.9); }
+
+    .grid-summary { font-size: 14px; color: var(--ink-soft); margin-top: 12px; text-align: center; }
+    .legend { display: flex; gap: 14px; justify-content: center; margin-top: 10px; font-size: 11px; color: var(--ink-faint); flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
+
+    .quick-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .quick-btn { flex: 1; padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: 14px; color: var(--ink); cursor: pointer; text-align: center; font-family: inherit; }
+    .quick-btn:active { background: var(--line); }
+
+    .drawer-bg { position: fixed; inset: 0; background: rgba(45, 42, 38, 0.4); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; }
+    .drawer-bg.open { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 82%; max-width: 320px; background: var(--bg); transform: translateX(100%); transition: transform 0.25s; z-index: 51; padding: 20px; overflow-y: auto; padding-top: calc(env(safe-area-inset-top) + 20px); padding-bottom: calc(env(safe-area-inset-bottom) + 20px); box-shadow: -4px 0 20px rgba(0,0,0,0.08); }
+    .drawer.open { transform: translateX(0); }
+    .drawer-item { padding: 16px 8px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 16px; color: var(--ink); }
+    .drawer-item:active { background: var(--line); }
+    .drawer-title { font-family: Georgia, serif; font-size: 22px; margin: 8px 0 16px; }
+
+    .modal-bg { position: fixed; inset: 0; background: rgba(45, 42, 38, 0.5); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 100; display: flex; align-items: flex-end; justify-content: center; padding: 0; }
+    .modal-bg.open { opacity: 1; pointer-events: auto; }
+    .modal { background: var(--bg); width: 100%; max-width: 540px; border-radius: 20px 20px 0 0; padding: 20px; max-height: 92vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.25s; padding-bottom: calc(env(safe-area-inset-bottom) + 40px); position: relative; }
+    .modal-bg.open .modal { transform: translateY(0); }
+    @media (min-width: 540px) {
+      .modal-bg { align-items: center; padding: 20px; }
+      .modal { border-radius: 20px; max-height: 80vh; }
+    }
+    .modal-close { background: transparent; border: none; font-size: 28px; color: var(--ink-soft); cursor: pointer; padding: 0 4px; position: absolute; top: 12px; right: 16px; line-height: 1; font-family: inherit; }
+
+    .vector-list { margin: 0 0 24px; }
+    .vector-item { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 8px; border: 1px solid var(--line); }
+    .vector-item.active { border-color: var(--held); background: var(--held-bg); }
+    .vector-item.graduated { opacity: 0.75; }
+    .vector-item-name { font-size: 15px; line-height: 1.4; margin: 0; font-family: Georgia, serif; }
+    .vector-status { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--ink-faint); margin-bottom: 6px; }
+    .vector-item.active .vector-status { color: var(--held); }
+    .vector-actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+    .vector-action { font-size: 12px; padding: 7px 11px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); cursor: pointer; font-family: inherit; color: var(--ink-soft); }
+    .vector-action:active { background: var(--line); }
+    .vector-action.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+    .entry { background: var(--surface); border-radius: 12px; padding: 14px; margin-bottom: 8px; border: 1px solid var(--line); }
+    .entry-date { font-size: 12px; color: var(--ink-faint); margin-bottom: 4px; }
+    .entry-text { font-size: 15px; line-height: 1.45; white-space: pre-wrap; }
+    .entry-helped { font-size: 13px; color: var(--ink-soft); margin-top: 6px; font-style: italic; }
+    .empty { text-align: center; color: var(--ink-faint); padding: 32px 20px; font-style: italic; font-size: 14px; }
+
+    .input-block { margin: 16px 0; }
+    .text-input, textarea.text-input { width: 100%; padding: 14px; border: 1.5px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 16px; background: var(--surface); color: var(--ink); }
+    textarea.text-input { min-height: 80px; resize: vertical; }
+    .text-input:focus { outline: none; border-color: var(--ink-soft); }
+
+    .btn-primary { background: var(--ink); color: var(--bg); border: none; padding: 14px 24px; border-radius: 12px; font-size: 16px; font-family: inherit; cursor: pointer; width: 100%; font-weight: 500; }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--line); padding: 14px 24px; border-radius: 12px; font-size: 16px; font-family: inherit; cursor: pointer; width: 100%; margin-top: 8px; }
+
+    /* onboarding */
+    .onboarding { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; overflow-y: auto; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    .onboarding.open { display: block; }
+    .onboarding-inner { max-width: 540px; margin: 0 auto; padding: 24px 20px 32px; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+    .onboarding-progress { display: flex; gap: 6px; justify-content: center; margin-bottom: 32px; }
+    .onboarding-progress .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); transition: background 0.2s, transform 0.2s; }
+    .onboarding-progress .dot.active { background: var(--ink); transform: scale(1.2); }
+    .onboarding-progress .dot.done { background: var(--held); }
+    .onboarding-content { flex: 1; }
+    .onboarding-nav { display: flex; gap: 12px; margin-top: 32px; }
+    .onboarding-nav .btn-primary, .onboarding-nav .btn-secondary { margin-top: 0; }
+    .onboarding-nav .btn-secondary { flex: 0 0 auto; width: auto; padding: 14px 20px; }
+    .onboarding-nav .btn-primary { flex: 1; }
+    .onboarding-nav .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ob-welcome { text-align: center; padding: 20px 8px; }
+    .ob-welcome h1 { font-size: 38px; margin: 0 0 8px; }
+    .ob-welcome .tagline { color: var(--ink-soft); font-size: 16px; margin-bottom: 28px; }
+    .ob-welcome .principle { background: var(--surface); border-radius: 12px; padding: 14px 16px; margin: 10px 0; box-shadow: var(--shadow); text-align: left; }
+    .ob-welcome .principle b { font-family: Georgia, serif; font-style: italic; font-weight: 400; font-size: 16px; color: var(--ink); }
+    .ob-welcome .principle div { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+    .ob-welcome .footnote { color: var(--ink-faint); font-size: 13px; margin-top: 24px; }
+
+    .ob-step h2 { font-size: 26px; margin: 12px 0 8px; }
+    .ob-step .step-intro { color: var(--ink-soft); font-size: 15px; line-height: 1.55; margin: 0 0 20px; }
+    .ob-step .examples { color: var(--ink-faint); font-size: 13px; font-style: italic; margin: 12px 0 16px; line-height: 1.5; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px; }
+    .chip { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 14px; color: var(--ink-soft); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .chip:active { transform: scale(0.96); }
+    .chip.added { background: var(--held-bg); border-color: var(--held); color: var(--held); }
+    .chip.added::before { content: "✓ "; }
+
+    .ob-vector-list { margin: 16px 0; }
+    .ob-vector-row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+    .ob-vector-row .text { flex: 1; font-size: 15px; line-height: 1.4; }
+    .ob-vector-row .x { background: transparent; border: none; color: var(--ink-faint); font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1; font-family: inherit; }
+    .ob-vector-count { font-size: 13px; color: var(--ink-faint); margin-top: 8px; text-align: center; }
+    .ob-vector-count.met { color: var(--held); }
+
+    .ob-pick-list { margin: 16px 0; }
+    .ob-pick-row { background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 8px; cursor: pointer; font-size: 15px; line-height: 1.4; transition: all 0.15s; }
+    .ob-pick-row:active { transform: scale(0.99); }
+    .ob-pick-row.selected { background: var(--held-bg); border-color: var(--held); }
+
+    .ob-done h2 { text-align: center; }
+    .ob-done .summary { background: var(--surface); border-radius: 12px; padding: 16px; margin: 16px 0; box-shadow: var(--shadow); }
+    .ob-done .summary .label { display: block; margin-bottom: 6px; }
+    .ob-done .summary .value { font-family: Georgia, serif; font-size: 16px; color: var(--ink); line-height: 1.4; font-style: italic; }
+
+    .hidden { display: none !important; }
+    a { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div></div>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+      </button>
+    </div>
+
+    <h1 id="greeting">Hi.</h1>
+    <p class="subtitle" id="dateLine"></p>
+
+    <div class="why" id="whyCard">
+      <div class="why-label">Why</div>
+      <div class="why-text" id="whyText"></div>
+    </div>
+
+    <div id="vectorRegion"></div>
+
+    <div class="grid-card" id="gridCard">
+      <div class="label">Last 30 days</div>
+      <div class="grid" id="grid"></div>
+      <div class="grid-summary" id="gridSummary"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background: var(--held)"></div>Held</div>
+        <div class="legend-item"><div class="legend-swatch" style="background: var(--tried)"></div>Tried</div>
+        <div class="legend-item"><div class="legend-swatch" style="background: var(--missed)"></div>Not today</div>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="quick-btn" id="addWinBtn">+ Add a win</button>
+      <button class="quick-btn" id="addTriggerBtn">+ Note a trigger</button>
+    </div>
+  </div>
+
+  <div class="drawer-bg" id="drawerBg"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-title">Menu</div>
+    <div class="drawer-item" data-screen="vectors">Vectors</div>
+    <div class="drawer-item" data-screen="wins">Wins log</div>
+    <div class="drawer-item" data-screen="triggers">Trigger notes</div>
+    <div class="drawer-item" data-screen="why">Edit my "why"</div>
+    <div class="drawer-item" data-screen="about">About this approach</div>
+    <div class="drawer-item" data-screen="export">Export / import data</div>
+    <div class="drawer-item" data-screen="restart" style="margin-top: 24px; color: var(--ink-faint); font-size: 14px;">Start over from scratch</div>
+  </aside>
+
+  <div class="modal-bg" id="modalBg">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div class="onboarding" id="onboarding">
+    <div class="onboarding-inner">
+      <div class="onboarding-progress" id="obProgress"></div>
+      <div class="onboarding-content" id="obContent"></div>
+      <div class="onboarding-nav">
+        <button class="btn-secondary" id="obBack" style="display:none;">Back</button>
+        <button class="btn-primary" id="obNext">Begin</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "one-thing-v1";
+    const uuid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const todayKey = (d = new Date()) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const DEFAULT_STATE = () => ({
+      version: 1,
+      welcomed: false,
+      values: { why: "", updated: Date.now() },
+      vectors: [],
+      checkIns: {},
+      wins: [],
+      triggers: []
+    });
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return DEFAULT_STATE();
+        return JSON.parse(raw);
+      } catch (e) {
+        console.error("Load failed", e);
+        return DEFAULT_STATE();
+      }
+    }
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      catch (e) { console.error("Save failed", e); }
+    }
+
+    function activeVector() { return state.vectors.find(v => v.status === "active") || null; }
+
+    function escapeHtml(s) {
+      if (s == null) return "";
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function renderGreeting() {
+      const h = new Date().getHours();
+      const g = h < 12 ? "Good morning." : h < 17 ? "Hi." : h < 21 ? "Good evening." : "Hi.";
+      document.getElementById("greeting").textContent = g;
+      const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+      document.getElementById("dateLine").textContent = new Date().toLocaleDateString(undefined, opts);
+    }
+
+    function renderWhy() {
+      const el = document.getElementById("whyText");
+      const why = (state.values.why || "").trim();
+      if (why) {
+        el.textContent = why;
+        el.classList.remove("why-placeholder");
+      } else {
+        el.textContent = "Tap to write your why.";
+        el.classList.add("why-placeholder");
+      }
+    }
+
+    function renderVector() {
+      const region = document.getElementById("vectorRegion");
+      const v = activeVector();
+      if (!v) {
+        region.innerHTML = `
+          <div class="vector-card">
+            <h2 style="margin-top: 0;">Pick your first focus.</h2>
+            <p>Choose one thing to start with. You can change your mind anytime.</p>
+            <button class="btn-primary" id="openVectorsBtn">Choose</button>
+          </div>`;
+        document.getElementById("openVectorsBtn").onclick = () => openScreen("vectors");
+        return;
+      }
+      const todayState = state.checkIns[v.id]?.[todayKey()]?.state || null;
+      region.innerHTML = `
+        <div class="vector-card">
+          <div class="label" style="margin-bottom: 8px;">Today's focus</div>
+          <h2 class="vector-name">${escapeHtml(v.name)}</h2>
+          ${v.myWords ? `<p class="vector-note">${escapeHtml(v.myWords)}</p>` : ''}
+          <div class="checkin-prompt">How was today?</div>
+          <div class="checkin-buttons">
+            <button class="checkin-btn ${todayState === 'held' ? 'selected' : ''}" data-state="held"><div class="dot"></div>Held it today</button>
+            <button class="checkin-btn ${todayState === 'tried' ? 'selected' : ''}" data-state="tried"><div class="dot"></div>Hard day &mdash; I tried</button>
+            <button class="checkin-btn ${todayState === 'missed' ? 'selected' : ''}" data-state="missed"><div class="dot"></div>Not today</button>
+          </div>
+        </div>`;
+      region.querySelectorAll(".checkin-btn").forEach(btn => {
+        btn.onclick = () => {
+          const newState = btn.dataset.state;
+          const current = state.checkIns[v.id]?.[todayKey()]?.state;
+          if (!state.checkIns[v.id]) state.checkIns[v.id] = {};
+          if (current === newState) {
+            delete state.checkIns[v.id][todayKey()];
+          } else {
+            state.checkIns[v.id][todayKey()] = { state: newState, at: Date.now() };
+          }
+          saveState();
+          renderVector();
+          renderGrid();
+        };
+      });
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("grid");
+      const summary = document.getElementById("gridSummary");
+      const v = activeVector();
+      if (!v) {
+        document.getElementById("gridCard").classList.add("hidden");
+        return;
+      }
+      document.getElementById("gridCard").classList.remove("hidden");
+      const checkIns = state.checkIns[v.id] || {};
+      const today = new Date();
+      const cells = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const key = todayKey(d);
+        const ci = checkIns[key];
+        const cls = ci?.state || "";
+        const isToday = i === 0 ? "today" : "";
+        cells.push(`<div class="grid-cell ${cls} ${isToday}" data-key="${key}" title="${d.toLocaleDateString()}"></div>`);
+      }
+      grid.innerHTML = cells.join("");
+      grid.querySelectorAll(".grid-cell").forEach(c => {
+        c.onclick = () => {
+          const key = c.dataset.key;
+          if (!state.checkIns[v.id]) state.checkIns[v.id] = {};
+          const current = state.checkIns[v.id][key]?.state;
+          const next = current === "held" ? "tried" : current === "tried" ? "missed" : current === "missed" ? null : "held";
+          if (next === null) delete state.checkIns[v.id][key];
+          else state.checkIns[v.id][key] = { state: next, at: Date.now() };
+          saveState();
+          renderVector();
+          renderGrid();
+        };
+      });
+      const held = Object.values(checkIns).filter(c => c?.state === "held").length;
+      const tried = Object.values(checkIns).filter(c => c?.state === "tried").length;
+      if (held === 0 && tried === 0) {
+        summary.textContent = "Each square is a day. Tap one to fill it in.";
+      } else {
+        summary.textContent = `Held ${held} ${held === 1 ? "day" : "days"} · Tried on ${tried} ${tried === 1 ? "more" : "more"}`;
+      }
+    }
+
+    function renderAll() {
+      renderGreeting();
+      renderWhy();
+      renderVector();
+      renderGrid();
+    }
+
+    function openModal(html) {
+      document.getElementById("modalContent").innerHTML = html;
+      document.getElementById("modalBg").classList.add("open");
+      document.getElementById("modal").scrollTop = 0;
+    }
+    function closeModal() {
+      document.getElementById("modalBg").classList.remove("open");
+    }
+
+    function openScreen(name) {
+      closeDrawer();
+      if (name === "vectors") return showVectors();
+      if (name === "wins") return showWins();
+      if (name === "triggers") return showTriggers();
+      if (name === "why") return showWhyEditor();
+      if (name === "about") return showAbout();
+      if (name === "export") return showExport();
+      if (name === "restart") return confirmRestart();
+    }
+
+    function confirmRestart() {
+      if (!confirm("Start over from scratch?\n\nThis clears all your vectors, check-ins, wins, trigger notes, and your why. It cannot be undone.")) return;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      state = DEFAULT_STATE();
+      saveState();
+      renderAll();
+      startOnboarding();
+    }
+
+    function showVectors() {
+      const sortedActive = state.vectors.filter(v => v.status === "active");
+      const sortedQueued = state.vectors.filter(v => v.status === "queued").sort((a,b) => (a.order||0) - (b.order||0));
+      const sortedGrad = state.vectors.filter(v => v.status === "graduated").sort((a,b) => (b.graduatedAt||0) - (a.graduatedAt||0));
+
+      const renderItem = (v) => `
+        <div class="vector-item ${v.status}">
+          <div class="vector-status">${v.status === "active" ? "Active focus" : v.status === "graduated" ? "Graduated · " + new Date(v.graduatedAt).toLocaleDateString() : "Queued"}</div>
+          <div class="vector-item-name">${escapeHtml(v.name)}</div>
+          ${v.myWords ? `<div style="font-size: 13px; color: var(--ink-soft); margin-top: 6px; line-height: 1.4;">${escapeHtml(v.myWords)}</div>` : ''}
+          <div class="vector-actions">
+            <button class="vector-action" data-action="edit" data-id="${v.id}">Edit</button>
+            ${v.status === "queued" ? `<button class="vector-action primary" data-action="activate" data-id="${v.id}">Make active</button>` : ''}
+            ${v.status === "active" ? `<button class="vector-action primary" data-action="graduate" data-id="${v.id}">Graduate this focus</button>` : ''}
+            ${v.status === "graduated" ? `<button class="vector-action" data-action="reactivate" data-id="${v.id}">Bring back to queue</button>` : ''}
+            <button class="vector-action" data-action="delete" data-id="${v.id}">Delete</button>
+          </div>
+        </div>`;
+
+      const html = `
+        <h2 style="margin-top: 0;">Your vectors</h2>
+        <p style="font-size: 14px; color: var(--ink-soft);">One focus at a time. When this one feels solid, graduate it and pick what's next.</p>
+        ${sortedActive.length ? `<div class="label" style="margin: 20px 0 8px;">Active</div><div class="vector-list">${sortedActive.map(renderItem).join("")}</div>` : ''}
+        ${sortedQueued.length ? `<div class="label" style="margin: 20px 0 8px;">Queued</div><div class="vector-list">${sortedQueued.map(renderItem).join("")}</div>` : ''}
+        ${sortedGrad.length ? `<div class="label" style="margin: 20px 0 8px;">Graduated</div><div class="vector-list">${sortedGrad.map(renderItem).join("")}</div>` : ''}
+        <button class="btn-secondary" id="addVectorBtn">+ Add a vector</button>`;
+      openModal(html);
+
+      document.getElementById("modalContent").querySelectorAll(".vector-action").forEach(btn => {
+        btn.onclick = () => handleVectorAction(btn.dataset.action, btn.dataset.id);
+      });
+      document.getElementById("addVectorBtn").onclick = () => editVector(null);
+    }
+
+    function handleVectorAction(action, id) {
+      const v = state.vectors.find(x => x.id === id);
+      if (!v) return;
+      if (action === "edit") return editVector(id);
+      if (action === "activate") {
+        const cur = state.vectors.find(x => x.status === "active");
+        if (cur && cur.id !== v.id) {
+          if (!confirm(`Make "${v.name}" the active focus?\n\n"${cur.name}" will move back to queued.`)) return;
+          cur.status = "queued";
+          cur.activatedAt = null;
+        }
+        v.status = "active";
+        v.activatedAt = Date.now();
+        saveState();
+        showVectors();
+        renderAll();
+      }
+      if (action === "graduate") {
+        if (!confirm(`Graduate "${v.name}"?\n\nThis marks it as a habit you feel solid about. You'll choose what comes next.`)) return;
+        v.status = "graduated";
+        v.graduatedAt = Date.now();
+        saveState();
+        showVectors();
+        renderAll();
+      }
+      if (action === "reactivate") {
+        v.status = "queued";
+        v.graduatedAt = null;
+        saveState();
+        showVectors();
+      }
+      if (action === "delete") {
+        if (!confirm(`Delete "${v.name}"?\n\nThis also clears its check-in history.`)) return;
+        state.vectors = state.vectors.filter(x => x.id !== id);
+        delete state.checkIns[id];
+        saveState();
+        showVectors();
+        renderAll();
+      }
+    }
+
+    function editVector(id) {
+      const v = id ? state.vectors.find(x => x.id === id) : null;
+      const html = `
+        <h2 style="margin-top: 0;">${v ? "Edit vector" : "New vector"}</h2>
+        <div class="input-block">
+          <div class="label" style="margin-bottom: 6px;">Name</div>
+          <input class="text-input" id="vecName" value="${v ? escapeHtml(v.name) : ''}" placeholder="What's the focus?">
+        </div>
+        <div class="input-block">
+          <div class="label" style="margin-bottom: 6px;">In your own words (optional)</div>
+          <textarea class="text-input" id="vecWords" placeholder="What this looks like for you...">${v ? escapeHtml(v.myWords || '') : ''}</textarea>
+        </div>
+        <button class="btn-primary" id="saveVecBtn">${v ? "Save" : "Add to queue"}</button>
+        <button class="btn-secondary" id="cancelVecBtn">${v ? "Cancel" : "Back"}</button>`;
+      openModal(html);
+      document.getElementById("saveVecBtn").onclick = () => {
+        const name = document.getElementById("vecName").value.trim();
+        const words = document.getElementById("vecWords").value.trim();
+        if (!name) return;
+        if (v) {
+          v.name = name; v.myWords = words;
+        } else {
+          const maxOrder = state.vectors.reduce((m, x) => Math.max(m, x.order || 0), 0);
+          state.vectors.push({ id: uuid(), name, myWords: words, status: "queued", createdAt: Date.now(), activatedAt: null, graduatedAt: null, order: maxOrder + 1 });
+        }
+        saveState();
+        showVectors();
+        renderAll();
+      };
+      document.getElementById("cancelVecBtn").onclick = () => showVectors();
+    }
+
+    function showWins() {
+      const html = `
+        <h2 style="margin-top: 0;">Wins</h2>
+        <p style="font-size: 14px; color: var(--ink-soft);">Moments you're proud of. Anything counts.</p>
+        <div class="input-block">
+          <textarea class="text-input" id="winText" placeholder="A win, big or small..."></textarea>
+          <button class="btn-primary" id="addWinSubmit" style="margin-top: 8px;">Add</button>
+        </div>
+        ${state.wins.length === 0 ? '<div class="empty">No wins logged yet. The first one is right around the corner.</div>' : ''}
+        <div id="winsList">
+          ${state.wins.slice().reverse().map(w => `
+            <div class="entry">
+              <div class="entry-date">${new Date(w.at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</div>
+              <div class="entry-text">${escapeHtml(w.text)}</div>
+              <button class="vector-action" style="margin-top: 8px;" data-id="${w.id}">Delete</button>
+            </div>
+          `).join("")}
+        </div>`;
+      openModal(html);
+      document.getElementById("addWinSubmit").onclick = () => {
+        const txt = document.getElementById("winText").value.trim();
+        if (!txt) return;
+        state.wins.push({ id: uuid(), text: txt, at: Date.now() });
+        saveState();
+        showWins();
+      };
+      document.getElementById("winsList").querySelectorAll("[data-id]").forEach(b => {
+        b.onclick = () => {
+          if (!confirm("Delete this win?")) return;
+          state.wins = state.wins.filter(w => w.id !== b.dataset.id);
+          saveState();
+          showWins();
+        };
+      });
+    }
+
+    function showTriggers() {
+      const html = `
+        <h2 style="margin-top: 0;">Trigger notes</h2>
+        <p style="font-size: 14px; color: var(--ink-soft);">A quick note when something pulls hard. Over time, awareness becomes pattern.</p>
+        <div class="input-block">
+          <div class="label" style="margin-bottom: 6px;">What was the trigger?</div>
+          <textarea class="text-input" id="trigWhat" placeholder="What happened, what came up..."></textarea>
+        </div>
+        <div class="input-block">
+          <div class="label" style="margin-bottom: 6px;">What helped, if anything?</div>
+          <textarea class="text-input" id="trigHelped" placeholder="(Optional)"></textarea>
+        </div>
+        <button class="btn-primary" id="addTrigSubmit">Save</button>
+        ${state.triggers.length === 0 ? '<div class="empty" style="margin-top: 24px;">No notes yet.</div>' : ''}
+        <div id="trigList" style="margin-top: 16px;">
+          ${state.triggers.slice().reverse().map(t => `
+            <div class="entry">
+              <div class="entry-date">${new Date(t.at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</div>
+              <div class="entry-text">${escapeHtml(t.what)}</div>
+              ${t.helped ? `<div class="entry-helped">Helped: ${escapeHtml(t.helped)}</div>` : ''}
+              <button class="vector-action" style="margin-top: 8px;" data-id="${t.id}">Delete</button>
+            </div>
+          `).join("")}
+        </div>`;
+      openModal(html);
+      document.getElementById("addTrigSubmit").onclick = () => {
+        const what = document.getElementById("trigWhat").value.trim();
+        const helped = document.getElementById("trigHelped").value.trim();
+        if (!what) return;
+        state.triggers.push({ id: uuid(), what, helped, at: Date.now() });
+        saveState();
+        showTriggers();
+      };
+      document.getElementById("trigList").querySelectorAll("[data-id]").forEach(b => {
+        b.onclick = () => {
+          if (!confirm("Delete this note?")) return;
+          state.triggers = state.triggers.filter(t => t.id !== b.dataset.id);
+          saveState();
+          showTriggers();
+        };
+      });
+    }
+
+    function showWhyEditor() {
+      const html = `
+        <h2 style="margin-top: 0;">Why</h2>
+        <p style="font-size: 14px; color: var(--ink-soft);">In your words. What is this for? Why does it matter to you?</p>
+        <div class="input-block">
+          <textarea class="text-input" id="whyInput" style="min-height: 140px;" placeholder="My why...">${escapeHtml(state.values.why || '')}</textarea>
+        </div>
+        <button class="btn-primary" id="saveWhyBtn">Save</button>`;
+      openModal(html);
+      document.getElementById("saveWhyBtn").onclick = () => {
+        state.values.why = document.getElementById("whyInput").value.trim();
+        state.values.updated = Date.now();
+        saveState();
+        renderWhy();
+        closeModal();
+      };
+    }
+
+    function showAbout() {
+      const html = `
+        <h2 style="margin-top: 0;">About this approach</h2>
+        <p style="font-family: Georgia, serif; font-style: italic; color: var(--ink); font-size: 17px; line-height: 1.5;">Change one thing at a time, and only move to the next when this one feels solid.</p>
+
+        <h3>Why one thing at a time</h3>
+        <p>Most attempts to change behavior fail because we try to change too many things at once. The effort required to maintain parallel changes depletes faster than habits can form. This is true for everyone and especially true for ADHD brains, trauma-shaped brains, or anyone whose executive function budget is already stretched. One focus, until it's automatic, is how lasting change actually compounds.</p>
+
+        <h3>Why no streaks</h3>
+        <p>Conventional trackers count consecutive days. When you miss one, the streak resets to zero &mdash; and that small number on the screen can trigger the exact all-or-nothing collapse that ends most attempts. A missed day is data. It's not a verdict. Tomorrow is still here, and the grid still shows every day you held.</p>
+
+        <h3>Why "tried" matters</h3>
+        <p>Some days are hard. You may not fully hold the boundary, but you tried &mdash; you noticed the urge, you fought with it, you made a different choice partway through. That's not failure. That's the muscle being built. The middle button exists so those days have a place to live that isn't shame.</p>
+
+        <h3>Why graduate, and pick</h3>
+        <p>You decide when a focus feels solid. Not perfect &mdash; solid. Then you pick the next one yourself, in the order that makes sense for you, not for a generic plan. Agency is part of the medicine.</p>
+
+        <h3>What this is and isn't</h3>
+        <p>This is a tool for changing the habits underneath a pattern &mdash; eating, drinking, scrolling, procrastinating, snapping, spending, anything you've tried to change before and watched yourself return to. It does not measure outcomes, count anything, or compete with the tools that do. It supports the slow behavioral work that makes outcomes possible.</p>
+
+        <h3>If this is an addiction or eating disorder</h3>
+        <p>This app is not a substitute for clinical care. If you're in active addiction, an eating disorder, or any acute crisis, please work with a specialist. This tool sits alongside care; it doesn't replace it.</p>
+
+        <h3>Your data</h3>
+        <p>Everything lives on this device. Nothing is sent anywhere. No account, no login, no telemetry. You can export and import it from the menu if you want a backup.</p>`;
+      openModal(html);
+    }
+
+    function showExport() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const html = `
+        <h2 style="margin-top: 0;">Export &amp; import</h2>
+        <p>Download a file with everything you've logged. Yours, fully portable.</p>
+        <a href="${url}" download="one-thing-export-${todayKey()}.json" class="btn-primary" style="display: block; text-align: center; text-decoration: none;">Download</a>
+        <button class="btn-secondary" id="importBtn" style="margin-top: 16px;">Import from file</button>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+        <p style="font-size: 12px; color: var(--ink-faint); margin-top: 16px;">Importing replaces all current data.</p>`;
+      openModal(html);
+      document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
+      document.getElementById("importFile").onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = () => {
+          try {
+            const data = JSON.parse(r.result);
+            if (!data.version) throw new Error("Invalid file");
+            if (!confirm("Replace all current data with the imported file?")) return;
+            state = data;
+            saveState();
+            closeModal();
+            renderAll();
+          } catch (err) { alert("Couldn't read that file."); }
+        };
+        r.readAsText(f);
+      };
+    }
+
+    function openDrawer() {
+      document.getElementById("drawer").classList.add("open");
+      document.getElementById("drawerBg").classList.add("open");
+    }
+    function closeDrawer() {
+      document.getElementById("drawer").classList.remove("open");
+      document.getElementById("drawerBg").classList.remove("open");
+    }
+
+    document.getElementById("menuBtn").onclick = openDrawer;
+    document.getElementById("drawerBg").onclick = closeDrawer;
+    document.getElementById("modalBg").onclick = (e) => { if (e.target.id === "modalBg") closeModal(); };
+    document.getElementById("modalClose").onclick = closeModal;
+    document.querySelectorAll(".drawer-item").forEach(el => {
+      el.onclick = () => openScreen(el.dataset.screen);
+    });
+    document.getElementById("whyCard").onclick = showWhyEditor;
+    document.getElementById("addWinBtn").onclick = showWins;
+    document.getElementById("addTriggerBtn").onclick = showTriggers;
+
+    // ============ ONBOARDING ============
+    const OB_STEPS = ["welcome", "domain", "why", "vectors", "pick", "done"];
+
+    const DOMAINS = [
+      { id: "food", label: "Eating / food", chips: ["Evening eating", "Eating when sad", "Eating when anxious", "Eating when bored", "Eating when lonely", "Hard work days", "Late-night kitchen", "A parent who pressures food", "Family events / holidays", "Restaurants / portion blindness", "Phone scrolling + snacking", "Boredom snacking"] },
+      { id: "substances", label: "Drinking / smoking / substances", chips: ["After-work drinking", "Drinking when stressed", "Drinking when alone", "Social pressure to drink", "Drinking with specific people", "Self-medicating after a hard day", "Weekend escalation", "Smoking when anxious", "Smoking with my coffee", "Bars / certain places", "Boredom use"] },
+      { id: "screens", label: "Screen time / phone / social media", chips: ["First thing in the morning", "In bed at night", "During work breaks", "When bored", "When anxious", "Doom scrolling specific apps", "Phone in the bathroom", "Comparing on social media", "Hours disappear without noticing", "Reaching for it during conversations"] },
+      { id: "procrastination", label: "Procrastination / starting tasks", chips: ["Avoiding the hard task first thing", "\"Just one more email\" before real work", "Switching tasks too quickly", "Re-organizing instead of doing", "Researching forever instead of starting", "Waiting for the \"right time\"", "Hyperfocusing on the wrong thing", "Distraction-stacking"] },
+      { id: "exercise", label: "Exercise / movement", chips: ["Sitting too long without breaks", "Skipping the morning walk/workout", "Weekend collapse", "All-or-nothing workout cycles", "Avoiding movement when tired", "Avoiding when self-conscious", "Loss of routine when traveling"] },
+      { id: "sleep", label: "Sleep", chips: ["Late-night screens", "Inconsistent bedtime", "One more episode / one more thing", "Caffeine too late", "Worrying at bedtime", "Phone first thing on waking", "Sleeping in past my plan"] },
+      { id: "spending", label: "Spending / money", chips: ["Online shopping when bored", "Impulse buys", "Eating out instead of cooking", "Avoiding looking at accounts", "Buying when stressed", "Subscription creep", "Spending to soothe"] },
+      { id: "emotional", label: "Emotional reactivity", chips: ["Snapping at family members", "Rumination after conflict", "Withdrawing when overwhelmed", "Catastrophizing", "Comparing myself to others", "Self-critical inner voice", "Avoiding hard conversations", "Reacting before pausing"] },
+      { id: "relationships", label: "Relationship patterns", chips: ["Withdrawing when stressed", "Saying yes when I mean no", "Avoiding vulnerable conversations", "Picking fights when scared", "Over-explaining myself", "Apologizing reflexively", "Not asking for help", "People-pleasing past my limit"] }
+    ];
+
+    const WHY_EXAMPLES = [
+      "For the people I love &mdash; to be more present, for longer",
+      "Because this has cost me too much already",
+      "To stop being captured by this",
+      "For the version of me that I know is in there",
+      "For freedom &mdash; to spend my attention where I choose",
+      "Because I'm tired of feeling defeated by something this fundamental"
+    ];
+
+    let ob = { step: 0, domains: [], why: "", vectors: [], pickedId: null };
+
+    function startOnboarding() {
+      ob = { step: 0, domains: [], why: "", vectors: [], pickedId: null };
+      document.getElementById("onboarding").classList.add("open");
+      renderOb();
+    }
+
+    function chipPool() {
+      if (ob.domains.length === 0) return [];
+      const seen = new Set();
+      const all = [];
+      DOMAINS.filter(d => ob.domains.includes(d.id)).forEach(d => {
+        d.chips.forEach(c => { if (!seen.has(c)) { seen.add(c); all.push(c); } });
+      });
+      return all;
+    }
+    function endOnboarding() {
+      state.welcomed = true;
+      state.values.why = ob.why.trim();
+      state.values.updated = Date.now();
+      state.domains = ob.domains.slice();
+      const newVectors = ob.vectors.map((v, i) => ({
+        id: uuid(),
+        name: v.name,
+        myWords: v.myWords || "",
+        status: v.tempId === ob.pickedId ? "active" : "queued",
+        createdAt: Date.now(),
+        activatedAt: v.tempId === ob.pickedId ? Date.now() : null,
+        graduatedAt: null,
+        order: i
+      }));
+      state.vectors = newVectors;
+      saveState();
+      document.getElementById("onboarding").classList.remove("open");
+      renderAll();
+    }
+
+    function renderObProgress() {
+      const wrap = document.getElementById("obProgress");
+      wrap.innerHTML = OB_STEPS.map((_, i) => {
+        const cls = i === ob.step ? "active" : (i < ob.step ? "done" : "");
+        return `<div class="dot ${cls}"></div>`;
+      }).join("");
+    }
+
+    function renderOb() {
+      renderObProgress();
+      const c = document.getElementById("obContent");
+      const back = document.getElementById("obBack");
+      const next = document.getElementById("obNext");
+      back.style.display = ob.step === 0 ? "none" : "inline-block";
+      back.onclick = () => { ob.step = Math.max(0, ob.step - 1); renderOb(); };
+
+      const step = OB_STEPS[ob.step];
+
+      if (step === "welcome") {
+        c.innerHTML = `
+          <div class="ob-welcome">
+            <h1>One Thing</h1>
+            <div class="tagline">A quiet place to change one habit at a time.</div>
+            <div class="principle"><b>One focus at a time.</b><div>You'll work on one habit until it feels solid &mdash; not perfect, solid &mdash; and only then move to the next.</div></div>
+            <div class="principle"><b>Missing a day is data, not failure.</b><div>No streaks here that can break. No metrics. Tomorrow is still here.</div></div>
+            <div class="principle"><b>This is yours.</b><div>Your why. Your focus. Your words. You decide when you're ready for what's next.</div></div>
+            <div class="footnote">This takes about ten minutes to set up. The setup is the work.</div>
+          </div>`;
+        next.textContent = "Begin";
+        next.disabled = false;
+        next.onclick = () => { ob.step++; renderOb(); };
+        return;
+      }
+
+      if (step === "domain") {
+        const renderDomainChips = () => DOMAINS.map(d => {
+          const selected = ob.domains.includes(d.id);
+          return `<button class="chip ${selected ? 'added' : ''}" data-did="${d.id}">${escapeHtml(d.label)}</button>`;
+        }).join("");
+        c.innerHTML = `
+          <div class="ob-step">
+            <h2>What area do you want to work on?</h2>
+            <p class="step-intro">Pick one or more. This just shapes the prompts you'll see next &mdash; you can always add your own habits in your own words.</p>
+            <div class="chips" id="obDomainChips">${renderDomainChips()}</div>
+            <p style="font-size: 13px; color: var(--ink-faint); margin-top: 16px;">Don't see your thing? Pick the closest, or pick none and write your own on the next step.</p>
+          </div>`;
+        const bindDomains = () => {
+          document.querySelectorAll("#obDomainChips .chip").forEach(ch => {
+            ch.onclick = () => {
+              const id = ch.dataset.did;
+              if (ob.domains.includes(id)) ob.domains = ob.domains.filter(x => x !== id);
+              else ob.domains.push(id);
+              document.getElementById("obDomainChips").innerHTML = renderDomainChips();
+              bindDomains();
+            };
+          });
+        };
+        bindDomains();
+        next.textContent = "Continue";
+        next.disabled = false; // allow skip — they can write their own vectors
+        next.onclick = () => { ob.step++; renderOb(); };
+        return;
+      }
+
+      if (step === "why") {
+        c.innerHTML = `
+          <div class="ob-step">
+            <h2>Your why</h2>
+            <p class="step-intro">Before naming what you want to change, name why. Skip the obvious answers. What is actually at stake for you?</p>
+            <p class="examples">Examples &mdash; for inspiration, not to copy:<br>${WHY_EXAMPLES.map(e => "&ldquo; " + e + " &rdquo;").join("<br>")}</p>
+            <textarea class="text-input" id="obWhyInput" style="min-height: 140px;" placeholder="My why...">${escapeHtml(ob.why)}</textarea>
+            <p style="font-size: 13px; color: var(--ink-faint); margin-top: 8px;">You can come back and refine this anytime.</p>
+          </div>`;
+        const input = document.getElementById("obWhyInput");
+        input.oninput = () => { ob.why = input.value; };
+        next.textContent = "Continue";
+        next.disabled = false;
+        next.onclick = () => {
+          ob.why = input.value;
+          ob.step++; renderOb();
+        };
+        return;
+      }
+
+      if (step === "vectors") {
+        const pool = chipPool();
+        const renderRows = () => ob.vectors.map(v => `
+          <div class="ob-vector-row">
+            <div class="text">${escapeHtml(v.name)}</div>
+            <button class="x" data-tid="${v.tempId}" aria-label="Remove">&times;</button>
+          </div>`).join("");
+        const renderChips = () => pool.map(p => {
+          const added = ob.vectors.some(v => v.name === p);
+          return `<button class="chip ${added ? 'added' : ''}" data-prompt="${escapeHtml(p)}">${escapeHtml(p)}</button>`;
+        }).join("");
+        c.innerHTML = `
+          <div class="ob-step">
+            <h2>What gets in the way?</h2>
+            <p class="step-intro">Vectors are the actual habits, patterns, or situations that have stalled your progress before. Map yours &mdash; be specific. Don't censor.</p>
+            <p class="examples">${pool.length ? "Tap the ones that fit. Add your own. The more honest, the more useful." : "No prompts to show &mdash; go straight to adding your own below."}</p>
+            <div class="chips" id="obChips">${renderChips()}</div>
+            <div class="ob-vector-list" id="obVectorList">${renderRows()}</div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <input class="text-input" id="obCustomVec" placeholder="Add your own..." style="flex: 1;">
+              <button class="btn-secondary" id="obAddCustom" style="width: auto; padding: 14px 18px; margin: 0;">Add</button>
+            </div>
+            <div class="ob-vector-count ${ob.vectors.length >= 3 ? 'met' : ''}" id="obCount">${ob.vectors.length} added${ob.vectors.length < 3 ? ` &mdash; add ${3 - ob.vectors.length} more to continue` : ' &mdash; you can keep going or move on'}</div>
+          </div>`;
+
+        const refresh = () => {
+          document.getElementById("obChips").innerHTML = renderChips();
+          document.getElementById("obVectorList").innerHTML = renderRows();
+          const count = document.getElementById("obCount");
+          count.innerHTML = `${ob.vectors.length} added${ob.vectors.length < 3 ? ` &mdash; add ${3 - ob.vectors.length} more to continue` : ' &mdash; you can keep going or move on'}`;
+          count.classList.toggle('met', ob.vectors.length >= 3);
+          next.disabled = ob.vectors.length < 3;
+          bindChipsAndRows();
+        };
+        const bindChipsAndRows = () => {
+          document.querySelectorAll("#obChips .chip").forEach(ch => {
+            ch.onclick = () => {
+              const name = ch.dataset.prompt;
+              const existing = ob.vectors.find(v => v.name === name);
+              if (existing) {
+                ob.vectors = ob.vectors.filter(v => v.tempId !== existing.tempId);
+              } else {
+                ob.vectors.push({ tempId: uuid(), name, myWords: "" });
+              }
+              refresh();
+            };
+          });
+          document.querySelectorAll("#obVectorList .x").forEach(x => {
+            x.onclick = () => {
+              ob.vectors = ob.vectors.filter(v => v.tempId !== x.dataset.tid);
+              refresh();
+            };
+          });
+        };
+        bindChipsAndRows();
+        document.getElementById("obAddCustom").onclick = () => {
+          const inp = document.getElementById("obCustomVec");
+          const v = inp.value.trim();
+          if (!v) return;
+          if (ob.vectors.some(x => x.name.toLowerCase() === v.toLowerCase())) { inp.value = ""; return; }
+          ob.vectors.push({ tempId: uuid(), name: v, myWords: "" });
+          inp.value = "";
+          refresh();
+        };
+        document.getElementById("obCustomVec").onkeydown = (e) => {
+          if (e.key === "Enter") { e.preventDefault(); document.getElementById("obAddCustom").click(); }
+        };
+
+        next.textContent = "Continue";
+        next.disabled = ob.vectors.length < 3;
+        next.onclick = () => {
+          if (ob.vectors.length < 3) return;
+          if (!ob.vectors.find(v => v.tempId === ob.pickedId)) ob.pickedId = null;
+          ob.step++; renderOb();
+        };
+        return;
+      }
+
+      if (step === "pick") {
+        const renderPickList = () => ob.vectors.map(v => `
+          <div class="ob-pick-row ${ob.pickedId === v.tempId ? 'selected' : ''}" data-tid="${v.tempId}">${escapeHtml(v.name)}</div>
+        `).join("");
+        c.innerHTML = `
+          <div class="ob-step">
+            <h2>Pick your starting point</h2>
+            <p class="step-intro">Don't pick the most important one. Pick the easiest &mdash; the one you can actually imagine holding. We build the muscle first. Then the harder ones become possible.</p>
+            <div class="ob-pick-list" id="obPickList">${renderPickList()}</div>
+          </div>`;
+        const bind = () => {
+          document.querySelectorAll("#obPickList .ob-pick-row").forEach(r => {
+            r.onclick = () => {
+              ob.pickedId = r.dataset.tid;
+              document.getElementById("obPickList").innerHTML = renderPickList();
+              bind();
+              next.disabled = false;
+            };
+          });
+        };
+        bind();
+        next.textContent = "Set as my focus";
+        next.disabled = !ob.pickedId;
+        next.onclick = () => { ob.step++; renderOb(); };
+        return;
+      }
+
+      if (step === "done") {
+        const picked = ob.vectors.find(v => v.tempId === ob.pickedId);
+        c.innerHTML = `
+          <div class="ob-step ob-done">
+            <h2>You're set up.</h2>
+            <p class="step-intro" style="text-align: center;">Open the app once a day. Tap how today went. That's it. No notifications, no streaks, no scale. Just one daily check-in.</p>
+            <div class="summary">
+              <div class="label">Your why</div>
+              <div class="value">${ob.why.trim() ? escapeHtml(ob.why.trim()) : '<span style="color: var(--ink-faint); font-style: normal;">(you can add this anytime)</span>'}</div>
+            </div>
+            <div class="summary">
+              <div class="label">Today's focus</div>
+              <div class="value">${escapeHtml(picked.name)}</div>
+            </div>
+            <p style="font-size: 14px; color: var(--ink-soft); text-align: center; margin-top: 24px;">When this focus feels solid &mdash; not perfect, solid &mdash; you'll graduate it and pick what's next.</p>
+          </div>`;
+        next.textContent = "Open my app";
+        next.disabled = false;
+        next.onclick = endOnboarding;
+        return;
+      }
+    }
+
+    // Boot
+    if (!state.welcomed) {
+      startOnboarding();
+    }
+    renderAll();
+  </script>
+</body>
+</html>

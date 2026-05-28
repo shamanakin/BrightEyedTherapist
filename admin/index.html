@@ -22,9 +22,31 @@
             box-shadow: var(--shadow-md);
         }
         .admin-header h1 { color: white; margin: 0; }
+        .admin-nav { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .admin-nav a { font-size: 0.9rem; color: rgba(255,255,255,0.9); text-decoration: none; transition: all 0.2s; }
+        .admin-nav a:hover { color: white; }
+        .admin-nav .nav-pill {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+        }
+        .feedback-badge {
+            display: none;
+            background: #EF4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            margin-left: 0.25rem;
+            vertical-align: middle;
+        }
         .stats-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
             gap: 1.5rem; 
             margin-bottom: 2rem; 
         }
@@ -50,6 +72,7 @@
         .stat-change {
             font-size: 0.85rem;
             margin-top: 0.5rem;
+            color: var(--col-text-muted);
         }
         .stat-change.positive { color: #10b981; }
         .stat-change.negative { color: #ef4444; }
@@ -77,9 +100,6 @@
             padding: 1rem;
             border-bottom: 1px solid #F3F4F6;
         }
-        .data-table tr:hover {
-            background: #F9FAFB;
-        }
         .data-table tbody tr {
             cursor: pointer;
             transition: background-color 0.15s;
@@ -101,6 +121,8 @@
         .badge-promo { background: #FEF3C7; color: #92400E; }
         .badge-admin { background: #F3E8FF; color: #6B21A8; }
         .badge-canceled { background: #FEF3C7; color: #92400E; }
+        .badge-canceling { background: #FFEDD5; color: #9A3412; }
+        .badge-free { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
         
         .chart-container {
             background: white;
@@ -112,22 +134,73 @@
         }
         .chart-container h3 {
             margin-top: 0;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filters-bar {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #E5E7EB;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filters-bar input, .filters-bar select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #E5E7EB;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+        .filters-bar input { flex: 1; min-width: 200px; }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .table-header h3 { margin: 0; }
+        
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #F9FAFB;
+            border-top: 1px solid #E5E7EB;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 768px) {
+            .charts-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="admin-header">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>
-                <i class="fa-solid fa-chart-line"></i> Admin Analytics Dashboard
-                <a href="feedback.html" style="font-size: 0.9rem; font-weight: normal; margin-left: 2rem; color: rgba(255,255,255,0.9);">
-                    <i class="fa-solid fa-comments"></i> Feedback Management
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <h1><i class="fa-solid fa-chart-line"></i> Admin Dashboard</h1>
+            <div class="admin-nav">
+                <a href="feedback.html">
+                    <i class="fa-solid fa-comments"></i> Feedback
+                    <span id="feedback-badge" class="feedback-badge">0</span>
                 </a>
-            </h1>
-            <a href="../account.html" style="font-size: 0.9rem; color: rgba(255,255,255,0.9); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; transition: all 0.2s;">
-                <i class="fa-solid fa-arrow-left" style="margin-right: 0.5rem;"></i>Back to Site
-            </a>
+                <a href="../account.html" class="nav-pill">
+                    <i class="fa-solid fa-arrow-left" style="margin-right: 0.35rem;"></i>Back to Site
+                </a>
+                <button id="refresh-btn" onclick="refreshDashboard()" style="background:transparent;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.9);padding:0.5rem 1rem;border-radius:20px;cursor:pointer;font-size:0.9rem;">
+                    <i class="fa-solid fa-refresh"></i> Refresh
+                </button>
+            </div>
         </div>
     </div>
 
@@ -137,48 +210,70 @@
             <div class="stat-card">
                 <div class="stat-label">Total Users</div>
                 <div class="stat-value" id="stat-users">-</div>
-                <div class="stat-change positive" id="stat-users-change">
-                    <i class="fa-solid fa-arrow-up"></i> Loading...
-                </div>
+                <div class="stat-change" id="stat-users-change">Loading...</div>
             </div>
-            
             <div class="stat-card">
-                <div class="stat-label">Active Subscribers</div>
-                <div class="stat-value" id="stat-subs">-</div>
-                <div class="stat-change positive" id="stat-subs-change">
-                    <i class="fa-solid fa-arrow-up"></i> Loading...
-                </div>
+                <div class="stat-label">Free Users</div>
+                <div class="stat-value" id="stat-free">-</div>
+                <div class="stat-change" id="stat-free-change">Loading...</div>
             </div>
-            
+            <div class="stat-card">
+                <div class="stat-label">Paying Subscribers</div>
+                <div class="stat-value" id="stat-paying">-</div>
+                <div class="stat-change" id="stat-paying-change">Loading...</div>
+            </div>
             <div class="stat-card">
                 <div class="stat-label">Monthly Revenue</div>
                 <div class="stat-value" id="stat-revenue">$-</div>
-                <div class="stat-change positive" id="stat-revenue-change">
-                    <i class="fa-solid fa-arrow-up"></i> Loading...
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Trial Conversions</div>
-                <div class="stat-value" id="stat-conversion">-%</div>
-                <div class="stat-change" id="stat-conversion-change">
-                    Loading...
-                </div>
+                <div class="stat-change" id="stat-revenue-change">Loading...</div>
             </div>
         </div>
 
         <!-- Charts -->
-        <div class="chart-container">
-            <h3>User Growth (Last 30 Days)</h3>
-            <canvas id="growth-chart" width="400" height="100"></canvas>
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3><i class="fa-solid fa-chart-bar" style="color:var(--col-primary);margin-right:0.5rem;"></i>Signups (Last 30 Days)</h3>
+                <div id="growth-chart" style="min-height:140px;"></div>
+            </div>
+            <div class="chart-container">
+                <h3><i class="fa-solid fa-mobile-screen" style="color:var(--col-primary);margin-right:0.5rem;"></i>App Usage (Last 30 Days)</h3>
+                <div id="usage-chart" style="min-height:140px;"></div>
+            </div>
         </div>
 
-        <div class="chart-container">
-            <h3>App Usage Statistics</h3>
-            <canvas id="usage-chart" width="400" height="100"></canvas>
+        <!-- Top Traffic Sources -->
+        <div class="chart-container" style="margin-bottom:2rem;">
+            <h3><i class="fa-solid fa-globe" style="color:var(--col-primary);margin-right:0.5rem;"></i>Top Traffic Sources (Last 30 Days)</h3>
+            <div id="referrers-list" style="min-height:60px;"></div>
         </div>
 
-        <!-- Recent Users Table -->
+        <!-- Users Section -->
+        <div class="table-header">
+            <h3><i class="fa-solid fa-users" style="color:var(--col-primary);margin-right:0.5rem;"></i>Users</h3>
+            <button onclick="exportUsersCSV()" class="btn btn-secondary" style="font-size:0.85rem;padding:0.4rem 0.8rem;">
+                <i class="fa-solid fa-download"></i> Export CSV
+            </button>
+        </div>
+        <div class="filters-bar">
+            <input type="text" id="user-search" placeholder="Search by name or email..." />
+            <label>
+                <select id="filter-status">
+                    <option value="">All Statuses</option>
+                    <option value="free">Free</option>
+                    <option value="trialing">Trialing</option>
+                    <option value="active">Active</option>
+                    <option value="canceled">Canceled</option>
+                    <option value="incomplete_expired">Expired</option>
+                </select>
+            </label>
+            <label>
+                <select id="filter-verified">
+                    <option value="">All Verified</option>
+                    <option value="1">Verified</option>
+                    <option value="0">Unverified</option>
+                </select>
+            </label>
+        </div>
         <div class="data-table" style="margin-bottom: 2rem;">
             <table>
                 <thead>
@@ -199,9 +294,13 @@
                     </tr>
                 </tbody>
             </table>
+            <div id="users-pagination" class="pagination-bar"></div>
         </div>
 
         <!-- Recent Payments Table -->
+        <div class="table-header">
+            <h3><i class="fa-solid fa-credit-card" style="color:var(--col-primary);margin-right:0.5rem;"></i>Recent Payments</h3>
+        </div>
         <div class="data-table">
             <table>
                 <thead>
@@ -221,11 +320,12 @@
                     </tr>
                 </tbody>
             </table>
+            <div id="payments-pagination" class="pagination-bar"></div>
         </div>
     </main>
 
     <script src="../auth.js"></script>
+    <script src="app-registry.js"></script>
     <script src="analytics.js"></script>
 </body>
 </html>
-

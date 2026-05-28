@@ -70,12 +70,10 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     ];
 }
 
-// Check 4: Config
+// Check 4: Config (verify constants are loaded without exposing values)
 $health['checks']['config'] = [
-    'status' => 'ok',
-    'db_host' => defined('DB_HOST') ? DB_HOST : 'not defined',
-    'site_url' => defined('SITE_URL') ? SITE_URL : 'not defined',
-    'trial_days' => defined('TRIAL_DAYS') ? TRIAL_DAYS : 'not defined'
+    'status' => (defined('DB_HOST') && defined('SITE_URL') && defined('JWT_SECRET')) ? 'ok' : 'error',
+    'message' => (defined('DB_HOST') && defined('SITE_URL') && defined('JWT_SECRET')) ? 'All required constants loaded' : 'Missing required config constants'
 ];
 
 // Check 5: Write permissions (logs directory)

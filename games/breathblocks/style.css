@@ -1,0 +1,446 @@
+/* BreathBlocks: The Exhale Update */
+
+:root {
+  --bg: #050508;
+  --text: rgba(255,255,255,0.35);
+  --hue: 200;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none; /* prevent browser gestures on game */
+}
+
+/* Ambient Blobs */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  width: 50vmax;
+  height: 50vmax;
+  border-radius: 50%;
+  background: hsla(var(--hue), 50%, 40%, 0.025);
+  filter: blur(80px);
+  animation: drift 25s ease-in-out infinite alternate;
+}
+
+.b1 { top: -15%; left: -10%; }
+.b2 { bottom: -15%; right: -10%; animation-delay: -12s; }
+
+@keyframes drift {
+  to { transform: translate(8%, 8%) scale(1.15); }
+}
+
+/* Canvas */
+#c {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Touch overlay */
+#touch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: none; /* shown on touch devices by JS */
+}
+
+/* Sidebar - positioned by JS */
+#sidebar {
+  position: fixed;
+  z-index: 10;
+  display: none;
+}
+
+.sidebar-section { display: none; }
+.sidebar-label { display: none; }
+
+/* Stats overlay */
+#stats-overlay {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  pointer-events: none;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.stat span:first-child {
+  font-size: 1.85rem;
+  font-weight: 200;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  display: inline-block;
+}
+
+.stat span:first-child.pulse {
+  animation: score-pulse 0.35s ease-out;
+}
+
+@keyframes score-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.stat-label {
+  font-size: 0.58rem;
+  font-weight: 100;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+
+/* Control buttons overlay */
+#btn-overlay {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.sidebar-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.25);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.sidebar-btn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6);
+}
+
+/* ──────────────────────────────────────────
+   OVERLAYS: Start, Pause, Summary
+   ────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  transition: opacity 0.6s, visibility 0.6s;
+}
+
+.overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.overlay h1 {
+  font-size: 2.5rem;
+  font-weight: 100;
+  letter-spacing: 0.35em;
+  color: rgba(255,255,255,0.8);
+}
+
+.overlay p {
+  font-size: 0.85rem;
+  font-weight: 200;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  max-width: 280px;
+  text-align: center;
+}
+
+/* Start screen breathing preview ring */
+#start-ring {
+  margin-top: 8px;
+  opacity: 0.4;
+}
+
+/* Visible start button */
+.start-btn {
+  margin-top: 12px;
+  padding: 12px 48px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 30px;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.start-btn:hover, .start-btn:active {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+}
+
+.start-hint {
+  margin-top: 8px;
+  font-size: 0.7rem;
+  font-weight: 100;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.25);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.5; }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ──────────────────────────────────────────
+   PAUSE OVERLAY
+   ────────────────────────────────────────── */
+
+.pause-stats {
+  display: flex;
+  gap: 32px;
+  margin: 20px 0;
+}
+
+.pause-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.pause-stat span:first-child {
+  font-size: 1.5rem;
+  font-weight: 200;
+  color: rgba(255,255,255,0.6);
+}
+
+.pause-stat-label {
+  font-size: 0.6rem;
+  font-weight: 100;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+
+.pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  align-items: center;
+}
+
+.pause-action-btn {
+  padding: 10px 40px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.85rem;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  text-align: center;
+}
+
+.pause-action-btn:hover, .pause-action-btn:active {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9);
+}
+
+.pause-action-btn.secondary {
+  border-color: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.4);
+}
+
+.pause-action-btn.secondary:hover {
+  color: rgba(255,255,255,0.6);
+}
+
+/* ──────────────────────────────────────────
+   SESSION SUMMARY OVERLAY
+   ────────────────────────────────────────── */
+
+.summary-stats {
+  display: flex;
+  gap: 28px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.summary-stat span:first-child {
+  font-size: 1.4rem;
+  font-weight: 200;
+  color: rgba(255,255,255,0.6);
+}
+
+.summary-stat-label {
+  font-size: 0.55rem;
+  font-weight: 100;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+
+.summary-pb {
+  font-size: 0.75rem;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  color: rgba(255,200,100,0.7);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.summary-message {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 200;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+}
+
+/* ──────────────────────────────────────────
+   CONTROL LEGEND
+   ────────────────────────────────────────── */
+
+.controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  font-size: 0.7rem;
+  font-weight: 100;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.25);
+  text-transform: lowercase;
+  transition: opacity 2s ease;
+}
+
+.controls.faded {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.controls .sep {
+  color: rgba(255,255,255,0.1);
+}
+
+/* Touch/keyboard control hints */
+.ctrl-touch { display: none; }
+
+/* ──────────────────────────────────────────
+   MOBILE RESPONSIVE
+   ────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .overlay h1 {
+    font-size: 1.8rem;
+    letter-spacing: 0.25em;
+  }
+
+  .overlay p {
+    font-size: 0.8rem;
+    max-width: 240px;
+  }
+
+  /* On mobile, stats overlay repositioned by JS — allow horizontal layout */
+  #stats-overlay {
+    flex-direction: row;
+    gap: 24px;
+    align-items: center;
+  }
+  
+  .stat {
+    align-items: center;
+  }
+  
+  .stat span:first-child {
+    font-size: 1.3rem;
+  }
+
+  /* Buttons overlay repositioned by JS */
+  #btn-overlay {
+    gap: 12px;
+  }
+  
+  .sidebar-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .pause-stats, .summary-stats {
+    gap: 20px;
+  }
+
+  .pause-action-btn {
+    min-width: 160px;
+    padding: 10px 28px;
+  }
+}

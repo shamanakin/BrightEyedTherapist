@@ -1,0 +1,54 @@
+# Force HTTPS (optional but recommended)
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Ensure Authorization header is passed through to PHP
+SetEnvIfNoCase Authorization "^(.*)" HTTP_AUTHORIZATION=$1
+
+# Protect sensitive files from direct access
+<Files "config.local.php">
+  Order allow,deny
+  Deny from all
+</Files>
+
+<FilesMatch "\.(sql|md|local\.php|log|env)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Block access to test files
+<Files "test-email.php">
+  Order allow,deny
+  Deny from all
+</Files>
+
+<Files "test-deploy.txt">
+  Order allow,deny
+  Deny from all
+</Files>
+
+# Block access to Ruby checkout directory (unused)
+RedirectMatch 403 ^/api/stripecheckout/.*$
+
+# Bot protection (added 2025-11-26)
+# Block known malicious crawlers
+BrowserMatchNoCase "semrush" bad_bot
+BrowserMatchNoCase "ahrefs" bad_bot
+BrowserMatchNoCase "mj12bot" bad_bot
+BrowserMatchNoCase "dotbot" bad_bot
+BrowserMatchNoCase "serpstatbot" bad_bot
+BrowserMatchNoCase "ahrefsbot" bad_bot
+BrowserMatchNoCase "blexbot" bad_bot
+
+# Block empty user agents (common scraper pattern)
+RewriteCond %{HTTP_USER_AGENT} ^-?$ [NC]
+RewriteRule .* - [F,L]
+
+# Apply bot blocks (secondary defense layer)
+<IfModule mod_setenvif.c>
+  Order Allow,Deny
+  Allow from all
+  Deny from env=bad_bot
+</IfModule>
+

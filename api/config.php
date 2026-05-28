@@ -2,8 +2,9 @@
 /**
  * Configuration file for Bright Eyed Therapist Backend
  * 
- * IMPORTANT: Copy this to config.local.php and fill in your actual credentials.
- * config.local.php is gitignored for security.
+ * IMPORTANT:
+ * - Keep real production secrets in server-only `config.local.php`
+ * - Use `config.server.example.php` in this repo as the sanitized template
  */
 
 // Load local config if it exists
@@ -25,6 +26,7 @@ define('STRIPE_PUBLISHABLE_KEY', 'pk_test_your_stripe_publishable_key');
 define('STRIPE_WEBHOOK_SECRET', 'whsec_your_webhook_secret');
 
 // Stripe Price IDs (create these in Stripe Dashboard)
+define('STRIPE_PRICE_FOUNDING_MEMBER', 'price_xxxxxxxxxxxxx'); // $5/month
 define('STRIPE_PRICE_EARLY_ACCESS', 'price_xxxxxxxxxxxxx'); // $10/month
 define('STRIPE_PRICE_VIP', 'price_xxxxxxxxxxxxx'); // Future $20/month
 

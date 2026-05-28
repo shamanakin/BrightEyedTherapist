@@ -1,6 +1,7 @@
 <?php
 /**
  * Admin Analytics - Users List Endpoint
+ * Supports: ?limit=N&offset=N&search=QUERY&status=STATUS&verified=0|1
  */
 
 require_once __DIR__ . '/../database.php';
@@ -16,13 +17,45 @@ if (!$adminUser || !Utils::isAdminEmail($adminUser['email'])) {
     Utils::errorResponse('Admin access required', 403);
 }
 
+// LIMIT/OFFSET use (int) cast -- safe against injection
 $limit = min((int)($_GET['limit'] ?? 50), 100);
 $offset = max((int)($_GET['offset'] ?? 0), 0);
+$search = trim($_GET['search'] ?? '');
+$statusFilter = trim($_GET['status'] ?? '');
+$verifiedFilter = isset($_GET['verified']) ? $_GET['verified'] : '';
 
 try {
-    $users = $db->fetchAll(
-        "SELECT u.id, u.email, u.first_name, u.last_name, u.created_at, u.last_login, u.email_verified,
-                s.id as subscription_id, s.status, s.plan_name, s.trial_end, s.current_period_end,
+    $whereConditions = [];
+    $params = [];
+    
+    if ($search !== '') {
+        $whereConditions[] = "(u.email LIKE :q OR u.first_name LIKE :q OR u.last_name LIKE :q)";
+        $params['q'] = '%' . $search . '%';
+    }
+    
+    if ($statusFilter !== '') {
+        $whereConditions[] = "s.status = :status";
+        $params['status'] = $statusFilter;
+    }
+    
+    if ($verifiedFilter !== '') {
+        $whereConditions[] = "u.email_verified = :verified";
+        $params['verified'] = (int)$verifiedFilter;
+    }
+    
+    $whereClause = count($whereConditions) > 0 ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+    
+    // Total count for pagination
+    $countSql = "SELECT COUNT(DISTINCT u.id) as total
+         FROM users u
+         LEFT JOIN subscriptions s ON u.id = s.user_id AND s.id = (
+             SELECT id FROM subscriptions WHERE user_id = u.id ORDER BY created_at DESC LIMIT 1
+         )
+         {$whereClause}";
+    $totalCount = $db->fetchOne($countSql, $params)['total'];
+    
+    $sql = "SELECT u.id, u.email, u.first_name, u.last_name, u.created_at, u.last_login, u.email_verified,
+                s.id as subscription_id, s.status, s.plan_name, s.stripe_price_id, s.trial_end, s.current_period_end,
                 s.cancel_at_period_end, s.canceled_at
          FROM users u
          LEFT JOIN subscriptions s ON u.id = s.user_id AND s.id = (
@@ -31,53 +64,48 @@ try {
              ORDER BY created_at DESC 
              LIMIT 1
          )
+         {$whereClause}
          ORDER BY u.created_at DESC
-         LIMIT {$limit} OFFSET {$offset}"
-    );
+         LIMIT {$limit} OFFSET {$offset}";
+    
+    $users = $db->fetchAll($sql, $params);
     
     // Process users to add admin flag and subscription flags
     $processedUsers = [];
     foreach ($users as $user) {
-        // Check if user is admin
         $user['is_admin'] = Utils::isAdminEmail($user['email']);
-        
-        // Compute subscription flags (similar to user.php)
-        $subscriptionFlags = [];
+
         if ($user['subscription_id']) {
-            $subscriptionFlags['is_active'] = $user['status'] === 'active';
-            $subscriptionFlags['is_trialing'] = $user['status'] === 'trialing';
-            $subscriptionFlags['is_canceled'] = $user['status'] === 'canceled' || $user['cancel_at_period_end'];
-            $subscriptionFlags['is_expired'] = $user['status'] === 'incomplete_expired';
-            
-            // Calculate trial days remaining if trialing
-            if ($user['status'] === 'trialing' && $user['trial_end']) {
-                $trialEnd = strtotime($user['trial_end']);
-                $now = time();
-                $subscriptionFlags['trial_days_remaining'] = max(0, ceil(($trialEnd - $now) / 86400));
-            }
-            
-            // Check if trial has actually expired
-            if ($user['status'] === 'trialing' && $user['trial_end']) {
-                $trialEnd = strtotime($user['trial_end']);
-                if ($trialEnd < time()) {
-                    $subscriptionFlags['is_trialing'] = false;
-                    $subscriptionFlags['is_expired'] = true;
-                    $subscriptionFlags['trial_days_remaining'] = 0;
-                }
-            }
+            $subRow = [
+                'status' => $user['status'],
+                'plan_name' => $user['plan_name'],
+                'stripe_price_id' => $user['stripe_price_id'] ?? null,
+                'trial_end' => $user['trial_end'] ?? null,
+                'cancel_at_period_end' => $user['cancel_at_period_end'] ?? null,
+            ];
+            $user['plan_name'] = Utils::resolveSubscriptionPlanName(
+                $user['plan_name'],
+                $subRow,
+                $user['stripe_price_id'] ?? null
+            );
+            $subRow['plan_name'] = $user['plan_name'];
+            $user['plan_display'] = Utils::getPlanDisplayLabel($user['plan_name'], $user['status']);
+            $user['subscription_flags'] = Utils::buildSubscriptionFlags($subRow);
+        } else {
+            $user['plan_display'] = 'None';
+            $user['subscription_flags'] = [];
         }
-        
-        $user['subscription_flags'] = $subscriptionFlags;
+
         $processedUsers[] = $user;
     }
     
     Utils::jsonResponse([
         'success' => true,
-        'users' => $processedUsers
+        'users' => $processedUsers,
+        'total' => (int)$totalCount
     ]);
     
 } catch (Exception $e) {
     error_log("Admin users error: " . $e->getMessage());
     Utils::errorResponse('Failed to fetch users', 500);
 }
-

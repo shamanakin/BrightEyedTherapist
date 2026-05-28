@@ -215,11 +215,14 @@
                 <select id="filter-app">
                     <option value="">All Apps</option>
                     <option value="emdr">EMDR Suite</option>
-                    <option value="timeline">Trauma Timeline</option>
+                    <option value="emdr-guided">EMDR Guided</option>
+                    <option value="brainspotting">Brainspotting</option>
+                    <option value="lifemap">Life Map</option>
                     <option value="genogram">Genogram Genie</option>
-                    <option value="guidedclarity">Guided Clarity</option>
-                    <option value="notegenie">Note Genie</option>
-                    <option value="fearfacer">ERP Fear Facer</option>
+                    <option value="website">Website / Account</option>
+                    <option value="guidedclarity">Guided Clarity (legacy)</option>
+                    <option value="notegenie">Note Genie (legacy)</option>
+                    <option value="fearfacer">Fear Facer (legacy)</option>
                 </select>
             </label>
             <button onclick="loadFeedback()" class="btn btn-primary" style="margin-left: auto;">
@@ -288,6 +291,7 @@
     </div>
 
     <script src="../auth.js"></script>
+    <script src="app-registry.js"></script>
     <script>
         const ADMIN_API_BASE = '/api/admin';
         let allFeedback = [];
@@ -360,11 +364,15 @@
             const filtered = allFeedback.filter(f => {
                 if (typeFilter && f.type !== typeFilter) return false;
                 if (statusFilter && f.status !== statusFilter) return false;
-                if (appFilter && f.app_name !== appFilter) return false;
+                if (appFilter && normalizeAppSlug(f.app_name) !== appFilter && f.app_name !== appFilter) return false;
                 return true;
             });
             
             renderFeedback(filtered);
+        }
+
+        function formatFeedbackAppName(name) {
+            return formatAppDisplayName(name);
         }
 
         function renderFeedback(feedback) {
@@ -392,7 +400,7 @@
                 const priorityClass = `badge-priority-${f.priority}`;
                 const priorityBadge = `<span class="badge ${priorityClass}">${f.priority}</span>`;
                 
-                const appName = f.app_name ? f.app_name.charAt(0).toUpperCase() + f.app_name.slice(1) : 'General';
+                const appName = formatFeedbackAppName(f.app_name);
                 const userName = f.user_name || f.user_email || 'Anonymous';
                 const date = new Date(f.created_at).toLocaleDateString();
                 

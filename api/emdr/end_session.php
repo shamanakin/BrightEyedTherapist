@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Utils::errorResponse('Method not allowed', 405);
 }
 
-$userId = Utils::requireAuth();
 $input = Utils::getJsonInput();
+$userId = Utils::requireAuth($input['authToken'] ?? null);
 
 $sessionToken = $input['sessionToken'] ?? null;
 

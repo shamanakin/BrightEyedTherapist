@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#050508">
+  <link rel="icon" type="image/x-icon" href="../../assets/owl_favicon_mattegray.ico">
+  <link rel="icon" type="image/png" sizes="512x512" href="../../assets/owl_favicon_mattegray_512.png">
+  <link rel="apple-touch-icon" href="../../assets/owl_favicon_mattegray_512.png">
+  <title>BreathBlocks - Bright Eyed Therapist</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Blobs -->
+  <div class="ambient">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+  </div>
+
+  <!-- Stats Overlay (positioned by JS) -->
+  <div id="stats-overlay">
+    <div class="stat"><span id="sq">0</span><span class="stat-label">squares</span></div>
+    <div class="stat"><span id="cy">0</span><span class="stat-label">cycles</span></div>
+    <div class="stat" id="streak-stat" style="display:none;"><span id="sk">0</span><span class="stat-label" id="sk-label">streak</span></div>
+  </div>
+
+  <!-- Button Overlay (positioned by JS) -->
+  <div id="btn-overlay">
+    <button id="pause-btn" class="sidebar-btn" aria-label="Pause">⏸</button>
+    <button id="close-btn" class="sidebar-btn" aria-label="Close">×</button>
+  </div>
+
+  <!-- Control Legend -->
+  <div id="controls" class="controls">
+    <span class="ctrl-kb">← →</span>
+    <span class="ctrl-kb sep">·</span>
+    <span class="ctrl-kb">Q E rotate</span>
+    <span class="ctrl-kb sep">·</span>
+    <span class="ctrl-kb">↑ drop</span>
+    <span class="ctrl-touch">tap · swipe</span>
+  </div>
+
+  <!-- Touch overlay (transparent, over canvas, touch devices only) -->
+  <div id="touch-overlay"></div>
+
+  <!-- Canvas -->
+  <canvas id="c"></canvas>
+
+  <!-- Start Screen -->
+  <div id="start" class="overlay">
+    <h1>breathblocks</h1>
+    <p>build 3×3 squares — they dissolve on the exhale</p>
+    <canvas id="start-ring" width="60" height="60"></canvas>
+    <button id="go" class="start-btn">start</button>
+    <span class="start-hint" id="start-hint">press space to start</span>
+  </div>
+
+  <!-- Pause Overlay -->
+  <div id="pause-overlay" class="overlay hidden">
+    <h1>paused</h1>
+    <div class="pause-stats">
+      <div class="pause-stat"><span id="pause-dur">0:00</span><span class="pause-stat-label">duration</span></div>
+      <div class="pause-stat"><span id="pause-cy">0</span><span class="pause-stat-label">cycles</span></div>
+      <div class="pause-stat"><span id="pause-sq">0</span><span class="pause-stat-label">squares</span></div>
+    </div>
+    <div class="pause-actions">
+      <button id="resume-btn" class="pause-action-btn">resume</button>
+      <button id="end-btn" class="pause-action-btn secondary">end session</button>
+    </div>
+  </div>
+
+  <!-- Session Summary Overlay -->
+  <div id="summary-overlay" class="overlay hidden">
+    <h1>session complete</h1>
+    <div class="summary-stats">
+      <div class="summary-stat"><span id="sum-dur">0:00</span><span class="summary-stat-label">duration</span></div>
+      <div class="summary-stat"><span id="sum-cy">0</span><span class="summary-stat-label">breath cycles</span></div>
+      <div class="summary-stat"><span id="sum-sq">0</span><span class="summary-stat-label">squares dissolved</span></div>
+      <div class="summary-stat"><span id="sum-sk">0</span><span class="summary-stat-label" id="sum-sk-label">best streak</span></div>
+    </div>
+    <div id="sum-pb" class="summary-pb" style="display:none;">personal best!</div>
+    <p class="summary-message" id="sum-msg">nice reset</p>
+    <button id="sum-back-btn" class="pause-action-btn">back to dashboard</button>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Brainspotting Session Viewer</title>
+    <!-- Prevent browser caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            overscroll-behavior: contain;
+            user-select: none;
+            cursor: default;
+            font-family: 'Inter', sans-serif;
+        }
+        .viewer-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: #1a1a1a;
+            overflow: hidden;
+        }
+        #pointer {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+            will-change: left, top;
+            transition: left 0.1s ease-out, top 0.1s ease-out, background-color 0.2s ease;
+        }
+        /* Status indicator styles */
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: #374151;
+            color: #9ca3af;
+        }
+        .status-indicator.connected {
+            background: #065f46;
+            color: #6ee7b7;
+        }
+        .status-indicator.scanning {
+            background: #1e40af;
+            color: #93c5fd;
+        }
+        .status-indicator.holding {
+            background: #7c2d12;
+            color: #fdba74;
+        }
+        .status-indicator.ended {
+            background: #991b1b;
+            color: #fca5a5;
+        }
+        .viewer-guidance {
+            max-width: 18rem;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            color: #d1d5db;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 0.75rem;
+            padding: 0.65rem 0.85rem;
+        }
+        .viewer-watermark {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            color: #6b7280;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        /* Brainspot locked indicator */
+        .brainspot-locked {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid rgba(74, 222, 128, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+        }
+        .brainspot-locked.visible {
+            display: block;
+            animation: pulse-green 2s ease-in-out infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.8;
+            }
+        }
+        @media (max-width: 640px) {
+            .viewer-guidance {
+                top: auto;
+                left: 50%;
+                bottom: 4.25rem;
+                transform: translateX(-50%);
+                width: min(calc(100vw - 1.5rem), 22rem);
+                text-align: center;
+            }
+            .viewer-watermark {
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 0.85rem;
+                font-size: 0.68rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="viewer-container" class="viewer-container">
+    <!-- Status indicator -->
+    <div class="absolute top-4 right-4 z-10">
+        <div id="status-indicator" class="status-indicator">
+            Ready to watch
+        </div>
+    </div>
+    <div id="viewer-guidance" class="viewer-guidance absolute top-4 left-4 z-10">
+        Your clinician is guiding this session from their screen. Follow the pointer and let them know if you need a pause, a slower pace, or support.
+    </div>
+
+    <!-- Bottom watermark -->
+    <div class="viewer-watermark">
+        Brainspotting Viewer · Built by BrightEyedTherapist
+    </div>
+
+    <!-- Pointer -->
+    <div id="pointer"></div>
+
+    <!-- Brainspot locked indicator -->
+    <div id="brainspot-locked" class="brainspot-locked"></div>
+</div>
+
+<!-- Pre-watch lock overlay -->
+<div id="viewer-lock-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-40" style="backdrop-filter: blur(8px);">
+    <div class="text-center">
+        <button id="start-watching-btn" class="px-8 py-4 bg-blue-600 text-white text-xl rounded-xl hover:bg-blue-700 transition shadow-2xl">
+            Start Viewing
+        </button>
+        <p class="text-gray-400 mt-4 text-sm max-w-md">Click to begin when your clinician is ready. Follow the pointer and tell them if you need a pause, a slower pace, or support.</p>
+    </div>
+</div>
+
+<script>
+    const DEBUG = false;
+    
+    /*************** Viewer App State ***************/
+    const viewerContainer = document.getElementById('viewer-container');
+    const viewerGuidance = document.getElementById('viewer-guidance');
+    const statusIndicator = document.getElementById('status-indicator');
+    const pointer = document.getElementById('pointer');
+    const brainspotLocked = document.getElementById('brainspot-locked');
+    const pointerSize = 50;
+
+    let sessionToken = null;
+    let pollInterval = null;
+    let audioUnlocked = false;
+    let remoteAudioEnabled = false;
+    let currentPhase = 'idle';
+
+    /*************** Audio (Biolateral) ***************/
+    let audioContext = null;
+    let stereoPanner = null;
+    let oscillator = null;
+    let gainNode = null;
+    let audioReady = false;
+
+    function initAudio() {
+        if (audioReady) return;
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            stereoPanner = audioContext.createStereoPanner();
+            gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+            oscillator = audioContext.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 440;
+            oscillator.connect(stereoPanner);
+            stereoPanner.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            audioReady = true;
+        } catch (e) {
+            console.error("Audio init failed:", e);
+        }
+    }
+
+    function updateBiolateralAudio(positionFactor) {
+        if (!audioReady || !audioUnlocked || !remoteAudioEnabled || !gainNode || !audioContext) return;
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        const panVal = positionFactor * 2 - 1;
+        stereoPanner.pan.setValueAtTime(panVal, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+    }
+
+    function stopAudio() {
+        if (gainNode && audioContext) {
+            gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+        }
+    }
+
+    /*************** Session Sync ***************/
+    async function pollSessionState() {
+        if (!sessionToken) return;
+
+        try {
+            const cacheBuster = Date.now();
+            const response = await fetch(`/api/brainspotting/get_session.php?session=${encodeURIComponent(sessionToken)}&_t=${cacheBuster}`, {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            
+            if (response.status === 404 || response.status === 410) {
+                const data = await response.json();
+                handleSessionError(data.error || 'Session has ended');
+                return;
+            }
+            
+            const data = await response.json();
+
+            if (data.success) {
+                if (DEBUG) console.log('[Viewer] Received state:', data.state);
+                applyState(data.state);
+            } else {
+                handleSessionError(data.error || 'Session error');
+            }
+        } catch (error) {
+            console.error('[Viewer] Poll failed:', error);
+            statusIndicator.textContent = 'Reconnecting...';
+            statusIndicator.className = 'status-indicator';
+        }
+    }
+
+    function applyState(state) {
+        if (!state) return;
+
+        const phase = state.phase || 'idle';
+        const color = state.color || '#FFFFFF';
+        remoteAudioEnabled = !!state.audioEnabled;
+
+        // Update pointer color
+        pointer.style.backgroundColor = color;
+        pointer.style.boxShadow = `0 0 30px ${color}80`;
+
+        // Calculate pointer position
+        const containerW = viewerContainer.clientWidth;
+        const containerH = viewerContainer.clientHeight;
+        
+        // Handle normalized brainspot coordinates
+        let pointerX, pointerY;
+        
+        if (state.pointerX !== undefined && state.containerWidth) {
+            // Scale from host's container size to our container size
+            const scaleX = containerW / state.containerWidth;
+            const scaleY = containerH / state.containerHeight;
+            pointerX = state.pointerX * scaleX - pointerSize / 2;
+            pointerY = state.pointerY * scaleY - pointerSize / 2;
+        } else if (state.brainspot) {
+            // Use normalized coordinates
+            pointerX = state.brainspot.x * containerW - pointerSize / 2;
+            pointerY = state.brainspot.y * containerH - pointerSize / 2;
+        } else {
+            pointerX = containerW / 2 - pointerSize / 2;
+            pointerY = containerH / 2 - pointerSize / 2;
+        }
+
+        pointer.style.left = `${pointerX}px`;
+        pointer.style.top = `${pointerY}px`;
+
+        // Update status and brainspot indicator
+        if (phase === 'holding') {
+            statusIndicator.textContent = 'Holding Brainspot';
+            statusIndicator.className = 'status-indicator holding';
+            
+            // Show brainspot ring
+            if (state.brainspot) {
+                brainspotLocked.style.left = `${state.brainspot.x * containerW}px`;
+                brainspotLocked.style.top = `${state.brainspot.y * containerH}px`;
+                brainspotLocked.classList.add('visible');
+            }
+            stopAudio();
+        } else if (phase === 'x-scan' || phase === 'y-scan' || phase === 'manual') {
+            statusIndicator.textContent = 'Scanning...';
+            statusIndicator.className = 'status-indicator scanning';
+            brainspotLocked.classList.remove('visible');
+            
+            // Update audio based on X position
+            const positionFactor = (pointerX + pointerSize / 2) / containerW;
+            updateBiolateralAudio(positionFactor);
+        } else if (phase === 'idle') {
+            statusIndicator.textContent = 'Waiting for clinician...';
+            statusIndicator.className = 'status-indicator connected';
+            brainspotLocked.classList.remove('visible');
+            stopAudio();
+        }
+
+        currentPhase = phase;
+
+        // Mute audio if remote disabled it
+        if (!remoteAudioEnabled) {
+            stopAudio();
+        }
+    }
+
+    function handleSessionError(error) {
+        console.error('[Viewer] Session error:', error);
+        
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+        stopAudio();
+        
+        sessionStorage.removeItem('currentBsSession');
+
+        // Always keep the circle visible (centered) even if the session ends/errors.
+        // This prevents a "blank" screen for the client.
+        try {
+            const cx = viewerContainer.clientWidth / 2 - pointerSize / 2;
+            const cy = viewerContainer.clientHeight / 2 - pointerSize / 2;
+            pointer.style.left = `${cx}px`;
+            pointer.style.top = `${cy}px`;
+            pointer.style.backgroundColor = '#FFFFFF';
+            pointer.style.boxShadow = `0 0 30px rgba(255,255,255,0.5)`;
+            pointer.style.zIndex = '60';
+            brainspotLocked.classList.remove('visible');
+        } catch (_) {
+            // non-fatal
+        }
+
+        // Show a non-blocking overlay (does not hide the circle).
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50';
+        overlay.style.backdropFilter = 'blur(8px)';
+        overlay.innerHTML = `
+            <div class="bg-gray-800/90 p-8 rounded-xl shadow-2xl text-center max-w-md">
+                <h2 class="text-2xl font-bold text-white mb-4">Session Paused or Ended</h2>
+                <p class="text-gray-300 mb-3">${String(error || 'Session ended').replace(/</g, '&lt;')}</p>
+                <p class="text-sm text-gray-400 mb-6">If your clinician is continuing, they can reopen sharing from their screen. Otherwise you can close this tab.</p>
+                <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                    <button id="retry-session-btn" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                        Check Again
+                    </button>
+                    <button id="close-tab-btn" class="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition">
+                        Close Tab
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('retry-session-btn').addEventListener('click', () => window.location.reload());
+        document.getElementById('close-tab-btn').addEventListener('click', () => window.close());
+
+        statusIndicator.textContent = 'Session Ended';
+        statusIndicator.className = 'status-indicator ended';
+    }
+
+    /*************** Init ***************/
+    document.addEventListener('DOMContentLoaded', () => {
+        // Get session token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSessionToken = urlParams.get('session');
+
+        // Check for session change
+        const currentlyViewing = sessionStorage.getItem('currentBsSession');
+        if (currentlyViewing && currentlyViewing !== urlSessionToken) {
+            sessionStorage.clear();
+            window.location.reload(true);
+            return;
+        }
+        
+        if (urlSessionToken) {
+            sessionStorage.setItem('currentBsSession', urlSessionToken);
+        }
+        
+        sessionToken = urlSessionToken;
+
+        if (!sessionToken) {
+            document.getElementById('viewer-lock-overlay').innerHTML = `
+                <div class="text-center">
+                    <p class="text-red-400 text-xl font-semibold">No session specified</p>
+                    <p class="text-gray-400 mt-2">Invalid viewer URL</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Center pointer initially
+        const centerX = viewerContainer.clientWidth / 2 - pointerSize / 2;
+        const centerY = viewerContainer.clientHeight / 2 - pointerSize / 2;
+        pointer.style.left = `${centerX}px`;
+        pointer.style.top = `${centerY}px`;
+
+        // Handle "Start Watching" button
+        document.getElementById('start-watching-btn').addEventListener('click', () => {
+            initAudio();
+            audioUnlocked = true;
+            viewerGuidance?.classList.add('hidden');
+            
+            const overlay = document.getElementById('viewer-lock-overlay');
+            overlay.style.transition = 'opacity 0.3s';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 300);
+            
+            // Start polling
+            pollSessionState();
+            pollInterval = setInterval(pollSessionState, 333); // Smooth enough for telehealth without over-polling shared hosting
+            
+            statusIndicator.textContent = 'Connecting...';
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (currentPhase === 'idle') {
+                const cx = viewerContainer.clientWidth / 2 - pointerSize / 2;
+                const cy = viewerContainer.clientHeight / 2 - pointerSize / 2;
+                pointer.style.left = `${cx}px`;
+                pointer.style.top = `${cy}px`;
+            }
+        });
+    });
+</script>
+</body>
+</html>
+

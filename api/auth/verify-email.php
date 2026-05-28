@@ -35,7 +35,7 @@ try {
     
     // Find user with matching email (case-insensitive lookup)
     $user = $db->fetchOne(
-        "SELECT id, email, email_verified, verification_token 
+        "SELECT id, email, email_verified, verification_token, verification_token_expires 
          FROM users 
          WHERE LOWER(email) = LOWER(:email)",
         ['email' => $email]
@@ -62,6 +62,11 @@ try {
     // Verify the token matches (timing-safe comparison)
     if (!hash_equals($user['verification_token'], $token)) {
         Utils::errorResponse('Invalid or expired verification link. The link may have been superseded by a newer verification email.', 400);
+    }
+
+    // Check if token has expired (48-hour window; null means legacy token with no expiry -- still accept)
+    if (!empty($user['verification_token_expires']) && strtotime($user['verification_token_expires']) < time()) {
+        Utils::errorResponse('Verification link has expired. Please request a new one from your account page.', 400);
     }
     
     // Mark email as verified and clear the token

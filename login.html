@@ -39,7 +39,8 @@
                         <label class="form-label">Password</label>
                         <input type="password" id="password" class="form-input" required>
                     </div>
-                    <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Sign In</button>
+                    <div id="login-error" style="display:none; background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:0.75rem 1rem; border-radius:8px; font-size:0.85rem; margin-top:1rem;"></div>
+                    <button type="submit" class="btn btn-beam" style="width: 100%; margin-top: 1rem;">Sign In</button>
                 </form>
 
                 <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
@@ -48,7 +49,7 @@
             </div>
             
             <p style="text-align: center; margin-top: 1.5rem; color: var(--col-text-muted);">
-                Don't have an account? <a href="register.html" style="color: var(--col-primary); font-weight: 600; text-decoration: none;">Start Free Trial</a>
+                Don't have an account? <a href="register.html" style="color: var(--col-primary); font-weight: 600; text-decoration: none;">Create Free Account</a>
             </p>
         </div>
     </main>
@@ -96,12 +97,18 @@
                     errorMsg += error.message;
                 }
                 
-                alert(errorMsg);
+                const errorDiv = document.getElementById('login-error');
+                errorDiv.textContent = errorMsg;
+                errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
         });
     </script>
+
+    <footer style="padding: 2rem 0; text-align: center;">
+        <p style="font-size: 0.85rem; color: var(--col-text-muted);">&copy; 2025–2026 Bright Eyed Therapist.</p>
+    </footer>
 
 </body>
 </html>

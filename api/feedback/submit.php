@@ -27,8 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Utils::errorResponse('Description must be at least 10 characters long.');
     }
     
-    if (!empty($appName) && !in_array($appName, ['emdr', 'genogram', 'timeline', 'guidedclarity', 'notegenie', 'fearfacer'])) {
-        Utils::errorResponse('Invalid app name.');
+    $allowedApps = ['emdr', 'emdr-guided', 'brainspotting', 'lifemap', 'genogram', 'website'];
+    if (!empty($appName)) {
+        if ($appName === 'timeline') {
+            $appName = 'lifemap';
+        }
+        if (!in_array($appName, $allowedApps, true)) {
+            Utils::errorResponse('Invalid app name.');
+        }
     }
     
     if (!in_array($priority, ['low', 'medium', 'high', 'critical'])) {

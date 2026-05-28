@@ -23,7 +23,7 @@ try {
     
     switch ($eventType) {
         case 'pageview':
-            Utils::logPageView($userId, $data['path'] ?? '');
+            Utils::logPageView($userId, $data['path'] ?? '', $data['referrer'] ?? null);
             break;
             
         case 'app_usage':

@@ -1,6 +1,136 @@
+// === LOCALHOST DEV BYPASS ===
+// This bypass only activates on localhost/127.0.0.1/file:// for local testing
+// Production domains will never match, so this is safe to deploy
+const isLocalDev = window.location.hostname === 'localhost' || 
+                   window.location.hostname === '127.0.0.1' || 
+                   window.location.protocol === 'file:';
+if (isLocalDev) {
+    // Counter for generating unique session tokens
+    let devSessionCounter = 0;
+    
+    window.Auth = {
+        _isDevBypass: true, // Flag to prevent const Auth from shadowing this
+        getToken: () => 'dev-token-local',
+        setToken: () => {},
+        clearToken: () => {},
+        getUser: () => ({ 
+            id: 999, 
+            email: 'dev@localhost.test', 
+            firstName: 'Dev',
+            lastName: 'User',
+            subscription: { status: 'active', plan_name: 'dev', trial_end: null }
+        }),
+        setUser: () => {},
+        getCurrentUser: async () => window.Auth.getUser(),
+        checkAccess: () => true,
+        checkPremiumAccess: () => true,
+        checkFoundingAccess: () => true,
+        isPremiumPlan: () => true,
+        getDaysLeft: () => 99,
+        apiRequest: async (endpoint, options) => {
+            console.log('[DEV] Mock API request:', endpoint);
+            
+            if (endpoint.includes('/emdr/create_session.php')) {
+                devSessionCounter++;
+                const mockToken = 'dev-emdr-' + Date.now() + '-' + devSessionCounter;
+                const viewerUrl =
+                    window.location.origin +
+                    '/tool_emdr_viewer.html?session=' +
+                    encodeURIComponent(mockToken);
+                return {
+                    success: true,
+                    sessionToken: mockToken,
+                    viewerUrl,
+                    guided: true,
+                };
+            }
+            if (endpoint.includes('/emdr/update_session.php') || endpoint.includes('/emdr/end_session.php')) {
+                return { success: true };
+            }
+            if (endpoint.includes('/emdr/get_session.php')) {
+                return {
+                    success: true,
+                    state: {
+                        pattern: 'dot',
+                        path: 'horizontal',
+                        speed: 4,
+                        dotSize: 50,
+                        color: '#FFFFFF',
+                        audioEnabled: false,
+                        setCount: 0,
+                        isRunning: false,
+                    },
+                };
+            }
+
+            // Mock brainspotting session creation
+            if (endpoint.includes('/brainspotting/create_session.php')) {
+                devSessionCounter++;
+                const mockToken = 'dev-session-' + Date.now() + '-' + devSessionCounter;
+                const viewerUrl = window.location.origin + '/tool_brainspotting_viewer.html?session=' + encodeURIComponent(mockToken);
+                console.log('[DEV] Created mock brainspotting session:', mockToken);
+                return { 
+                    success: true, 
+                    sessionToken: mockToken,
+                    viewerUrl: viewerUrl
+                };
+            }
+            
+            // Mock brainspotting session update (just acknowledge)
+            if (endpoint.includes('/brainspotting/update_session.php')) {
+                return { success: true };
+            }
+            
+            // Mock brainspotting session end
+            if (endpoint.includes('/brainspotting/end_session.php')) {
+                return { success: true };
+            }
+            
+            // Mock brainspotting get session (for viewer)
+            if (endpoint.includes('/brainspotting/get_session.php')) {
+                // Return mock state - in real usage the viewer polls this
+                return { 
+                    success: true, 
+                    state: {
+                        phase: 'idle',
+                        pointerX: window.innerWidth / 2,
+                        pointerY: window.innerHeight / 2,
+                        containerWidth: window.innerWidth,
+                        containerHeight: window.innerHeight,
+                        color: '#FFFFFF',
+                        audioEnabled: false,
+                        brainspot: { x: 0.5, y: 0.5 }
+                    }
+                };
+            }
+            
+            // Default mock response
+            return { success: true };
+        },
+        register: async () => window.Auth.getUser(),
+        login: async () => window.Auth.getUser(),
+        logout: () => { window.location.href = 'index.html'; },
+        createCheckoutSession: async () => { alert('[DEV] Checkout disabled in dev mode'); },
+        cancelSubscription: async () => true,
+        resumeSubscription: async () => ({ success: true, message: 'Dev mode', subscription: { status: 'active', cancel_at_period_end: false } }),
+        trackEvent: async () => {},
+        trackPageView: () => {},
+        trackAppUsage: () => {},
+        deleteAccount: async () => true,
+        forceExpire: () => {}
+    };
+    console.log('[DEV] Auth bypass active - running in local dev mode (' + window.location.protocol + ')');
+}
+// === END DEV BYPASS ===
+
 const API_BASE = '/api'; // Adjust if needed for your DreamHost setup
 
-const Auth = {
+// If dev bypass already set window.Auth, use that (prevents shadowing)
+if (window.Auth && window.Auth._isDevBypass) {
+    console.log('[DEV] Using dev bypass Auth - skipping real Auth definition');
+    var Auth = window.Auth;
+} else {
+var Auth = {
     // Get stored token
     getToken: () => {
         return localStorage.getItem('bet_token');
@@ -41,6 +171,8 @@ const Auth = {
                 s.trial_start = s.trialStart;
                 delete s.trialStart;
             }
+            const cancelRaw = s.cancel_at_period_end;
+            s.cancel_at_period_end = (cancelRaw === true || cancelRaw === 1 || cancelRaw === '1');
         }
         localStorage.setItem('bet_user', JSON.stringify(user));
     },
@@ -81,17 +213,20 @@ const Auth = {
     },
     
     // Register new user
-    register: async (email, password, firstName, lastName, planChoice = 'trial') => {
+    register: async (email, password, firstName, lastName, planChoice = 'free', turnstileToken = null) => {
         try {
+            const body = {
+                email,
+                password,
+                firstName,
+                lastName,
+                planChoice
+            };
+            if (turnstileToken) body.turnstileToken = turnstileToken;
+
             const data = await Auth.apiRequest('/auth/register.php', {
                 method: 'POST',
-                body: JSON.stringify({
-                    email,
-                    password,
-                    firstName,
-                    lastName,
-                    planChoice
-                })
+                body: JSON.stringify(body)
             });
             
             if (data.success) {
@@ -130,6 +265,19 @@ const Auth = {
     
     // Logout user
     logout: () => {
+        const token = Auth.getToken();
+        if (token && !isLocalDev) {
+            fetch(`${API_BASE}/auth/logout.php`, {
+                method: 'POST',
+                keepalive: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }).catch(() => {
+                // Best effort only. Clear local state even if the request fails.
+            });
+        }
         Auth.clearToken();
         window.location.href = 'index.html';
     },
@@ -162,39 +310,70 @@ const Auth = {
         }
     },
     
-    // Check if user has access to apps
-    checkAccess: () => {
+    // Admin check -- uses server-provided isAdmin flag to avoid client-side list drift
+    isAdmin: () => {
+        const user = Auth.getUser();
+        return !!(user && user.isAdmin);
+    },
+
+    // Check if user has free-tier access (logged in = free access)
+    checkFreeAccess: () => {
+        const user = Auth.getUser();
+        return !!user;
+    },
+
+    // Premium tier: trial, founding member, legacy paid plans, future subscribers
+    isPremiumPlan: (planName) => {
+        const plan = (planName || '').toLowerCase();
+        return plan !== '' && plan !== 'free';
+    },
+
+    checkPremiumAccess: () => {
         const user = Auth.getUser();
         if (!user) return false;
-        
-        // Prefer server-provided isAdmin flag (case-insensitive on server)
-        if (user.isAdmin) {
-            return true;
-        }
-        
-        // Fallback for cached user data before isAdmin was added
-        const adminEmails = [
-            'matthew@brighteyedtherapist.com',
-            'mdheake@gmail.com'
-        ];
-        if (adminEmails.includes(user.email?.toLowerCase())) {
-            return true;
-        }
-        
+        if (Auth.isAdmin()) return true;
+
         const subscription = user.subscription;
         if (!subscription) return false;
-        
-        // Active subscription
-        if (subscription.status === 'active') return true;
-        
-        // Valid trial
-        if (subscription.status === 'trialing') {
-            const trialEnd = new Date(subscription.trial_end);
-            const now = new Date();
-            return now < trialEnd;
+
+        const status = subscription.status;
+        const planName = subscription.plan_name || subscription.plan;
+
+        if (status === 'trialing') {
+            if (!subscription.trial_end) return true;
+            return new Date(subscription.trial_end) > new Date();
         }
-        
+
+        if (status === 'active') {
+            return Auth.isPremiumPlan(planName);
+        }
+
         return false;
+    },
+
+    // Paid tools use Premium access (alias for backward compatibility)
+    checkPaidAccess: () => {
+        return Auth.checkPremiumAccess();
+    },
+
+    // Founding Member — guided EMDR and founding-only tools
+    checkFoundingAccess: () => {
+        const user = Auth.getUser();
+        if (!user) return false;
+        if (Auth.isAdmin()) return true;
+
+        const subscription = user.subscription;
+        if (!subscription) return false;
+
+        return (
+            subscription.status === 'active' &&
+            subscription.plan_name === 'founding_member'
+        );
+    },
+
+    // Legacy wrapper -- checks paid access (backward compatibility)
+    checkAccess: () => {
+        return Auth.checkPaidAccess();
     },
     
     // Get days left in trial
@@ -214,7 +393,7 @@ const Auth = {
     },
     
     // Create Stripe checkout session
-    createCheckoutSession: async (plan = 'early_access') => {
+    createCheckoutSession: async (plan = 'founding_member') => {
         try {
             const data = await Auth.apiRequest('/stripe/create-checkout.php', {
                 method: 'POST',
@@ -240,16 +419,46 @@ const Auth = {
             const data = await Auth.apiRequest('/stripe/cancel-subscription.php', {
                 method: 'POST'
             });
-            
+
             if (data.success) {
-                // Refresh user data
-                await Auth.getCurrentUser();
-                return true;
+                const cached = Auth.getUser() || {};
+                if (data.subscription) {
+                    cached.subscription = data.subscription;
+                    Auth.setUser(cached);
+                } else {
+                    await Auth.getCurrentUser();
+                }
+                return data;
             }
-            
-            return false;
+
+            throw new Error(data.error || 'Failed to cancel subscription');
         } catch (error) {
             console.error('Cancel error:', error);
+            throw error;
+        }
+    },
+
+    // Resume subscription (undo cancel at period end)
+    resumeSubscription: async () => {
+        try {
+            const data = await Auth.apiRequest('/stripe/resume-subscription.php', {
+                method: 'POST'
+            });
+
+            if (data.success) {
+                const cached = Auth.getUser() || {};
+                if (data.subscription) {
+                    cached.subscription = data.subscription;
+                    Auth.setUser(cached);
+                } else {
+                    await Auth.getCurrentUser();
+                }
+                return data;
+            }
+
+            throw new Error(data.error || 'Failed to resume subscription');
+        } catch (error) {
+            console.error('Resume error:', error);
             throw error;
         }
     },
@@ -272,7 +481,7 @@ const Auth = {
     
     // Track page view
     trackPageView: (path) => {
-        Auth.trackEvent('pageview', { path });
+        Auth.trackEvent('pageview', { path, referrer: document.referrer || null });
     },
     
     // Track app usage
@@ -285,6 +494,28 @@ const Auth = {
         });
     },
     
+    // Resend verification email
+    resendVerification: async () => {
+        try {
+            const user = Auth.getUser();
+            if (!user || !user.email) {
+                throw new Error('No user email found. Please sign in again.');
+            }
+            const data = await Auth.apiRequest('/auth/resend-verification.php', {
+                method: 'POST',
+                body: JSON.stringify({ email: user.email })
+            });
+            // Normalize response key for frontend
+            if (data.already_verified) {
+                data.alreadyVerified = true;
+            }
+            return data;
+        } catch (error) {
+            console.error('Resend verification error:', error);
+            throw error;
+        }
+    },
+
     // Delete user account permanently
     deleteAccount: async (confirmation) => {
         try {
@@ -313,48 +544,13 @@ const Auth = {
             Auth.setUser(user);
             location.reload();
         }
-    },
-    
-    // Check if user's email is verified
-    isEmailVerified: () => {
-        const user = Auth.getUser();
-        return user?.emailVerified === true;
-    },
-    
-    // Resend verification email
-    resendVerification: async () => {
-        const user = Auth.getUser();
-        if (!user?.email) {
-            throw new Error('No user email found');
-        }
-        
-        try {
-            const response = await fetch(`${API_BASE}/auth/resend-verification.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: user.email })
-            });
-            
-            const data = await response.json();
-            
-            if (data.already_verified) {
-                // Update local state
-                user.emailVerified = true;
-                Auth.setUser(user);
-                return { success: true, alreadyVerified: true };
-            }
-            
-            if (response.ok) {
-                return { success: true, alreadyVerified: false };
-            }
-            
-            throw new Error(data.error || 'Failed to resend verification');
-        } catch (error) {
-            console.error('Resend verification error:', error);
-            throw error;
-        }
     }
 };
+} // End of else block for dev bypass check
+
+if (typeof window !== 'undefined' && typeof Auth !== 'undefined') {
+    window.Auth = Auth;
+}
 
 // Track page view on load
 if (document.readyState === 'loading') {

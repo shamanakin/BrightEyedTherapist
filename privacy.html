@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
 </head>
 <body>
 
@@ -22,12 +24,23 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html">Features</a>
+                <a href="index.html#tools">Tools</a>
                 <a href="about.html">About</a>
+                <a href="feedback.html">Feedback</a>
                 <a href="contact.html">Contact</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="about.html">About</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="contact.html">Contact</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main class="container" style="padding-top: 3rem; padding-bottom: 5rem; max-width: 800px;">
@@ -72,7 +85,7 @@
             <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
                 <li>
                     <strong>Usage Data.</strong> We may collect information about how you access and use the Service,
-                    such as pages viewed, apps opened (EMDR Suite, Genogram Genie, Trauma Timeline), timestamps,
+                    such as pages viewed, apps opened (EMDR Suite, EMDR Guided, Genogram Genie, Life Map), timestamps,
                     and basic interaction events. This helps us understand performance and improve the tools.
                 </li>
                 <li>
@@ -84,6 +97,10 @@
                     maintain your session, remember preferences, and support basic analytics.
                 </li>
             </ul>
+            <p style="margin-top: 0.75rem;">
+                In practice, the data we routinely keep server-side is primarily account, subscription, payment,
+                support, and operational metadata rather than full clinical records.
+            </p>
 
             <h3 style="margin-top: 1rem;">2.3. Data Stored Locally in the Browser</h3>
             <p>
@@ -96,7 +113,7 @@
                     visible only in that browser profile unless you export/import it.
                 </li>
                 <li>
-                    The Trauma Timeline may store visual or theme preferences in local storage.
+                    The Life Map may store visual or theme preferences in local storage.
                 </li>
             </ul>
             <p style="margin-top: 0.75rem;">
@@ -117,7 +134,7 @@
             </p>
             <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
                 <li>
-                    The EMDR Suite, Genogram Genie, and Trauma Timeline are primarily in-session visualization and
+                    The EMDR Suite, EMDR Guided, Genogram Genie, and Life Map are primarily in-session visualization and
                     conceptual tools. Clinical content entered into these tools is not persistently stored on our
                     servers by default.
                 </li>
@@ -130,12 +147,20 @@
                     We may collect limited metadata about app usage (for example, which tool was used and when) for
                     analytics purposes, but this metadata is not intended to include client-identifying content.
                 </li>
+                <li>
+                    Note Genie follows a different model: content entered into that tool is sent to the third-party AI
+                    provider you select so the provider can generate draft output.
+                </li>
             </ul>
             <p style="margin-top: 0.75rem;">
                 You, as the Clinician, are solely responsible for determining whether and how to use the Service in a
                 way that complies with HIPAA and any other privacy or data protection regulations applicable to your
                 practice. Use of the Service does not, by itself, create a Business Associate Agreement (BAA) between
                 you and Bright Eyed Therapist.
+            </p>
+            <p style="margin-top: 0.75rem;">
+                If you use Note Genie, you should review the privacy, retention, and training policies of the AI
+                provider you choose before entering any sensitive material.
             </p>
         </section>
 
@@ -275,7 +300,7 @@
     <footer>
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 

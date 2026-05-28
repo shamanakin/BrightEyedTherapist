@@ -44,7 +44,7 @@ Users are reporting they cannot log in to brighteyedtherapist.com. Diagnose:
 ```
 Stripe payments or subscriptions seem broken on brighteyedtherapist.com. Diagnose:
 1. Check api/stripe/create-checkout.php for errors
-2. Verify Stripe keys are configured in config.local.php
+2. Verify Stripe keys are configured in server-only config.local.php
 3. Check if vendor/stripe directory exists on server
 4. Look at webhook handler api/stripe/webhook.php
 5. Tell me what to verify in Stripe Dashboard
@@ -102,8 +102,8 @@ For each finding, tell me:
 Perform a security audit of the BrightEyedTherapist codebase:
 
 1. Check all API endpoints in /api/ - do they require authentication where needed?
-2. Search for any hardcoded passwords, API keys, or secrets (excluding config.local.php which is gitignored)
-3. Verify config.local.php is in .gitignore
+2. Search for any hardcoded passwords, API keys, or secrets (excluding server-only config.local.php)
+3. Verify config.local.php is in .gitignore and config.server.example.php contains placeholders only
 4. Check that admin endpoints require admin authentication
 5. Look for SQL injection vulnerabilities (direct string concatenation in queries)
 6. Check for XSS vulnerabilities (unescaped user input in HTML)
@@ -237,6 +237,8 @@ Report any responsive design issues with specific CSS fixes.
 
 ## 3. Pre-Deployment Checklist
 
+**Deployment commands:** For the exact SCP/SSH host, paths, and copy-paste deploy commands (including Windows SSH_ASKPASS), see **[DEPLOY.md](DEPLOY.md)** in the repo root.
+
 ### Before pushing to GitHub/DreamHost, verify:
 
 ```
@@ -244,7 +246,7 @@ Run through the pre-deployment checklist for BrightEyedTherapist:
 
 1. Are there any syntax errors in PHP files? (Check for unclosed brackets, missing semicolons)
 2. Are there any JavaScript console errors on key pages?
-3. Is config.local.php in .gitignore? (It should NOT be committed)
+3. Is config.local.php in .gitignore and kept server-only? (It should NOT be committed)
 4. Are there any console.log() debug statements that should be removed?
 5. Are there any hardcoded localhost URLs?
 6. Have all new features been tested locally?
@@ -259,7 +261,7 @@ These files are gitignored and must be manually maintained on the server:
 
 | File/Folder | Purpose | Action After Deploy |
 |-------------|---------|---------------------|
-| `api/config.local.php` | Database, Stripe, admin credentials | Re-upload via SFTP if overwritten |
+| `api/config.local.php` | Database, Stripe, admin credentials | Maintain on server only using `api/config.server.example.php` as the template |
 | `api/logs/` | PHP error logs | Recreate directory if missing |
 | `vendor/` | Composer dependencies (Stripe SDK) | Run `composer install` via SSH |
 
@@ -480,7 +482,7 @@ Report any blockers that must be fixed before launch.
 - **Admin panel**: /admin/ (requires whitelisted email)
 - **Health check**: /api/health.php
 - **Git autodeploy**: Pushing to GitHub triggers DreamHost pull
-- **Gitignored files**: config.local.php, vendor/, api/logs/, node_modules/
+- **Gitignored/server-only files**: config.local.php, vendor/, api/logs/, node_modules/
 
 ---
 

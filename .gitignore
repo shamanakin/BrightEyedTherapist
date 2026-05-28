@@ -1,17 +1,13 @@
 # Configuration files with sensitive data
 api/config.local.php
 
-# Composer dependencies (regenerated via composer install)
+# Composer dependencies
 vendor/
-composer.lock
 composer.phar
 
 # Logs
-api/logs/*.log
+api/logs/
 *.log
-
-# Backup directories
-backup_*/
 
 # OS files
 .DS_Store
@@ -27,6 +23,7 @@ Thumbs.db
 *.tmp
 *.bak
 *~
+test-deploy.txt
 
 # Environment files
 .env

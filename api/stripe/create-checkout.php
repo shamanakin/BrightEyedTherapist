@@ -36,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $userId = Utils::requireAuth();
 $input = Utils::getJsonInput();
 
-$planType = $input['plan'] ?? 'early_access'; // 'early_access' or 'vip'
+$planType = $input['plan'] ?? 'founding_member'; // 'founding_member', 'early_access' (legacy), or 'vip'
 
 // Validate plan type
-if (!in_array($planType, ['early_access', 'vip'])) {
+if (!in_array($planType, ['founding_member', 'early_access', 'vip'])) {
     Utils::errorResponse('Invalid plan type', 400);
 }
 
@@ -108,7 +108,12 @@ try {
     }
     
     // Determine price ID
-    $priceId = $planType === 'vip' ? STRIPE_PRICE_VIP : STRIPE_PRICE_EARLY_ACCESS;
+    $priceMap = [
+        'founding_member' => STRIPE_PRICE_FOUNDING_MEMBER,
+        'early_access'    => STRIPE_PRICE_EARLY_ACCESS,   // Legacy — existing subscribers
+        'vip'             => STRIPE_PRICE_VIP,
+    ];
+    $priceId = $priceMap[$planType] ?? STRIPE_PRICE_FOUNDING_MEMBER;
     
     // Validate price ID is configured
     if (empty($priceId) || strpos($priceId, 'price_xxx') !== false) {
@@ -132,8 +137,9 @@ try {
         ],
         'subscription_data' => [
             'metadata' => [
-                'user_id' => $userId
-            ]
+                'user_id' => $userId,
+                'plan_type' => $planType,
+            ],
         ],
         'allow_promotion_codes' => true
     ]);

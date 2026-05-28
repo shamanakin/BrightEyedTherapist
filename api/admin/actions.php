@@ -30,6 +30,19 @@ if (!$adminUser || !Utils::isAdminEmail($adminUser['email'])) {
     Utils::errorResponse('Admin access required', 403);
 }
 
+function logAdminAction($db, $adminId, $targetUserId, $action, $details = '') {
+    try {
+        $db->insert('admin_audit_log', [
+            'admin_user_id' => $adminId,
+            'target_user_id' => $targetUserId,
+            'action' => $action,
+            'details' => $details
+        ]);
+    } catch (Exception $e) {
+        error_log("Failed to write admin audit log: " . $e->getMessage());
+    }
+}
+
 $input = Utils::getJsonInput();
 $action = $input['action'] ?? '';
 $userId = isset($input['user_id']) ? (int)$input['user_id'] : 0;
@@ -67,6 +80,7 @@ try {
                     'trial_start' => date('Y-m-d H:i:s'),
                     'trial_end' => $newTrialEnd
                 ]);
+                logAdminAction($db, $adminUserId, $userId, 'extend_trial', "Created new trial: {$days} days, ends {$newTrialEnd}");
                 Utils::jsonResponse([
                     'success' => true,
                     'message' => "Created new trial with {$days} days",
@@ -87,6 +101,7 @@ try {
                     ['id' => $subscription['id']]
                 );
                 
+                logAdminAction($db, $adminUserId, $userId, 'extend_trial', "Extended by {$days} days, new end: {$newTrialEnd}");
                 Utils::jsonResponse([
                     'success' => true,
                     'message' => "Extended trial by {$days} days",
@@ -146,6 +161,7 @@ try {
                 ['id' => $subscription['id']]
             );
             
+            logAdminAction($db, $adminUserId, $userId, 'cancel_subscription', "Stripe canceled: " . ($stripeCanceled ? 'yes' : 'no'));
             // Provide feedback about Stripe cancellation status
             if ($subscription['stripe_subscription_id']) {
                 if ($stripeCanceled) {
@@ -169,15 +185,37 @@ try {
             break;
             
         case 'delete_user':
-            // Delete all user data (in order to respect foreign key constraints)
-            // Note: Due to CASCADE deletes, subscriptions will auto-delete, but we'll be explicit
+            // Cancel active Stripe subscription before deleting
+            $subscription = $db->fetchOne(
+                "SELECT stripe_subscription_id, status FROM subscriptions WHERE user_id = :user_id AND status IN ('active', 'trialing') ORDER BY created_at DESC LIMIT 1",
+                ['user_id' => $userId]
+            );
+            if ($subscription && $subscription['stripe_subscription_id']) {
+                $vendorPath = __DIR__ . '/../../vendor/autoload.php';
+                if (file_exists($vendorPath)) {
+                    require_once $vendorPath;
+                    if (class_exists('\Stripe\Stripe')) {
+                        try {
+                            \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+                            \Stripe\Subscription::cancel($subscription['stripe_subscription_id'], []);
+                            error_log("Canceled Stripe subscription for admin-deleted user {$user['email']}");
+                        } catch (Exception $stripeEx) {
+                            error_log("Failed to cancel Stripe sub during admin delete: " . $stripeEx->getMessage());
+                        }
+                    }
+                }
+            }
+
             $db->query("DELETE FROM analytics_pageviews WHERE user_id = :user_id", ['user_id' => $userId]);
             $db->query("DELETE FROM analytics_app_usage WHERE user_id = :user_id", ['user_id' => $userId]);
             $db->query("DELETE FROM sessions WHERE user_id = :user_id", ['user_id' => $userId]);
             $db->query("DELETE FROM payment_events WHERE user_id = :user_id", ['user_id' => $userId]);
+            $db->query("DELETE FROM email_logs WHERE user_id = :user_id", ['user_id' => $userId]);
+            $db->query("DELETE FROM feedback WHERE user_id = :user_id", ['user_id' => $userId]);
             $db->query("DELETE FROM subscriptions WHERE user_id = :user_id", ['user_id' => $userId]);
             $db->query("DELETE FROM users WHERE id = :id", ['id' => $userId]);
             
+            logAdminAction($db, $adminUserId, null, 'delete_user', "Deleted user {$user['email']} (was ID {$userId})");
             Utils::jsonResponse([
                 'success' => true,
                 'message' => "User {$user['email']} deleted permanently"
@@ -213,6 +251,7 @@ try {
                 ]);
             }
             
+            logAdminAction($db, $adminUserId, $userId, 'grant_lifetime', "Granted lifetime access");
             Utils::jsonResponse([
                 'success' => true,
                 'message' => "Granted lifetime access to {$user['email']}"
@@ -230,9 +269,11 @@ try {
             if ($subscription) {
                 $db->update('subscriptions',
                     [
-                        'status' => 'trialing',
+                        'status' => 'active',
                         'plan_name' => '1_year_promo',
-                        'trial_end' => $yearEnd
+                        'trial_end' => null,
+                        'current_period_start' => date('Y-m-d H:i:s'),
+                        'current_period_end' => $yearEnd
                     ],
                     'id = :id',
                     ['id' => $subscription['id']]
@@ -240,13 +281,14 @@ try {
             } else {
                 $db->insert('subscriptions', [
                     'user_id' => $userId,
-                    'status' => 'trialing',
+                    'status' => 'active',
                     'plan_name' => '1_year_promo',
-                    'trial_start' => date('Y-m-d H:i:s'),
-                    'trial_end' => $yearEnd
+                    'current_period_start' => date('Y-m-d H:i:s'),
+                    'current_period_end' => $yearEnd
                 ]);
             }
             
+            logAdminAction($db, $adminUserId, $userId, 'grant_year', "Granted 1 year access, expires {$yearEnd}");
             Utils::jsonResponse([
                 'success' => true,
                 'message' => "Granted 1 year free access to {$user['email']}",
@@ -277,6 +319,7 @@ try {
                 ['id' => $userId]
             );
             
+            logAdminAction($db, $adminUserId, $userId, 'verify_email', "Manually verified email");
             Utils::jsonResponse([
                 'success' => true,
                 'message' => "Manually verified email for {$user['email']}"
@@ -298,10 +341,13 @@ try {
                 ]);
             }
             
-            // Generate new verification token
+            // Generate new verification token with 48-hour expiry
             $newToken = Utils::generateToken();
             $db->update('users',
-                ['verification_token' => $newToken],
+                [
+                    'verification_token' => $newToken,
+                    'verification_token_expires' => date('Y-m-d H:i:s', time() + 172800)
+                ],
                 'id = :id',
                 ['id' => $userId]
             );
@@ -334,6 +380,7 @@ try {
             }
             
             if ($emailSent) {
+                logAdminAction($db, $adminUserId, $userId, 'resend_verification', "Resent verification email");
                 Utils::jsonResponse([
                     'success' => true,
                     'message' => "Verification email resent to {$user['email']}"
@@ -342,12 +389,34 @@ try {
                 Utils::errorResponse("Failed to send verification email to {$user['email']}", 500);
             }
             break;
+
+        case 'repair_subscription_plans':
+            $rows = $db->fetchAll(
+                "SELECT id, plan_name, status, stripe_price_id FROM subscriptions
+                 WHERE status IN ('trialing', 'active', 'past_due')
+                 AND (plan_name IS NULL OR plan_name = '')"
+            );
+            $fixed = 0;
+            foreach ($rows as $row) {
+                $resolved = Utils::resolveSubscriptionPlanName(null, $row, $row['stripe_price_id'] ?? null);
+                if ($resolved) {
+                    $db->update('subscriptions', ['plan_name' => $resolved], 'id = :id', ['id' => $row['id']]);
+                    $fixed++;
+                }
+            }
+            logAdminAction($db, $adminUserId, 0, 'repair_subscription_plans', "Fixed {$fixed} rows");
+            Utils::jsonResponse([
+                'success' => true,
+                'message' => "Repaired plan_name on {$fixed} subscription(s)",
+                'fixed_count' => $fixed,
+            ]);
+            break;
             
         default:
-            Utils::errorResponse('Invalid action. Valid actions: extend_trial, cancel_subscription, delete_user, grant_lifetime, grant_year, verify_email, resend_verification', 400);
+            Utils::errorResponse('Invalid action. Valid actions: extend_trial, cancel_subscription, delete_user, grant_lifetime, grant_year, verify_email, resend_verification, repair_subscription_plans', 400);
     }
     
 } catch (Exception $e) {
-    error_log("Admin action error: " . $e->getMessage());
-    Utils::errorResponse('Action failed: ' . $e->getMessage(), 500);
+    error_log("Admin action error ({$action}): " . $e->getMessage());
+    Utils::errorResponse('Action failed. Please try again or check server logs.', 500);
 }

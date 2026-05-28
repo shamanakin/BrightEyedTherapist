@@ -51,14 +51,11 @@ try {
             if (class_exists('\Stripe\Stripe')) {
                 try {
                     \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
-                    \Stripe\Subscription::update(
-                        $subscription['stripe_subscription_id'],
-                        ['cancel_at_period_end' => true]
-                    );
-                    error_log("Canceled Stripe subscription {$subscription['stripe_subscription_id']} for deleted user {$user['email']}");
+                    \Stripe\Subscription::cancel($subscription['stripe_subscription_id'], []);
+                    error_log("Canceled Stripe subscription immediately for deleted user {$user['email']}");
                 } catch (Exception $e) {
                     error_log("Failed to cancel Stripe subscription during account deletion: " . $e->getMessage());
-                    // Continue with deletion anyway - user wants out
+                    Utils::errorResponse('Failed to cancel your subscription automatically. Please contact support before deleting your account.', 500);
                 }
             }
         }

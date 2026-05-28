@@ -5,10 +5,11 @@ Use this checklist when deploying to production.
 ## Pre-Deployment
 
 ### Configuration
-- [ ] Created `api/config.local.php` with production credentials
+- [ ] Created or updated `api/config.local.php` on the server from `api/config.server.example.php`
 - [ ] Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` correctly
 - [ ] Added Stripe **live** API keys (`sk_live_...`, `pk_live_...`)
 - [ ] Added Stripe Price IDs for products
+- [ ] Added `STRIPE_PRICE_FOUNDING_MEMBER` for the $5/month plan
 - [ ] Set `SITE_URL` to production domain
 - [ ] Generated secure random `JWT_SECRET` (32+ characters)
 - [ ] Configured email service API key (if using)
@@ -41,7 +42,7 @@ Use this checklist when deploying to production.
 - [ ] Uploaded all HTML files to root directory
 - [ ] Uploaded `api/` directory with all PHP files
 - [ ] Uploaded `admin/` directory
-- [ ] Uploaded `vendor/` directory (Stripe SDK)
+- [ ] Installed or refreshed `vendor/` on the server via Composer
 - [ ] Created `api/logs/` directory with write permissions
 - [ ] Set file permissions correctly (755 for dirs, 644 for files)
 - [ ] Set `config.local.php` to 600 permissions
@@ -65,11 +66,11 @@ Use this checklist when deploying to production.
 - [ ] Invalid credentials rejected
 - [ ] Duplicate email registration prevented
 
-### Trial Flow
-- [ ] New user starts with 14-day trial
-- [ ] Trial days countdown displays correctly
-- [ ] Can access all tools during trial
-- [ ] Trial expiration blocks access correctly
+### Access Flow
+- [ ] New user can register for the free plan
+- [ ] Free users can access EMDR including share-to-client links
+- [ ] Paid-only tools show a clear upgrade flow to free users
+- [ ] Legacy trial users still behave correctly if present
 
 ### Subscription Flow
 - [ ] "Subscribe" button redirects to Stripe Checkout
@@ -103,10 +104,11 @@ Use this checklist when deploying to production.
 ## Security
 
 - [ ] `config.local.php` not accessible via browser
+- [ ] `config.server.example.php` contains placeholders only
 - [ ] API endpoints return JSON, not raw errors
 - [ ] SQL injection protected (PDO prepared statements)
 - [ ] Passwords hashed with bcrypt
-- [ ] JWT tokens expire correctly
+- [ ] JWT tokens expire correctly and revoked sessions stop working immediately
 - [ ] Webhook signature verified
 - [ ] CORS configured for allowed origins only
 - [ ] No sensitive data in client-side code

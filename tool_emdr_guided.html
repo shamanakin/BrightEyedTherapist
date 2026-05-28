@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>EMDR Guided — Standard Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="js/emdr/bls-toolbar.css">
+    <link rel="stylesheet" href="js/emdr/guided/guided-panel.css">
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'founding';</script>
+    <script src="subscription_overlay.js"></script>
+    <style>
+        body { overscroll-behavior: contain; user-select: none; cursor: default; margin: 0; }
+        .guided-panel button, .guided-panel input, .guided-panel select, .guided-panel textarea { pointer-events: auto; cursor: pointer; }
+        .guided-panel input, .guided-panel textarea, .guided-panel select { cursor: text; }
+        #stimulus {
+            position: absolute;
+            will-change: left, top;
+            transition: width 0.14s ease-out, height 0.14s ease-out;
+        }
+        #lightbar-container {
+            position: absolute; left: 50%; top: 50%; transform-origin: center center;
+            transition: transform 0.3s ease, width 0.14s ease-out, height 0.14s ease-out;
+            display: none;
+        }
+        #lightbar { position: relative; width: 100%; height: 100%; }
+        .lightbar-dot {
+            position: absolute; border-radius: 9999px; opacity: 0.08;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+            transition: width 0.14s ease-out, height 0.14s ease-out, opacity 0.06s;
+        }
+        .emdr-toast {
+            position: fixed; top: 1rem; right: 1rem; z-index: 10000;
+            padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 350px;
+        }
+    </style>
+</head>
+<body>
+<div class="guided-layout">
+    <div class="guided-bls-pane">
+        <div id="bls-container" class="bls-container">
+            <button type="button" id="guided-protocol-fab" class="floating-protocol-btn" aria-expanded="true">Hide protocol</button>
+            <a href="dashboard.html" class="floating-dashboard-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Dashboard
+            </a>
+
+            <div class="app-chrome-bottom-right">
+                <span class="app-chrome-watermark">EMDR Guided · BrightEyedTherapist</span>
+                <a href="feedback.html?app=emdr-guided" target="_blank" class="app-chrome-feedback" title="Send Feedback">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Feedback
+                </a>
+            </div>
+
+            <div id="stimulus" class="rounded-full shadow-2xl" style="background-color: white;"></div>
+            <div id="lightbar-container"><div id="lightbar"></div></div>
+
+            <div id="bls-toolbar" class="bls-toolbar">
+                <div class="bls-set-count">BLS sets: <span id="set-count">0</span> · Panel sets: <span id="guided-bls-sets">0</span></div>
+                <div class="bls-toolbar-row">
+                    <button id="speed-btn" class="bls-toolbar-btn has-label text-yellow-300" aria-label="Speed" title="Speed">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <span class="bls-toolbar-label">Speed</span>
+                    </button>
+                    <button id="mode-btn" class="bls-toolbar-btn has-label text-green-400" aria-label="Mode" title="Dot / Lightbar">
+                        <svg id="dot-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                        <svg id="lightbar-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="10" width="18" height="4" rx="2"/></svg>
+                        <span class="bls-toolbar-label">Mode</span>
+                    </button>
+                    <button id="color-btn" class="bls-toolbar-btn has-label text-sky-300" aria-label="Color" title="Color">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C9 5.2 6 9.4 6 13a6 6 0 0012 0c0-3.6-3-7.8-6-11z"/><circle cx="10" cy="11" r="1.2" fill="#ffffff"/></svg>
+                        <span class="bls-toolbar-label">Color</span>
+                    </button>
+                    <button id="path-btn" class="bls-toolbar-btn has-label text-gray-100" aria-label="Path" title="Horizontal sweep">
+                        <svg id="path-icon-horizontal" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        <svg id="path-icon-diagonal" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4l16 16"/></svg>
+                        <svg id="path-icon-saccadic" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12H4M20 12h-2M8 9L5 12l3 3M16 9l3 3-3 3"/></svg>
+                        <span id="path-label" class="bls-toolbar-label">Horiz</span>
+                    </button>
+                    <div class="bls-size-control" id="dot-size-control">
+                        <label for="dot-size-slider" class="bls-size-label">Size</label>
+                        <input type="range" id="dot-size-slider" class="bls-size-slider" min="28" max="90" step="1" value="50" aria-label="Dot size">
+                    </div>
+                    <div class="bls-size-control bls-size-control-hidden" id="lightbar-size-control">
+                        <label for="lightbar-scale-slider" class="bls-size-label">Bar</label>
+                        <input type="range" id="lightbar-scale-slider" class="bls-size-slider" min="88" max="112" step="1" value="100" aria-label="Lightbar size">
+                    </div>
+                    <button id="audio-btn" class="bls-toolbar-btn has-label text-gray-400" aria-label="Audio" title="Bilateral audio">
+                        <svg id="audio-on-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5l-4 4H4a1 1 0 00-1 1v4a1 1 0 001 1h3l4 4V5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 9a3 3 0 010 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 7a6 6 0 010 10"/></svg>
+                        <svg id="audio-off-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5l-4 4H4a1 1 0 00-1 1v4a1 1 0 001 1h3l4 4V5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 5L5 19"/></svg>
+                        <span class="bls-toolbar-label">Audio</span>
+                    </button>
+                    <button id="fullscreen-btn" class="bls-toolbar-btn has-label" aria-label="Fullscreen" title="Fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m7-5h4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m7 5h4m0 0v-4m0 4l-5-5"/></svg>
+                        <span class="bls-toolbar-label">Full</span>
+                    </button>
+                    <button id="share-btn" class="bls-toolbar-btn has-label text-blue-400" aria-label="Share" title="Share BLS with client (no clinical data)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span class="bls-toolbar-label">Share</span>
+                    </button>
+                    <button id="help-btn" class="bls-toolbar-btn has-label text-gray-200" aria-label="Help" title="Help">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-1.2c0-1.1.7-1.8 1.3-2.2.6-.4 1.1-.9 1.1-1.8 0-1.2-1-2.1-2.4-2.1-1.2 0-2.1.7-2.4 1.8M12 18.5h.01"/></svg>
+                        <span class="bls-toolbar-label">Help</span>
+                    </button>
+                </div>
+                <button id="toggle-btn" class="bls-toolbar-start" aria-pressed="false">Start BLS (Spacebar)</button>
+            </div>
+        </div>
+    </div>
+
+    <aside id="guided-panel" class="guided-panel">
+        <div class="guided-privacy-banner" role="status">
+            <span class="guided-privacy-icon" aria-hidden="true">◆</span>
+            <span>Notes stay in this tab until you download a report. A local draft may recover an accidental refresh — not sent to our servers. BLS share never includes clinical fields.</span>
+        </div>
+        <header class="guided-panel-header">
+            <div class="guided-panel-title-block">
+                <h2>Guided Protocol</h2>
+                <p id="guided-client-only" class="guided-client-only hidden">Client sees BLS only</p>
+            </div>
+            <div class="guided-panel-header-toolbar">
+                <button type="button" id="guided-download-report" class="guided-btn guided-btn-secondary guided-download-btn hidden" title="Download plain-text report for your EHR">Download report</button>
+                <button type="button" id="guided-new-session" class="guided-btn guided-btn-secondary guided-new-session-btn" title="Clear all protocol data in this tab">New session</button>
+                <button type="button" id="guided-share-badge" class="guided-btn guided-share-badge" disabled>No client link</button>
+            </div>
+        </header>
+        <div class="guided-panel-body">
+            <div class="guided-toggle-row">
+                <span class="guided-toggle-label">Protocol guidance</span>
+                <label class="guided-toggle-switch"><input type="checkbox" id="guided-guidance-toggle" checked><span class="guided-toggle-track" aria-hidden="true"></span></label>
+            </div>
+            <div id="guided-breadcrumb" class="guided-breadcrumb"></div>
+            <div id="guided-prompt" class="guided-prompt"></div>
+            <div id="guided-panel-fields"></div>
+        </div>
+        <footer id="guided-panel-footer" class="guided-panel-footer"></footer>
+    </aside>
+</div>
+
+<div id="guided-download-overlay" class="guided-confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="guided-download-title">
+    <div class="guided-confirm-card">
+        <h3 id="guided-download-title">Download session report</h3>
+        <p class="guided-download-hint">Plain-text file for upload to your EHR. No client identifiers are required here.</p>
+        <label class="guided-download-label" for="guided-download-label-input">Filename label (optional)</label>
+        <input type="text" id="guided-download-label-input" class="guided-download-input" placeholder="e.g. initials or slot" maxlength="32" autocomplete="off">
+        <div class="guided-confirm-actions">
+            <button type="button" id="guided-download-cancel" class="guided-btn guided-btn-secondary">Cancel</button>
+            <button type="button" id="guided-download-ok" class="guided-btn guided-btn-primary">Download .txt</button>
+        </div>
+    </div>
+</div>
+
+<div id="guided-confirm-overlay" class="guided-confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="guided-confirm-title">
+    <div class="guided-confirm-card">
+        <h3 id="guided-confirm-title">New session?</h3>
+        <p id="guided-confirm-message"></p>
+        <div class="guided-confirm-actions">
+            <button type="button" id="guided-confirm-cancel" class="guided-btn guided-btn-secondary">Cancel</button>
+            <button type="button" id="guided-confirm-ok" class="guided-btn guided-btn-primary">Clear &amp; start over</button>
+        </div>
+    </div>
+</div>
+
+<div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto text-white">
+        <h2 id="modal-title" class="text-2xl font-bold mb-4 text-white">Settings</h2>
+        <div id="modal-content" class="space-y-4 text-sm leading-relaxed"></div>
+        <button id="modal-close-btn" class="mt-6 w-full py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">Close</button>
+    </div>
+</div>
+
+<script src="js/emdr/bls-constants.js"></script>
+<script src="js/emdr/bls-sync.js"></script>
+<script src="js/emdr/bls-core.js"></script>
+<script src="js/emdr/bls-host.js"></script>
+<script src="js/emdr/guided/protocol-shared.js"></script>
+<script src="js/emdr/guided/protocol-standard.js"></script>
+<script src="js/emdr/guided/protocol-present-trigger.js"></script>
+<script src="js/emdr/guided/protocol-flash-forward.js"></script>
+<script src="js/emdr/guided/protocol-future-template.js"></script>
+<script src="js/emdr/guided/protocol-recent-event.js"></script>
+<script src="js/emdr/guided/protocol-registry.js"></script>
+<script src="js/emdr/guided/guided-storage.js"></script>
+<script src="js/emdr/guided/guided-report.js"></script>
+<script src="js/emdr/guided/guided-download.js"></script>
+<script src="js/emdr/guided/guided-engine.js"></script>
+<script src="js/emdr/guided/guided-panel.js"></script>
+<script src="js/emdr/guided/guided-host-bridge.js"></script>
+</body>
+</html>

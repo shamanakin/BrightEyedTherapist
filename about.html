@@ -7,6 +7,10 @@
     <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
     <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
     <title>About - Bright Eyed Therapist</title>
+    <meta name="description" content="Built by a practicing psychotherapist who got tired of expensive, outdated telehealth tools. Learn why Bright Eyed Therapist exists.">
+    <meta property="og:title" content="About Bright Eyed Therapist — Built by a Therapist">
+    <meta property="og:description" content="Most telehealth trauma software is built by developers interpreting a therapist's needs. This one was built by a therapist who sits in the chair.">
+    <link rel="canonical" href="https://brighteyedtherapist.com/about.html">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -24,14 +28,21 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html">Features</a>
-                <a href="demo.html">Demo</a>
-                <a href="about.html" class="active">About</a>
+                <a href="index.html#tools">Tools</a>
                 <a href="contact.html">Contact</a>
                 <a href="feedback.html">Feedback</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="contact.html">Contact</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
@@ -46,11 +57,11 @@
             <!-- Quote card -->
             <div class="card flashlight-card animate-on-scroll" style="margin-bottom: 3rem;">
                 <p style="font-style: italic; color: var(--col-text-muted);">
-                    "As a psychotherapist, I found myself frustrated by tools that were either prohibitively expensive
-                    or felt stuck in the past. I realized that most clinical software is built by developers
-                    interpreting a therapist’s needs, rather than someone who actually sits in the chair.
+                    "As a psychotherapist specializing in trauma work, I found myself frustrated by EMDR and Brainspotting tools that were either prohibitively expensive
+                    or felt stuck in the past. I realized that most telehealth trauma software is built by developers
+                    interpreting a therapist's needs, rather than someone who actually sits in the chair.
                     I built Bright Eyed Therapist to bridge that gap—creating the modern, intuitive, and affordable
-                    tools I wished I had in my own practice."
+                    trauma telehealth tools I wished I had in my own practice."
                 </p>
             </div>
 
@@ -58,13 +69,13 @@
             <section class="animate-on-scroll" style="margin-bottom: 2.5rem;">
                 <h2 style="font-size: 1.6rem; margin-bottom: 0.75rem;">Our Mission</h2>
                 <p style="color: var(--col-text-muted); margin-bottom: 1rem;">
-                    I wanted to make clean, lightweight apps to replace commonly used tools that were easy to use,
+                    I wanted to make clean, lightweight tools for trauma processing and case conceptualization—EMDR bilateral stimulation, Brainspotting gaze scanning, trauma timelines—that were easy to use,
                     easy to access, and most importantly—inexpensive but useful enough that it feels like a steal.
                 </p>
                 <p style="color: var(--col-text-muted);">
                     At Bright Eyed Therapist, the goal is to offer tools that feel as grounded and thoughtful as the
-                    work you do in session: no bloated dashboards, no distracting “features for the sake of features”—
-                    just focused, well-crafted utilities that support real clinical work.
+                    trauma work you do in session: no bloated dashboards, no distracting "features for the sake of features"—
+                    just focused, well-crafted utilities that support real clinical work with trauma clients.
                 </p>
             </section>
 
@@ -82,16 +93,35 @@
                 </p>
             </section>
 
+            <!-- Current Tools -->
+            <section class="animate-on-scroll" style="margin-bottom: 2.5rem;">
+                <h2 style="font-size: 1.6rem; margin-bottom: 0.75rem;">What's Available Now</h2>
+                <p style="color: var(--col-text-muted); margin-bottom: 1rem;">
+                    The beta includes five focused tools for trauma telehealth work:
+                </p>
+                <ul style="color: var(--col-text-muted); margin-left: 1.25rem; margin-bottom: 1rem;">
+                    <li style="margin-bottom: 0.5rem;"><strong>EMDR Suite</strong> — Free bilateral stimulation with shareable client links</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>EMDR Guided</strong> — Protocol prompts (notes stay in your browser)</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Brainspotting</strong> — Guided gaze scanning with biolateral audio</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Life Map</strong> — Visual timeline for trauma history and resources</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Genogram Genie</strong> — Family pattern mapping for case conceptualization</li>
+                </ul>
+                <p style="color: var(--col-text-muted);">
+                    Each tool is actively being refined based on clinician feedback. If something feels off or you have ideas, 
+                    <a href="contact.html" style="color: var(--col-accent);">I genuinely want to hear about it</a>.
+                </p>
+            </section>
+
             <!-- Craft -->
             <section class="animate-on-scroll">
                 <h2 style="font-size: 1.6rem; margin-bottom: 0.75rem;">Practice-Informed Craft</h2>
                 <p style="color: var(--col-text-muted); margin-bottom: 1rem;">
-                    Every tool starts at the whiteboard: what actually happens in the room, and how can software
-                    stay out of the way of attunement, pacing, and safety. From there, I design interactions to be
+                    Every tool starts at the whiteboard: what actually happens in trauma processing, and how can software
+                    stay out of the way of activation, pacing, and safety. From there, I design interactions to be
                     predictable, calm, and easy to explain to clients in a sentence or two.
                 </p>
                 <p style="color: var(--col-text-muted);">
-                    My hope is that Bright Eyed Therapist becomes a quiet, reliable part of your workflow—letting you
+                    My hope is that Bright Eyed Therapist becomes a quiet, reliable part of your trauma telehealth workflow—letting you
                     spend less energy on tech, and more on the work that really matters.
                 </p>
             </section>
@@ -101,7 +131,10 @@
     <footer>
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
-            <p style="margin-top: 0.5rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Trauma telehealth tools for clinicians who do this work.
+            </p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 

@@ -24,25 +24,36 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html">Features</a>
-                <a href="demo.html">Demo</a>
+                <a href="index.html#tools">Tools</a>
                 <a href="about.html">About</a>
-                <a href="contact.html" class="active">Contact</a>
                 <a href="feedback.html">Feedback</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="about.html">About</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
         <div style="max-width: 600px; margin: 0 auto;">
             <h1 class="animate-on-scroll" style="text-align: center; margin-bottom: 1rem;">Get in Touch</h1>
             <p class="animate-on-scroll delay-100" style="text-align: center; color: var(--col-text-muted); margin-bottom: 3rem;">
-                Have questions about our Early Access program, feature requests, or need support? We'd love to hear from you.
+                Have questions about our tools, feature requests, or need support? We'd love to hear from you.
             </p>
 
             <div class="card flashlight-card animate-on-scroll delay-200">
                 <form id="contact-form">
+                    <div style="margin-bottom: 1rem; padding: 0.9rem 1rem; border-radius: 12px; background: #FFFBEB; color: #92400E; font-size: 0.9rem; line-height: 1.5;">
+                        <i class="fa-solid fa-shield-heart" style="margin-right: 0.5rem;"></i>
+                        Please avoid sending client names, trauma details, or other PHI here. Use general descriptions only.
+                    </div>
                     <div class="form-group">
                         <label class="form-label" for="contact-name">Name</label>
                         <input type="text" id="contact-name" class="form-input" placeholder="Dr. Jane Doe" required>
@@ -117,7 +128,10 @@
     <footer>
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
-            <p style="margin-top: 0.5rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Trauma telehealth tools for clinicians who do this work.
+            </p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 

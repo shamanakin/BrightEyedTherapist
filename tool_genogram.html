@@ -1,101 +1,2820 @@
-<!-- 
-  PROPRIETARY: This tool's implementation is not included in the public portfolio.
-  See https://brighteyedtherapist.com for the live version.
-  File: tool_genogram.html
--->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
-    <title>Genogram Genie - Bright Eyed Therapist</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>Genogram Genie</title>
+    <!-- Load Inter + Playfair Display Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- 1. Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
+    <!-- Auth + Subscription gating (match EMDR/Timeline) -->
+    <script src="auth.js"></script>
+    <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
+    <script src="subscription_overlay.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
     <style>
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        body { font-family: 'Inter', sans-serif; }
+        #genogram-canvas { cursor: grab; user-select: none; background-color: #f9fafb; }
+        .dark #genogram-canvas { background-color: #111827; }
+        #genogram-canvas:active { cursor: grabbing; }
+
+        .person-node { cursor: pointer; transition: transform 0.1s; }
+        .person-node:hover .person-shape { stroke-width: 4; stroke: #2563eb; }
+        .person-node.selected .person-shape { stroke-width: 4; stroke: #2563eb; fill: #dbeafe; }
+        .dark .person-node.selected .person-shape { fill: #1e3a8a; }
+
+        .person-shape {
+            fill: #ffffff; /* white */
+            stroke: #1f2937; /* gray-800 */
+            stroke-width: 2;
         }
-        .placeholder-container {
-            text-align: center;
-            max-width: 600px;
-            padding: 3rem 2rem;
+        .dark .person-shape {
+            fill: #ffffff; /* CHANGED - white in dark mode */
+            stroke: #f3f4f6; /* gray-100 */
         }
-        .placeholder-container h1 {
+
+        .issue-quadrant {
+            fill: #374151; /* gray-700 */ /* CHANGED - this is the dark gray fill */
+            opacity: 0.8;
+            pointer-events: none;
+            /* Clicks go through to the shape */
+        }
+        .dark .issue-quadrant {
+            fill: #374151; /* gray-700 */ /* CHANGED - same dark gray fill */
+        }
+
+        .deceased-x { stroke: #6b4e34; stroke-width: 3; pointer-events: none; }
+        .dark .deceased-x { stroke: #f3d7bb; }
+
+        /* Structural Lines */
+        .relationship-line { stroke: #374151; stroke-width: 2; fill: none; }
+        .dark .relationship-line { stroke: #d1d5db; }
+        .relationship-line-partner { stroke-dasharray: 8 4; }
+        .relationship-line-divorced { stroke-dasharray: 4 4; }
+
+        /* Emotional Lines */
+        .rel-close { stroke: #06b6d4 !important; }
+        .rel-enmeshed { stroke: #a855f7 !important; }
+        .rel-hostile { stroke: #f97316 !important; }
+        .rel-cutoff { stroke-dasharray: 6,6 !important; }
+        .rel-abuse { stroke: #ef4444 !important; stroke-width: 3 !important; }
+        
+        .client-highlight { stroke: #6ee7b7 !important; stroke-width: 5 !important; }
+
+        /* Fixed Grok's @apply directives */
+        .icon-btn-tooltip {
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background-color: #1f2937;
+            color: #f9fafb;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1rem;
+            border-radius: 0.375rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.1s ease, visibility 0.1s ease;
+            pointer-events: none;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .icon-btn:hover + .icon-btn-tooltip { 
+            opacity: 1; 
+            visibility: visible; 
+        }
+
+        .control-tooltip {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(6px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .control-tooltip.pinned,
+        .control-tooltip.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        /* Help tooltip - positioned below button, extending left */
+        #help-tooltip {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            z-index: 100;
+        }
+        #help-tooltip h3,
+        #key-tooltip h3 {
+            color: #7CB590; /* Bright sage - readable on dark tooltip bg */
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        /* Use site's Playfair Display for main title, Inter for UI */
+        .genogram-title {
             font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--col-text-main);
+            color: #2C5558;
         }
-        .subtitle {
-            color: var(--col-text-muted);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+        .dark .genogram-title {
+            color: #7CB590; /* Brighter sage for dark mode */
         }
-        .notice-box {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        
+        /* Dashboard button dark mode */
+        .dark .dashboard-btn-themed {
+            background: #374151 !important;
+            color: #e5e7eb !important;
+            border-color: #4b5563 !important;
         }
-        .notice-box p {
-            color: var(--col-text-muted);
-            margin-bottom: 1rem;
+        
+        /* Site-aligned button colors */
+        .btn-sage {
+            background-color: var(--col-primary, #2C5558);
+            color: white;
         }
-        .ascii-art {
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            line-height: 1.2;
-            color: var(--col-accent);
-            background: #f1f5f9;
-            padding: 1.5rem;
+        .btn-sage:hover {
+            background-color: var(--col-primary-light, #4A7C7F);
+        }
+        .btn-sage-secondary {
+            background-color: rgba(44, 85, 88, 0.1);
+            color: #4A6E58;
+        }
+        .btn-sage-secondary:hover {
+            background-color: rgba(44, 85, 88, 0.2);
+        }
+        .dark .btn-sage-secondary {
+            background-color: rgba(124, 181, 144, 0.15);
+            color: #7CB590;
+        }
+        .dark .btn-sage-secondary:hover {
+            background-color: rgba(124, 181, 144, 0.25);
+        }
+        /* Toast notifications */
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+        .toast { pointer-events: auto; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-family: 'Inter', sans-serif; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: toastIn 0.3s ease, toastOut 0.3s ease 3.2s forwards; max-width: 360px; }
+        .toast.success { background: #2C5558; }
+        .toast.error { background: #dc2626; }
+        .toast.info { background: #374151; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+        /* Draft recovery / migration banner — matches Life Map pattern */
+        #genogram-draft-banner {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            z-index: 200;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            font-size: 0.85rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            max-width: calc(100vw - 2rem);
+            font-family: 'Inter', sans-serif;
+        }
+        .dark #genogram-draft-banner {
+            background: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+        #genogram-draft-banner .draft-banner-text {
+            line-height: 1.4;
+        }
+        #genogram-draft-banner button {
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #1f2937;
+            font-size: 0.8rem;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .dark #genogram-draft-banner button {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f3f4f6;
+        }
+        #genogram-draft-banner button.draft-banner-primary {
+            background: #2C5558;
+            color: #fff;
+            border-color: #2C5558;
+        }
+        .dark #genogram-draft-banner button.draft-banner-primary {
+            background: #2C5558;
+            color: #fff;
+            border-color: #2C5558;
+        }
+        .save-state-hint {
+            font-size: 0.72rem;
+            line-height: 1.4;
+            padding: 0.5rem 0.6rem;
             border-radius: 8px;
-            margin: 2rem 0;
-            display: inline-block;
+            border: 1px solid #e5e7eb;
+            background: rgba(0,0,0,0.02);
+            color: #6b7280;
+            margin-top: 0.75rem;
+            font-family: 'Inter', sans-serif;
         }
-        .back-link {
-            color: var(--col-text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
+        .dark .save-state-hint {
+            border-color: #374151;
+            background: rgba(255,255,255,0.03);
+            color: #9ca3af;
         }
-        .back-link:hover {
-            color: var(--col-primary);
+        .save-state-hint.is-dirty {
+            border-color: rgba(217,119,87,0.45);
+            background: rgba(217,119,87,0.08);
+            color: #c2410c;
+        }
+        .dark .save-state-hint.is-dirty {
+            color: #fdba74;
+        }
+        .confirm-modal-export-btn {
+            background-color: #ffffff;
+            color: #2C5558;
+            border: 1px solid #2C5558;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .confirm-modal-export-btn:hover {
+            background-color: #f0f9f5;
+        }
+        .dark .confirm-modal-export-btn {
+            background-color: #1f2937;
+            color: #7CB590;
+            border-color: #4b5563;
+        }
+        .dark .confirm-modal-export-btn:hover {
+            background-color: #374151;
+        }
+        .mobile-sidebar-toggle { display: none; }
+        #sidebar-backdrop { display: none; }
+
+        @media (max-width: 900px) {
+            .mobile-sidebar-toggle { display: inline-flex; }
+            .genogram-sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                width: min(290px, 84vw);
+                z-index: 40;
+                transition: left 0.25s ease;
+            }
+            body.sidebar-open .genogram-sidebar { left: 0; }
+            #sidebar-backdrop {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(17, 24, 39, 0.55);
+                backdrop-filter: blur(2px);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease;
+                z-index: 30;
+            }
+            body.sidebar-open #sidebar-backdrop {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            #help-tooltip,
+            #key-tooltip {
+                position: fixed !important;
+                left: 12px !important;
+                right: 12px !important;
+                top: auto !important;
+                bottom: 78px !important;
+                width: auto !important;
+                max-width: none !important;
+                margin-top: 0 !important;
+                z-index: 60 !important;
+            }
+            #help-tooltip .absolute,
+            #key-tooltip .absolute {
+                display: none;
+            }
         }
     </style>
 </head>
-<body>
-    <main class="placeholder-container">
-        <h1>🔒 Genogram Genie</h1>
-        <p class="subtitle">Interactive family tree builder for clinical visualization</p>
-        
-        <div class="notice-box">
-            <p>This tool's source code is proprietary and not included in the public portfolio.</p>
-            <p>Visit the live site to see it in action!</p>
-            <a href="https://brighteyedtherapist.com" class="btn btn-beam">View Live Site →</a>
+<body class="antialiased dark:bg-gray-900 dark:text-gray-100">
+
+    <div class="flex h-screen w-screen overflow-hidden genogram-layout">
+    <!-- 3. Left Sidebar (Controls) - GROK'S VERSION -->
+    <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-6 flex flex-col shadow-sm z-10 h-full overflow-y-auto genogram-sidebar">
+        <!-- Header: icon + title only (utility buttons moved to canvas) -->
+        <div class="flex items-center gap-3 mb-4">
+            <div style="width: 40px; height: 40px; background: rgba(217, 119, 87, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg class="w-5 h-5" style="color: #D97757;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <div>
+                <h1 class="genogram-title text-base font-semibold leading-tight">Genogram Genie</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Bright Eyed Therapist</p>
+            </div>
         </div>
 
-        <pre class="ascii-art">
-       __
-     >(o )___
-      ( ._> /
-       `---'  
-   __    __    __
- >(.)  >(.)  >(.)
-  (._)  (._)  (._)
-  
-  ~ family matters ~
-        </pre>
+        <div class="space-y-3 mb-4">
+            <button id="add-person-btn" class="w-full btn-sage font-medium py-2.5 rounded-lg transition">
+                Add New Person
+            </button>
+            <button id="manage-relationships-btn" class="w-full btn-sage-secondary font-medium py-2.5 rounded-lg transition text-sm">
+                Manage Relationships
+            </button>
+            <button id="reset-genogram-btn" class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium py-2.5 rounded-lg transition text-sm">
+                Reset / New
+            </button>
+        </div>
 
-        <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="relative icon-btn-group">
+                <button id="zoom-in-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+                    <span class="text-[11px] font-medium">Zoom In</span>
+                </button>
+                <span class="icon-btn-tooltip">Zoom In</span>
+            </div>
+            <div class="relative icon-btn-group">
+                <button id="zoom-out-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+                    <span class="text-[11px] font-medium">Zoom Out</span>
+                </button>
+                <span class="icon-btn-tooltip">Zoom Out</span>
+            </div>
+            <div class="relative icon-btn-group">
+                <button id="center-view-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
+                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v.01M12 12a3 3 0 110-6 3 3 0 010 6zm0 0v.01M12 12a3 3 0 110-6 3 3 0 010 6zm0 0v.01M12 12a3 3 0 110-6 3 3 0 010 6z" />
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                     </svg>
+                    <span class="text-[11px] font-medium">Center</span>
+                </button>
+                <span class="icon-btn-tooltip">Center View</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+            <div class="relative icon-btn-group">
+                <button id="import-json-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
+                    <span class="text-[11px] font-medium">Import</span>
+                </button>
+                <span class="icon-btn-tooltip">Import</span>
+            </div>
+            <div class="relative icon-btn-group">
+                <button id="export-json-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span class="text-[11px] font-medium">Export JSON</span>
+                </button>
+                <span class="icon-btn-tooltip">Export JSON</span>
+            </div>
+            <div class="relative icon-btn-group">
+                <button id="export-png-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="text-[11px] font-medium">Export PNG</span>
+                </button>
+                <span class="icon-btn-tooltip">Export PNG</span>
+            </div>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <div id="save-state-hint" class="save-state-hint">Working in this tab only. Export JSON to keep your genogram.</div>
+
+        <div class="text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+            <h3 class="font-medium text-gray-500 dark:text-gray-400">Disclaimer:</h3>
+            <p class="mt-1">
+                This tool is for educational and therapeutic purposes only. It is not a substitute for professional clinical judgment. Ensure compliance with all privacy and HIPAA regulations.
+            </p>
+            <p class="mt-2">
+                Your genogram autosaves in this browser on this device. Use initials when possible, and remember exports may contain identifying information.
+            </p>
+        </div>
+
+        <!-- Dashboard button -->
+        <a href="dashboard.html"
+           class="dashboard-btn-themed flex items-center justify-center gap-2 py-2 mt-4 text-sm rounded-md border transition"
+           style="background: #f9fafb; color: #374151; border-color: #e5e7eb;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Dashboard
+        </a>
+    </aside>
+
+    <!-- 4. Main Content (Canvas) - GROK'S VERSION -->
+    <main class="flex-1 relative bg-gray-50 dark:bg-gray-900">
+        <button id="sidebar-toggle-btn" class="mobile-sidebar-toggle absolute top-4 left-4 z-20 items-center gap-2 rounded-full bg-white/95 px-3 py-2 text-sm font-medium text-gray-700 shadow dark:bg-gray-800/95 dark:text-gray-100" title="Open tools">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            Tools
+        </button>
+        <div class="absolute top-4 right-4 z-10 flex gap-2">
+            <!-- Dark Mode Toggle (most commonly used) -->
+            <button id="dark-mode-toggle" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600" title="Toggle Theme">
+                <svg id="theme-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <svg id="theme-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </button>
+            <!-- Key Button -->
+            <div class="relative">
+                <button id="key-button" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 control-btn" title="Symbol Key">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"/></svg>
+                </button>
+                <div id="key-tooltip" class="control-tooltip absolute right-0 top-full mt-2 w-72 bg-gray-800 text-white text-xs rounded-lg shadow-lg p-4 z-50 hidden opacity-0 transition-opacity" style="pointer-events: none;">
+                    <h3 class="font-medium text-sm mb-2">Genogram Key</h3>
+                    <div class="space-y-2">
+                        <div class="font-semibold">Symbols:</div>
+                        <ul class="list-disc list-inside space-y-1 pl-2">
+                            <li>Square: Male</li>
+                            <li>Circle: Female</li>
+                            <li>Diamond: Other / Nonbinary</li>
+                            <li>'X' inside shape: Deceased</li>
+                        </ul>
+                        <div class="font-semibold">Clinical Indicators (Shaded Quadrants):</div>
+                        <ul class="list-disc list-inside space-y-1 pl-2">
+                            <li>Top-Left: Trauma / Suspected Trauma</li>
+                            <li>Top-Right: Mental Health (Confirmed / Suspected)</li>
+                            <li>Bottom-Left: Substance Use</li>
+                            <li>Bottom-Right: Physical Ailment</li>
+                        </ul>
+                        <div class="font-semibold">Emotional Lines:</div>
+                        <ul class="list-disc list-inside space-y-1 pl-2">
+                            <li class="text-gray-300">Thin dashed line: Distant</li>
+                            <li class="text-cyan-300">Two parallel lines: Close</li>
+                            <li style="color: #c4b5fd;">Three parallel lines: Enmeshed</li>
+                            <li class="text-orange-300">Zigzag: Hostile</li>
+                            <li><span class="text-cyan-300">Close lines</span> + <span class="text-orange-300">zigzag</span>: Volatile</li>
+                            <li>Solid line with break + bars: Cut-off</li>
+                            <li class="text-red-300">Jagged line + arrow: Abuse</li>
+                            <li class="text-red-300 ml-4">P / S / E badge: Physical / Sexual / Emotional subtype</li>
+                        </ul>
+                        <div class="font-semibold">Structural Lines:</div>
+                        <ul class="list-disc list-inside space-y-1 pl-2">
+                            <li>Solid line: Married</li>
+                            <li>Dashed line: Partner (Unmarried)</li>
+                            <li>Solid line with single slash: Separated</li>
+                            <li>Solid line with double slash: Divorced</li>
+                        </ul>
+                    </div>
+                    <div class="absolute right-3 -top-1 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                </div>
+            </div>
+            <!-- Help Button -->
+            <div class="relative">
+                <button id="help-tooltip-btn" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 control-btn" title="Help">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </button>
+                <div id="help-tooltip" class="control-tooltip w-60 bg-gray-800 text-white text-xs rounded-lg shadow-lg p-3">
+                    <h3 class="font-medium text-sm mb-1">How to Use</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Click 'Add New Person' or right-click the canvas.</li>
+                        <li>Right-click a person to edit, or add parents, partners, and children.</li>
+                        <li>Use 'Manage Relationships' to add emotional links (e.g., Close, Hostile).</li>
+                        <li>Drag people to rearrange.</li>
+                        <li>Left-click and drag the canvas to pan.</li>
+                        <li>Hold <span class="font-mono bg-gray-600 px-1 rounded">Space</span> and drag to pan without selecting people.</li>
+                        <li>Select a person and press <span class="font-mono bg-gray-600 px-1 rounded">Delete</span> or <span class="font-mono bg-gray-600 px-1 rounded">Backspace</span> to remove.</li>
+                        <li>Press <span class="font-mono bg-gray-600 px-1 rounded">Esc</span> to close any open modal.</li>
+                        <li>Hold <span class="font-mono bg-gray-600 px-1 rounded">⌘</span> / <span class="font-mono bg-gray-600 px-1 rounded">Ctrl</span> and scroll to zoom over the canvas.</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Fullscreen (least used) -->
+            <button id="fullscreen-toggle" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600" title="Fullscreen">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m7-5h4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m7 5h4m0 0v-4m0 4l-5-5"/></svg>
+            </button>
+        </div>
+
+        <svg id="genogram-canvas" class="w-full h-full">
+            <defs>
+                <!-- My (Gemini's) complete marker definitions -->
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                  <polygon points="0 0, 10 3.5, 0 7" class="relationship-line-marker" />
+                </marker>
+                <marker id="arrowhead-abuse-red" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                    <polygon points="0 0, 10 3.5, 0 7" class="marker-abuse-red" />
+                </marker>
+                <marker id="arrowhead-volatile-orange" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                    <polygon points="0 0, 10 3.5, 0 7" class="marker-volatile-orange" />
+                </marker>
+                 <marker id="arrowhead-close-cyan" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                    <polygon points="0 0, 10 3.5, 0 7" class="marker-close-cyan" />
+                </marker>
+                <marker id="arrowhead-enmeshed-purple" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                    <polygon points="0 0, 10 3.5, 0 7" class="marker-enmeshed-purple" />
+                </marker>
+            </defs>
+            <g id="viewport">
+                <g id="relationship-lines"></g>
+                <g id="people-nodes"></g>
+            </g>
+        </svg>
+
+        <!-- Bottom-right cluster: watermark + feedback -->
+        <div class="app-chrome-bottom-right" style="z-index: 5;">
+            <span class="app-chrome-watermark">Genogram Genie · Bright Eyed Therapist</span>
+            <a href="feedback.html?app=genogram" target="_blank" class="app-chrome-feedback" title="Send Feedback">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                Feedback
+            </a>
+        </div>
     </main>
+    </div>
+    <div id="sidebar-backdrop"></div>
+
+    <!-- ALL MODALS AND MENUS FROM MY (GEMINI'S) PREVIOUS VERSION -->
+    <!-- (Grok's file omitted these, so I am restoring them) -->
+
+    <!-- 5. Person Edit/Add Modal (Hidden) -->
+    <div id="person-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg">
+            <h2 id="modal-title" class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Add New Person</h2>
+            <form id="person-form">
+                <input type="hidden" id="person-id" />
+                <input type="hidden" id="modal-action" />
+                <input type="hidden" id="source-person-id" />
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                        <input type="text" id="name" required class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="birth-year" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Birth Year (Optional)</label>
+                        <input type="number" id="birth-year" placeholder="e.g., 1980" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                        <select id="gender" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            <option value="male">Male (Square)</option>
+                            <option value="female">Female (Circle)</option>
+                            <option value="other">Other/Nonbinary (Diamond)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6 space-y-4">
+                    <div class="relative flex items-start">
+                        <div class="flex h-5 items-center">
+                            <input id="is-deceased" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="is-deceased" class="font-medium text-gray-700 dark:text-gray-300">Deceased</label>
+                        </div>
+                    </div>
+                    <fieldset class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <legend class="text-sm font-medium text-gray-600 dark:text-gray-400">Clinical Notes (will appear on hover)</legend>
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <div class="relative flex items-start">
+                                <div class="flex h-5 items-center">
+                                    <input id="trauma-history" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="trauma-history" class="font-medium text-gray-700 dark:text-gray-300">Trauma / Suspected Trauma</label>
+                                </div>
+                            </div>
+                            <div class="relative flex items-start">
+                                <div class="flex h-5 items-center">
+                                    <input id="mental-health" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="mental-health" class="font-medium text-gray-700 dark:text-gray-300">Mental Health (Confirmed / Suspected)</label>
+                                </div>
+                            </div>
+                            <div class="relative flex items-start">
+                                <div class="flex h-5 items-center">
+                                    <input id="substance-use" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="substance-use" class="font-medium text-gray-700 dark:text-gray-300">Substance Use</label>
+                                </div>
+                            </div>
+                            <div class="relative flex items-start">
+                                <div class="flex h-5 items-center">
+                                    <input id="physical-ailment" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:bg-gray-700 dark:focus:ring-offset-gray-800">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="physical-ailment" class="font-medium text-gray-700 dark:text-gray-300">Physical Ailment/Disability</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                        <textarea id="notes" rows="6" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="e.g., Estranged since 2010..."></textarea>
+                    </div>
+                    <!-- Existing Person Connector (used for Add Parent/Child/Partner flows) -->
+                    <fieldset id="structural-connect-section" class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 hidden">
+                        <legend class="text-sm font-medium text-gray-600 dark:text-gray-400">Use Existing Person (optional)</legend>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            When adding a parent, child, or spouse/partner from the context menu, you can either create a new
+                            person (default) or select someone who already exists to connect structurally. Emotional links
+                            (e.g., close, hostile) are still managed in <span class="font-semibold">Manage Relationships</span>.
+                        </p>
+                        <div>
+                            <label for="connect-target" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Existing Person
+                            </label>
+                            <select id="connect-target" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                <option value="">Create new person…</option>
+                            </select>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="modal-cancel-btn" class="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit" id="modal-save-btn" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. Custom Context Menu (Hidden) -->
+    <div id="context-menu" class="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-2 w-48 z-50 hidden opacity-0">
+        <button data-action="edit" class="context-menu-btn">Edit Person</button>
+        <button data-action="set-client" class="context-menu-btn">Set as Client</button>
+        <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+        <button data-action="add-partner" class="context-menu-btn">Add Partner</button>
+        <button data-action="add-parent" class="context-menu-btn">Add Parent</button>
+        <button data-action="add-child" class="context-menu-btn">Add Child</button>
+        <button data-action="manage-relationships" class="context-menu-btn">Manage Relationships</button>
+        <button data-action="set-partnership-type" class="context-menu-btn">Set Partnership Type</button>
+        <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+        <button data-action="remove" class="context-menu-btn text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 hover:text-red-700 dark:hover:text-red-300">Remove Person</button>
+    </div>
+    <style>
+        .context-menu-btn { display: block; width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; line-height: 1.25rem; color: #374151; background-color: transparent; border: none; cursor: pointer; }
+        .dark .context-menu-btn { color: #e5e7eb; }
+        .context-menu-btn:hover { background-color: #f3f4f6; color: #1f2937; }
+        .dark .context-menu-btn:hover { background-color: #374151; color: #f9fafb; }
+        .context-menu-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; color: #9ca3af !important; }
+        .dark .context-menu-btn:disabled { color: #6b7280 !important; }
+    </style>
+
+    <!-- 7. Custom Tooltip (Hidden) -->
+    <div id="tooltip" class="fixed bg-gray-800 text-white text-sm rounded-lg shadow-lg px-4 py-3 z-50 hidden opacity-0 transform">
+        <h3 id="tooltip-name" class="font-bold text-base"></h3>
+        <p id="tooltip-relationship" class="text-blue-300 italic mb-2"></p>
+        <ul id="tooltip-info" class="space-y-1"></ul>
+    </div>
+
+    <!-- 8. Relationship Edit Modal (Hidden) -->
+    <div id="relationship-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-lg">
+            <h2 id="relationship-modal-title" class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Manage Emotional Relationships</h2>
+            <form id="relationship-form" class="pb-4 border-b border-gray-200 dark:border-gray-700">
+                <input type="hidden" id="rel-link-id">
+                <h3 id="rel-form-title" class="text-md font-medium text-gray-800 dark:text-gray-100 mb-2">Add New Link</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="rel-person-a" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Person A</label>
+                        <select id="rel-person-a" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
+                    </div>
+                    <div>
+                        <label for="rel-person-b" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Person B</label>
+                        <select id="rel-person-b" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="relationship-quality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Emotional Pattern</label>
+                        <select id="relationship-quality" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            <option value="default">Connected / Neutral</option>
+                            <option value="distant">Distant</option>
+                            <option value="close">Close / Supportive</option>
+                            <option value="enmeshed">Enmeshed</option>
+                            <option value="hostile">Hostile</option>
+                            <option value="volatile">Volatile (Close + Hostile)</option>
+                            <option value="cutoff">Cut-off</option>
+                            <option value="abuse">Abuse</option>
+                        </select>
+                    </div>
+                    <div id="abuse-direction-group" class="hidden">
+                        <label for="abuse-direction" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Direction of Abuse</label>
+                        <select id="abuse-direction" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
+                    </div>
+                </div>
+                <div id="abuse-subtype-group" class="hidden mt-4">
+                    <label for="abuse-subtype" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type of Abuse</label>
+                    <select id="abuse-subtype" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <option value="unspecified">Unspecified</option>
+                        <option value="physical">Physical</option>
+                        <option value="sexual">Sexual</option>
+                        <option value="emotional">Emotional</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Optional. A "P", "S", or "E" badge appears on the line when set.</p>
+                </div>
+                <div class="mt-4 flex justify-end space-x-2">
+                    <button type="button" id="rel-form-clear-btn" class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Clear
+                    </button>
+                    <button type="submit" id="relationship-modal-save-btn" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Add Link
+                    </button>
+                </div>
+            </form>
+            <div class="mt-4">
+                <h3 class="text-md font-medium text-gray-800 dark:text-gray-100 mb-2">Existing Links</h3>
+                <div id="existing-relationships-list" class="max-h-48 overflow-y-auto space-y-2"></div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button type="button" id="relationship-modal-cancel-btn" class="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. NEW Structural Relationship Modal (Hidden) -->
+    <div id="structural-relationship-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm">
+            <h2 id="structural-modal-title" class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Set Partnership Type</h2>
+            <form id="structural-relationship-form">
+                <input type="hidden" id="structural-rel-id" />
+                <div>
+                    <label for="structural-relationship-quality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Partnership Type</label>
+                    <select id="structural-relationship-quality" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        <option value="partner">Partner (Unmarried)</option>
+                        <option value="married">Married</option>
+                        <option value="separated">Separated</option>
+                        <option value="divorced">Divorced</option>
+                    </select>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="structural-modal-cancel-btn" class="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit" id="structural-modal-save-btn" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 10. Confirmation Modal (Hidden) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm">
+            <h2 id="confirm-modal-title" class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Are you sure?</h2>
+            <p id="confirm-modal-message" class="text-sm text-gray-600 dark:text-gray-300 mb-6"></p>
+            <form id="confirm-form">
+                <input type="hidden" id="confirm-action" />
+                <input type="hidden" id="confirm-target-id" />
+                <div class="mt-6 flex justify-end items-center space-x-3">
+                    <button type="button" id="confirm-modal-export-btn" class="confirm-modal-export-btn hidden">
+                        Export & Continue
+                    </button>
+                    <button type="button" id="confirm-modal-cancel-btn" class="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Cancel
+                    </button>
+                    <button type="submit" id="confirm-modal-confirm-btn" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                        Confirm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 11. Canvas Context Menu (Hidden) -->
+    <div id="canvas-context-menu" class="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg py-2 w-48 z-50 hidden opacity-0">
+        <button data-action="add-person" class="context-menu-btn">Add New Person</button>
+    </div>
+
+    <!-- 12. Hidden File Input for Import -->
+    <input type="file" id="import-file-input" class="hidden" accept="application/json">
+
+
+    <!-- 13. Main Application Logic - MY (GEMINI'S) FULL SCRIPT -->
+    <script type="module">
+        const DEBUG = false; // Set to true for development logging
+        
+        // === STATE ===
+        const db = {
+            people: [], // { id, name, gender, birthYear, isDeceased, isClient, issues: { trauma, mentalHealth, substanceUse, physicalAilment }, notes, x, y }
+            relationships: [], // STRUCTURAL links: { id, type ('partner' | 'child'), p1, p2, structuralType ('partner' | 'married' | 'divorced') } or { id, type, parents: [id1, id2], child: id }
+            emotionalLinks: [], // EMOTIONAL links: { id, p1, p2, quality ('default' | 'close' | 'enmeshed' | 'volatile' | 'cutoff' | 'abuse'), abuseDirection ('p1_to_p2' | 'p2_to_p1' | 'mutual' | null) }
+        };
+        const view = { zoom: 1, panX: 0, panY: 0, isSpacePressed: false, isSpacePanning: false, isMousePanning: false, lastMouseX: 0, lastMouseY: 0 };
+        const appState = { isDragging: false, wasDragging: false, dragTarget: null, dragOffsetX: 0, dragOffsetY: 0, contextMenuTargetId: null, contextMenuSvgX: 0, contextMenuSvgY: 0, selectedPersonId: null, snapToGrid: true, gridSize: 20, personSize: 60, isKeyTooltipPinned: false, isHelpTooltipPinned: false };
+        let lastPointerClientX = 0;
+        let lastPointerClientY = 0;
+
+        // === DOM ELEMENTS ===
+        let sidebar, canvas, viewportG, peopleG, relationshipsG, addPersonBtn, manageRelationshipsBtn;
+        let resetGenogramBtn;
+        let modal, modalTitle, modalSaveBtn, modalCancelBtn, personForm;
+        let personIdInput, modalActionInput, sourcePersonIdInput, nameInput, birthYearInput, genderInput, isDeceasedInput;
+        let traumaInput, mentalHealthInput, substanceUseInput, physicalAilmentInput, notesInput;
+        let contextMenu, canvasContextMenu;
+        let tooltip, tooltipName, tooltipRelationship, tooltipInfo;
+        let zoomInBtn, zoomOutBtn, centerViewBtn, exportJsonBtn, importJsonBtn, importFileInput;
+        let darkModeToggle, themeIconSun, themeIconMoon, fullscreenToggle;
+        let keyButton, keyTooltip, helpButton, helpTooltip;
+        let sidebarToggleBtn, sidebarBackdrop;
+        let relationshipModal, relationshipForm, relationshipModalTitle, relPersonAInput, relPersonBInput;
+        let relationshipQualityInput, abuseDirectionGroup, abuseDirectionInput, abuseSubtypeGroup, abuseSubtypeInput, relationshipModalCancelBtn;
+        let existingRelationshipsList, relFormTitle, relLinkIdInput, relFormClearBtn, relationshipModalSaveBtn;
+        let structuralRelationshipModal, structuralRelationshipForm, structuralRelIdInput, structuralRelationshipQualityInput, structuralModalCancelBtn;
+        let structuralConnectSection, connectTargetSelect;
+        let confirmModal, confirmForm, confirmModalTitle, confirmModalMessage, confirmActionInput, confirmTargetIdInput, confirmModalCancelBtn, confirmModalConfirmBtn, confirmModalExportBtn;
+
+
+        // === UTILITY FUNCTIONS ===
+        const generateId = () => `id_${crypto.randomUUID()}`;
+        const getPerson = (id) => db.people.find(p => p.id === id);
+
+        /**
+         * Escape a string for safe use inside innerHTML.
+         * Use whenever a user-supplied string is interpolated into an HTML template.
+         */
+        function escapeHtml(value) {
+            if (value == null) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatPersonLabel(person) {
+            const maxNameLength = 18;
+            const baseName = (person.name || '').trim();
+            const safeName = baseName.length > maxNameLength ? `${baseName.slice(0, maxNameLength - 1)}…` : baseName;
+            if (!person.birthYear) return safeName;
+            const currentYear = new Date().getFullYear();
+            const age = person.isDeceased ? `b. ${person.birthYear}` : `${currentYear - person.birthYear}`;
+            return `${safeName} (${age})`;
+        }
+
+        function findOpenPosition(preferredX, preferredY) {
+            const offset = appState.personSize * 1.7;
+            const candidates = [
+                [0, 0],
+                [offset, 0],
+                [-offset, 0],
+                [0, offset],
+                [0, -offset],
+                [offset, offset],
+                [-offset, offset],
+                [offset, -offset],
+                [-offset, -offset]
+            ];
+
+            for (const [dx, dy] of candidates) {
+                const nextX = snap(preferredX + dx);
+                const nextY = snap(preferredY + dy);
+                const occupied = db.people.some(person =>
+                    Math.abs(person.x - nextX) < appState.personSize * 1.25 &&
+                    Math.abs(person.y - nextY) < appState.personSize * 1.25
+                );
+                if (!occupied) {
+                    return { x: nextX, y: nextY };
+                }
+            }
+
+            return { x: snap(preferredX), y: snap(preferredY) };
+        }
+
+        function normalizeIssues(rawIssues = {}) {
+            return {
+                trauma: Boolean(rawIssues.trauma),
+                mentalHealth: Boolean(
+                    rawIssues.mentalHealth ??
+                    rawIssues.mhConfirmed ??
+                    rawIssues.mhSuspected
+                ),
+                substanceUse: Boolean(rawIssues.substanceUse),
+                physicalAilment: Boolean(rawIssues.physicalAilment),
+            };
+        }
+
+        // --- STRUCTURAL RELATIONSHIP HELPERS FROM EDIT MODAL ---
+        function findChildRelForChild(childId) {
+            return db.relationships.find(r => r.type === 'child' && r.child === childId);
+        }
+
+        function ensureChildRelationship(parentIds, childId) {
+            if (!parentIds || parentIds.length === 0) return;
+            let rel = findChildRelForChild(childId);
+            if (!rel) {
+                rel = {
+                    id: generateId(),
+                    type: 'child',
+                    parents: [...new Set(parentIds)].slice(0, 2),
+                    child: childId
+                };
+                db.relationships.push(rel);
+                return;
+            }
+            parentIds.forEach(pid => {
+                if (!rel.parents.includes(pid) && rel.parents.length < 2) {
+                    rel.parents.push(pid);
+                }
+            });
+            rel.parents = [...new Set(rel.parents)].slice(0, 2);
+        }
+
+        function ensurePartnerRelationship(personAId, personBId) {
+            if (!personAId || !personBId || personAId === personBId) return;
+            let existing = db.relationships.find(r =>
+                r.type === 'partner' &&
+                ((r.p1 === personAId && r.p2 === personBId) || (r.p1 === personBId && r.p2 === personAId))
+            );
+            if (!existing) {
+                db.relationships.push({
+                    id: generateId(),
+                    type: 'partner',
+                    p1: personAId,
+                    p2: personBId,
+                    structuralType: 'partner'
+                });
+            }
+        }
+
+        function connectAsParentOf(currentId, targetId) {
+            // current is parent of target
+            ensureChildRelationship([currentId], targetId);
+        }
+
+        function connectAsChildOf(currentId, targetId) {
+            // current is child, target is parent
+            ensureChildRelationship([targetId], currentId);
+        }
+
+        function connectAsSpouseOf(currentId, targetId) {
+            ensurePartnerRelationship(currentId, targetId);
+        }
+
+        function connectAsSiblingOf(currentId, targetId) {
+            const baseChildRel = findChildRelForChild(targetId);
+            if (!baseChildRel || !baseChildRel.parents || baseChildRel.parents.length === 0) {
+                showToast("Cannot set as sibling: the selected person has no parents defined yet.", 'error');
+                return;
+            }
+            ensureChildRelationship(baseChildRel.parents, currentId);
+        }
+
+        function getSVGPoint(screenX, screenY) {
+            const pt = canvas.createSVGPoint();
+            pt.x = screenX;
+            pt.y = screenY;
+            return pt.matrixTransform(viewportG.getScreenCTM().inverse());
+        }
+
+        const snap = (val) => {
+            if (!appState.snapToGrid) return Math.round(val);
+            return Math.round(val / appState.gridSize) * appState.gridSize;
+        };
+
+        function setSidebarOpen(isOpen) {
+            document.body.classList.toggle('sidebar-open', isOpen);
+        }
+
+        // ============================================
+        // LINE GEOMETRY HELPERS (relationship rendering)
+        // ============================================
+
+        function lineMidpoint(x1, y1, x2, y2) {
+            return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+        }
+
+        function perpendicularOffset(x1, y1, x2, y2, length) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            return { dx: (-dy / len) * length, dy: (dx / len) * length };
+        }
+
+        function buildPerpendicularSlash(x1, y1, x2, y2, t, length) {
+            const cx = x1 + (x2 - x1) * t;
+            const cy = y1 + (y2 - y1) * t;
+            const { dx, dy } = perpendicularOffset(x1, y1, x2, y2, length / 2);
+            return `M ${cx - dx} ${cy - dy} L ${cx + dx} ${cy + dy}`;
+        }
+
+        function buildZigzagPath(x1, y1, x2, y2, amplitude, period) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len === 0) return `M ${x1} ${y1}`;
+            const ux = dx / len;
+            const uy = dy / len;
+            const px = -uy;
+            const py = ux;
+            const half = period / 2;
+            const steps = Math.max(2, Math.floor(len / half));
+            const segLen = len / steps;
+            const parts = [`M ${x1} ${y1}`];
+            for (let i = 1; i <= steps; i++) {
+                const along = i * segLen;
+                const sign = (i % 2 === 1) ? -1 : 1;
+                const offsetMag = (i === steps && steps % 2 === 1) ? 0 : (i === steps ? 0 : amplitude * sign);
+                const ax = x1 + ux * along + px * offsetMag;
+                const ay = y1 + uy * along + py * offsetMag;
+                parts.push(`L ${ax} ${ay}`);
+            }
+            parts.push(`L ${x2} ${y2}`);
+            return parts.join(' ');
+        }
+
+        function buildAbuseJaggedPath(x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len === 0) return `M ${x1} ${y1}`;
+            const ux = dx / len;
+            const uy = dy / len;
+            const px = -uy;
+            const py = ux;
+            const amplitude = 8;
+            const teeth = Math.max(2, Math.floor(len / 28));
+            const segLen = len / teeth;
+            const parts = [`M ${x1} ${y1}`];
+            for (let i = 1; i < teeth; i++) {
+                const along = i * segLen;
+                const sign = (i % 2 === 1) ? -1 : 1;
+                const ax = x1 + ux * along + px * amplitude * sign;
+                const ay = y1 + uy * along + py * amplitude * sign;
+                parts.push(`L ${ax} ${ay}`);
+            }
+            parts.push(`L ${x2} ${y2}`);
+            return parts.join(' ');
+        }
+
+        function migrateEmotionalLink(link) {
+            if (!link || typeof link !== 'object') return link;
+            let migrated = { ...link };
+            if (migrated.quality === 'volatile' && !migrated._volatileCombined && !migrated._migratedFromLegacyVolatile) {
+                migrated.quality = 'hostile';
+                migrated._migratedFromLegacyVolatile = true;
+            }
+            if (migrated.quality === 'abuse' && !migrated.abuseType) {
+                migrated.abuseType = 'unspecified';
+            }
+            return migrated;
+        }
+
+        function migrateEmotionalLinks(links) {
+            if (!Array.isArray(links)) return [];
+            return links.map(migrateEmotionalLink);
+        }
+
+        // === RENDER FUNCTIONS ===
+        function render() {
+            viewportG.setAttribute('transform', `translate(${view.panX}, ${view.panY}) scale(${view.zoom})`);
+            peopleG.innerHTML = '';
+            relationshipsG.innerHTML = '';
+
+            db.relationships.forEach(drawRelationship);
+            db.emotionalLinks.forEach(drawEmotionalLink);
+            db.people.forEach(drawPerson); // drawPerson appends to peopleG
+        }
+
+        function drawPerson(person) {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', 'person-node');
+            g.setAttribute('transform', `translate(${person.x}, ${person.y})`);
+            g.dataset.id = person.id;
+
+            if (person.id === appState.selectedPersonId) g.classList.add('selected');
+
+            const size = appState.personSize;
+            
+            // 1. Draw Main Shape FIRST
+            const shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shape.setAttribute('class', 'person-shape');
+            shape.setAttribute('d', getShapePath(person.gender, size));
+            if (person.isClient) shape.classList.add('client-highlight');
+            g.appendChild(shape);
+
+            // 2. Draw Issue Quadrants (on top)
+            const { trauma, mentalHealth, substanceUse, physicalAilment } = normalizeIssues(person.issues);
+            if (trauma) g.appendChild(createQuadrant(person.gender, 'tl'));
+            if (mentalHealth) g.appendChild(createQuadrant(person.gender, 'tr'));
+            if (substanceUse) g.appendChild(createQuadrant(person.gender, 'bl'));
+            if (physicalAilment) g.appendChild(createQuadrant(person.gender, 'br'));
+
+            // 3. Draw Deceased 'X' (on top)
+            if (person.isDeceased) {
+                const [x1, x2] = getDeceasedLines(person.gender, size);
+                g.appendChild(x1);
+                g.appendChild(x2);
+            }
+
+            // 4. Add Name + Age Label Below Shape
+            const labelY = size / 2 + 16;
+            const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            nameText.setAttribute('x', '0');
+            nameText.setAttribute('y', String(labelY));
+            nameText.setAttribute('text-anchor', 'middle');
+            nameText.setAttribute('font-size', '11');
+            nameText.setAttribute('font-family', 'Inter, sans-serif');
+            nameText.setAttribute('fill', document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151');
+            nameText.setAttribute('pointer-events', 'none');
+            nameText.textContent = formatPersonLabel(person);
+            g.appendChild(nameText);
+
+            // 5. Add Event Listeners
+            g.addEventListener('mousedown', onPersonMouseDown);
+            g.addEventListener('mouseenter', onPersonMouseEnter);
+            g.addEventListener('mouseleave', onPersonMouseLeave);
+            g.addEventListener('contextmenu', onPersonContextMenu);
+            g.addEventListener('click', onPersonClick);
+
+            peopleG.appendChild(g);
+        }
+
+        function getShapePath(gender, size) {
+            const s = size / 2;
+            switch (gender) {
+                case 'male': return `M ${-s} ${-s} L ${s} ${-s} L ${s} ${s} L ${-s} ${s} Z`;
+                case 'female': return `M 0 ${-s} A ${s} ${s} 0 1 1 0 ${s} A ${s} ${s} 0 1 1 0 ${-s} Z`;
+                case 'other': return `M 0 ${-s} L ${s} 0 L 0 ${s} L ${-s} 0 Z`;
+                default: return '';
+            }
+        }
+
+        function createQuadrant(gender, quadrant) {
+            const s = appState.personSize / 2;
+            const q = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            q.setAttribute('class', 'issue-quadrant');
+            let d = '';
+
+            const squareTL = `M ${-s} ${-s} L 0 ${-s} L 0 0 L ${-s} 0 Z`;
+            const squareTR = `M 0 ${-s} L ${s} ${-s} L ${s} 0 L 0 0 Z`;
+            const squareBL = `M ${-s} 0 L 0 0 L 0 ${s} L ${-s} ${s} Z`;
+            const squareBR = `M 0 0 L ${s} 0 L ${s} ${s} L 0 ${s} Z`;
+
+            switch (gender) {
+                case 'male':
+                    if (quadrant === 'tl') d = squareTL;
+                    if (quadrant === 'tr') d = squareTR;
+                    if (quadrant === 'bl') d = squareBL;
+                    if (quadrant === 'br') d = squareBR;
+                    break;
+                case 'other':
+                    if (quadrant === 'tl') d = `M 0 0 L 0 ${-s} L ${-s} 0 Z`;
+                    if (quadrant === 'tr') d = `M 0 0 L 0 ${-s} L ${s} 0 Z`;
+                    if (quadrant === 'bl') d = `M 0 0 L ${-s} 0 L 0 ${s} Z`;
+                    if (quadrant === 'br') d = `M 0 0 L ${s} 0 L 0 ${s} Z`;
+                    break;
+                case 'female':
+                    // For circles, quadrants are pie slices: center -> edge point -> arc along circle -> back to center
+                    // Each arc is a 90-degree quarter circle (large-arc-flag=0 for small arc)
+                    // Top-left: center -> top -> arc (counter-clockwise) to left -> close
+                    if (quadrant === 'tl') d = `M 0 0 L 0 ${-s} A ${s} ${s} 0 0 0 ${-s} 0 Z`;
+                    // Top-right: center -> right -> arc (counter-clockwise) to top -> close
+                    if (quadrant === 'tr') d = `M 0 0 L ${s} 0 A ${s} ${s} 0 0 0 0 ${-s} Z`;
+                    // Bottom-left: center -> left -> arc (counter-clockwise) to bottom -> close
+                    if (quadrant === 'bl') d = `M 0 0 L ${-s} 0 A ${s} ${s} 0 0 0 0 ${s} Z`;
+                    // Bottom-right: center -> bottom -> arc (counter-clockwise) to right -> close
+                    if (quadrant === 'br') d = `M 0 0 L 0 ${s} A ${s} ${s} 0 0 0 ${s} 0 Z`;
+                    break;
+            }
+            q.setAttribute('d', d);
+            return q;
+        }
+
+        function getDeceasedLines(gender, size) {
+            const s = size / 2;
+            const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line1.setAttribute('class', 'deceased-x');
+            line2.setAttribute('class', 'deceased-x');
+            let x1, y1, x2, y2, x3, y3, x4, y4;
+
+            if (gender === 'female') {
+                const r = s * 0.707;
+                [x1, y1, x2, y2] = [-r, -r, r, r];
+                [x3, y3, x4, y4] = [-r, r, r, -r];
+            } else {
+                [x1, y1, x2, y2] = [-s, -s, s, s];
+                [x3, y3, x4, y4] = [-s, s, s, -s];
+            }
+            
+            if (gender === 'other') {
+                line1.setAttribute('transform', 'rotate(45)');
+                line2.setAttribute('transform', 'rotate(45)');
+            }
+            line1.setAttribute('x1', x1); line1.setAttribute('y1', y1);
+            line1.setAttribute('x2', x2); line1.setAttribute('y2', y2);
+            line2.setAttribute('x1', x3); line2.setAttribute('y1', y3);
+            line2.setAttribute('x2', x4); line2.setAttribute('y2', y4);
+            return [line1, line2];
+        }
+
+        function drawRelationship(rel) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('class', 'relationship-line');
+            let d = '';
+
+            if (rel.type === 'partner') {
+                const p1 = getPerson(rel.p1);
+                const p2 = getPerson(rel.p2);
+                if (!p1 || !p2) return;
+
+                d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+
+                if (rel.structuralType === 'partner') {
+                    line.classList.add('relationship-line-partner');
+                }
+
+                if (rel.structuralType === 'separated' || rel.structuralType === 'divorced') {
+                    const slashLength = 22;
+                    const overlay1Pos = (rel.structuralType === 'divorced') ? 0.45 : 0.5;
+                    const overlay = line.cloneNode();
+                    overlay.setAttribute('d', buildPerpendicularSlash(p1.x, p1.y, p2.x, p2.y, overlay1Pos, slashLength));
+                    overlay.classList.remove('relationship-line-partner');
+                    relationshipsG.appendChild(overlay);
+
+                    if (rel.structuralType === 'divorced') {
+                        const overlay2 = line.cloneNode();
+                        overlay2.setAttribute('d', buildPerpendicularSlash(p1.x, p1.y, p2.x, p2.y, 0.55, slashLength));
+                        overlay2.classList.remove('relationship-line-partner');
+                        relationshipsG.appendChild(overlay2);
+                    }
+                }
+            } else if (rel.type === 'child') {
+                const child = getPerson(rel.child);
+                if (!child) return;
+                
+                const parentRel = db.relationships.find(r => r.type === 'partner' && ((r.p1 === rel.parents[0] && r.p2 === rel.parents[1]) || (r.p1 === rel.parents[1] && r.p2 === rel.parents[0])));
+                let midX, midY;
+
+                if (parentRel && rel.parents.length === 2) {
+                    const p1 = getPerson(parentRel.p1);
+                    const p2 = getPerson(parentRel.p2);
+                    if (!p1 || !p2) return;
+                    midX = (p1.x + p2.x) / 2;
+                    midY = (p1.y + p2.y) / 2;
+                } else if (rel.parents.length === 1) {
+                    const p1 = getPerson(rel.parents[0]);
+                    if (!p1) return;
+                    midX = p1.x;
+                    midY = p1.y + (appState.personSize / 2);
+                } else {
+                    console.warn("Could not find parents for child:", rel.child);
+                    return;
+                }
+
+                const childY = child.y - (appState.personSize / 2);
+                const dropY = (midY + childY) / 2;
+                
+                if (midY > dropY) {
+                     d = `M ${midX} ${midY} L ${midX} ${midY + 20} L ${child.x} ${midY + 20} L ${child.x} ${childY + appState.personSize}`;
+                } else {
+                    d = `M ${midX} ${midY} L ${midX} ${dropY} L ${child.x} ${dropY} L ${child.x} ${childY}`;
+                }
+            }
+            line.setAttribute('d', d);
+            relationshipsG.appendChild(line);
+        }
+
+        function drawEmotionalLink(link) {
+            const p1 = getPerson(link.p1);
+            const p2 = getPerson(link.p2);
+            if (!p1 || !p2) return;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('class', 'relationship-line');
+            let d = '';
+
+            switch (link.quality) {
+                case 'distant': {
+                    line.setAttribute('stroke', 'var(--tt-axis, #9ca3af)');
+                    line.setAttribute('stroke-width', '1.5');
+                    line.setAttribute('stroke-dasharray', '2 5');
+                    d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+                    break;
+                }
+                case 'close': {
+                    line.classList.add('rel-close');
+                    const { dx, dy } = perpendicularOffset(p1.x, p1.y, p2.x, p2.y, 4);
+                    d = `M ${p1.x + dx} ${p1.y + dy} L ${p2.x + dx} ${p2.y + dy} ` +
+                        `M ${p1.x - dx} ${p1.y - dy} L ${p2.x - dx} ${p2.y - dy}`;
+                    break;
+                }
+                case 'enmeshed': {
+                    line.classList.add('rel-enmeshed');
+                    const { dx, dy } = perpendicularOffset(p1.x, p1.y, p2.x, p2.y, 5);
+                    d = `M ${p1.x + dx} ${p1.y + dy} L ${p2.x + dx} ${p2.y + dy} ` +
+                        `M ${p1.x - dx} ${p1.y - dy} L ${p2.x - dx} ${p2.y - dy} ` +
+                        `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+                    break;
+                }
+                case 'hostile': {
+                    line.classList.add('rel-hostile');
+                    d = buildZigzagPath(p1.x, p1.y, p2.x, p2.y, 5, 16);
+                    break;
+                }
+                case 'volatile': {
+                    line.classList.add('rel-close');
+                    const { dx, dy } = perpendicularOffset(p1.x, p1.y, p2.x, p2.y, 6);
+                    d = `M ${p1.x + dx} ${p1.y + dy} L ${p2.x + dx} ${p2.y + dy} ` +
+                        `M ${p1.x - dx} ${p1.y - dy} L ${p2.x - dx} ${p2.y - dy}`;
+                    line.setAttribute('d', d);
+                    relationshipsG.appendChild(line);
+
+                    const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    overlay.setAttribute('class', 'relationship-line rel-hostile');
+                    overlay.setAttribute('stroke-width', '1.5');
+                    overlay.setAttribute('d', buildZigzagPath(p1.x, p1.y, p2.x, p2.y, 3, 14));
+                    relationshipsG.appendChild(overlay);
+                    return;
+                }
+                case 'cutoff': {
+                    line.setAttribute('stroke', 'var(--tt-text, #1f2937)');
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    const L = Math.sqrt(dx * dx + dy * dy);
+                    if (L === 0) return;
+                    const gapHalf = 10;
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+                    const ux = dx / L, uy = dy / L;
+                    const gapStartX = midX - ux * gapHalf;
+                    const gapStartY = midY - uy * gapHalf;
+                    const gapEndX = midX + ux * gapHalf;
+                    const gapEndY = midY + uy * gapHalf;
+                    d = `M ${p1.x} ${p1.y} L ${gapStartX} ${gapStartY} M ${gapEndX} ${gapEndY} L ${p2.x} ${p2.y}`;
+
+                    const barLen = 24;
+                    const bar1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    bar1.setAttribute('class', 'relationship-line');
+                    bar1.setAttribute('stroke', 'var(--tt-text, #1f2937)');
+                    bar1.setAttribute('d', buildPerpendicularSlash(p1.x, p1.y, p2.x, p2.y, 0.46, barLen));
+                    relationshipsG.appendChild(bar1);
+
+                    const bar2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    bar2.setAttribute('class', 'relationship-line');
+                    bar2.setAttribute('stroke', 'var(--tt-text, #1f2937)');
+                    bar2.setAttribute('d', buildPerpendicularSlash(p1.x, p1.y, p2.x, p2.y, 0.54, barLen));
+                    relationshipsG.appendChild(bar2);
+                    break;
+                }
+                case 'abuse': {
+                    line.classList.add('rel-abuse');
+                    const { x: srcX, y: srcY, x2: tgtX, y2: tgtY } = abuseEndpointsFor(link, p1, p2);
+                    d = buildAbuseJaggedPath(srcX, srcY, tgtX, tgtY);
+                    if (link.abuseDirection === 'p1_to_p2' || link.abuseDirection === 'p2_to_p1') {
+                        line.setAttribute('marker-end', 'url(#arrowhead-abuse-red)');
+                    } else if (link.abuseDirection === 'mutual') {
+                        line.setAttribute('marker-start', 'url(#arrowhead-abuse-red)');
+                        line.setAttribute('marker-end', 'url(#arrowhead-abuse-red)');
+                    }
+                    line.setAttribute('d', d);
+                    relationshipsG.appendChild(line);
+                    drawAbuseTypeBadge(link, p1, p2);
+                    return;
+                }
+                default:
+                    break;
+            }
+
+            if (d) {
+                line.setAttribute('d', d);
+                relationshipsG.appendChild(line);
+            }
+        }
+
+        function abuseEndpointsFor(link, p1, p2) {
+            if (link.abuseDirection === 'p2_to_p1') {
+                return { x: p2.x, y: p2.y, x2: p1.x, y2: p1.y };
+            }
+            return { x: p1.x, y: p1.y, x2: p2.x, y2: p2.y };
+        }
+
+        function drawAbuseTypeBadge(link, p1, p2) {
+            const letterMap = {
+                physical: 'P',
+                sexual: 'S',
+                emotional: 'E'
+            };
+            const letter = letterMap[link.abuseType];
+            if (!letter) return;
+
+            const mid = lineMidpoint(p1.x, p1.y, p2.x, p2.y);
+            const { dx, dy } = perpendicularOffset(p1.x, p1.y, p2.x, p2.y, 14);
+            const bx = mid.x + dx;
+            const by = mid.y + dy;
+            const isDark = document.documentElement.classList.contains('dark');
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', String(bx));
+            circle.setAttribute('cy', String(by));
+            circle.setAttribute('r', '9');
+            circle.setAttribute('fill', isDark ? '#1f2937' : '#ffffff');
+            circle.setAttribute('stroke', '#ef4444');
+            circle.setAttribute('stroke-width', '1.5');
+            relationshipsG.appendChild(circle);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', String(bx));
+            text.setAttribute('y', String(by));
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'central');
+            text.setAttribute('font-size', '11');
+            text.setAttribute('font-weight', '600');
+            text.setAttribute('font-family', 'Inter, sans-serif');
+            text.setAttribute('fill', '#ef4444');
+            text.setAttribute('pointer-events', 'none');
+            text.textContent = letter;
+            relationshipsG.appendChild(text);
+        }
+
+
+        // === EVENT HANDLERS (Person) ===
+        function onPersonMouseDown(e) {
+            if (e.button === 2) { 
+                e.preventDefault();
+                e.stopPropagation();
+                onPersonContextMenu(e);
+                return; 
+            }
+            if (e.button !== 0) return;
+            e.stopPropagation();
+            hideContextMenu();
+            hideTooltip();
+            appState.wasDragging = false;
+            const targetG = e.currentTarget;
+            const personId = targetG.dataset.id;
+            const person = getPerson(personId);
+            const pt = getSVGPoint(e.clientX, e.clientY);
+            appState.isDragging = true;
+            appState.dragTarget = person;
+            appState.dragOffsetX = pt.x - person.x;
+            appState.dragOffsetY = pt.y - person.y;
+        }
+
+        function onPersonMouseEnter(e) {
+            if (appState.isDragging || contextMenu.style.display === 'block') return;
+            const personId = e.currentTarget.dataset.id;
+            showTooltip(personId, e.clientX, e.clientY);
+        }
+
+        function onPersonMouseLeave(e) {
+            hideTooltip();
+        }
+
+        function onPersonContextMenu(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            hideTooltip();
+            hideCanvasContextMenu();
+            appState.contextMenuTargetId = e.currentTarget.dataset.id;
+            const personId = appState.contextMenuTargetId;
+            const partnerRel = db.relationships.find(r => r.type === 'partner' && (r.p1 === personId || r.p2 === personId));
+            const editRelBtn = contextMenu.querySelector('[data-action="set-partnership-type"]');
+            editRelBtn.disabled = !partnerRel;
+            showContextMenu(e.clientX, e.clientY);
+        }
+
+        function onPersonClick(e) {
+            e.stopPropagation();
+            if (appState.wasDragging) {
+                appState.wasDragging = false;
+                return;
+            }
+            const personId = e.currentTarget.dataset.id;
+            appState.selectedPersonId = personId;
+            render();
+        }
+
+
+        // === EVENT HANDLERS (Global) ===
+        function onWindowMouseMove(e) {
+            lastPointerClientX = e.clientX;
+            lastPointerClientY = e.clientY;
+            if (appState.isDragging && appState.dragTarget) {
+                appState.wasDragging = true;
+                const pt = getSVGPoint(e.clientX, e.clientY);
+                appState.dragTarget.x = snap(pt.x - appState.dragOffsetX);
+                appState.dragTarget.y = snap(pt.y - appState.dragOffsetY);
+                render();
+            }
+            if (view.isSpacePanning || view.isMousePanning) {
+                const dx = e.clientX - view.lastMouseX;
+                const dy = e.clientY - view.lastMouseY;
+                view.panX += dx;
+                view.panY += dy;
+                view.lastMouseX = e.clientX;
+                view.lastMouseY = e.clientY;
+                render();
+            }
+        }
+
+        function onWindowMouseUp(e) {
+            if (appState.isDragging && appState.wasDragging) {
+                saveToLocalStorage();
+            }
+            appState.isDragging = false;
+            appState.dragTarget = null;
+            if (view.isMousePanning || view.isSpacePanning) {
+                view.isMousePanning = false;
+                view.isSpacePanning = false;
+                canvas.style.cursor = view.isSpacePressed ? 'grab' : 'grab';
+            }
+        }
+
+        function onWindowClick(e) {
+            hideContextMenu();
+            hideCanvasContextMenu();
+            if (e.target === canvas) {
+                if (appState.selectedPersonId) {
+                    appState.selectedPersonId = null;
+                    render();
+                }
+            }
+            if (appState.isKeyTooltipPinned && !keyButton.contains(e.target)) {
+                appState.isKeyTooltipPinned = false;
+                keyTooltip.style.opacity = '0';
+                setTimeout(() => keyTooltip.style.display = 'none', 100);
+                keyTooltip.classList.remove('pinned');
+                keyButton.blur();
+            }
+            if (appState.isHelpTooltipPinned && !helpButton.contains(e.target) && !helpTooltip.contains(e.target)) {
+                appState.isHelpTooltipPinned = false;
+                helpTooltip.classList.remove('active');
+                helpButton.blur();
+            }
+        }
+
+        function onWindowKeyDown(e) {
+            if (e.key === 'Escape') {
+                if (!confirmModal.classList.contains('hidden')) {
+                    hideConfirmModal();
+                    e.preventDefault();
+                    return;
+                }
+                if (!structuralRelationshipModal.classList.contains('hidden')) {
+                    hideStructuralRelationshipModal();
+                    e.preventDefault();
+                    return;
+                }
+                if (!relationshipModal.classList.contains('hidden')) {
+                    hideRelationshipModal();
+                    e.preventDefault();
+                    return;
+                }
+                if (!modal.classList.contains('hidden')) {
+                    hideModal();
+                    e.preventDefault();
+                    return;
+                }
+                return;
+            }
+            if (e.code === 'Space' && modal.classList.contains('hidden') && relationshipModal.classList.contains('hidden') && confirmModal.classList.contains('hidden')) {
+                e.preventDefault();
+                view.isSpacePressed = true;
+                canvas.style.cursor = 'grab';
+            }
+            if ((e.code === 'Delete' || e.code === 'Backspace') && appState.selectedPersonId) {
+                if (modal.classList.contains('hidden') && relationshipModal.classList.contains('hidden') && confirmModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    const person = getPerson(appState.selectedPersonId);
+                    showConfirmModal('delete-person', appState.selectedPersonId, 'Delete Person?', `Are you sure you want to remove ${person.name}? This cannot be undone.`);
+                }
+            }
+        }
+
+        function onWindowKeyUp(e) {
+            if (e.code === 'Space') {
+                view.isSpacePressed = false;
+                view.isSpacePanning = false;
+                if (!view.isMousePanning) canvas.style.cursor = 'grab';
+            }
+        }
+
+        // === EVENT HANDLERS (Canvas) ===
+        function onCanvasWheel(e) {
+            if (!(e.ctrlKey || e.metaKey)) return;
+            e.preventDefault();
+            const zoomSpeed = 0.05;
+            const intended = view.zoom * (e.deltaY < 0 ? (1 + zoomSpeed) : (1 - zoomSpeed));
+            const newZoom = Math.max(0.1, Math.min(5, intended));
+            const factor = newZoom / view.zoom;
+            if (factor === 1) return;
+            view.panX = e.clientX - (e.clientX - view.panX) * factor;
+            view.panY = e.clientY - (e.clientY - view.panY) * factor;
+            view.zoom = newZoom;
+            render();
+        }
+
+        function onCanvasContextMenu(e) {
+            e.preventDefault();
+            if (e.target === canvas) {
+                hideContextMenu();
+                const pt = getSVGPoint(e.clientX, e.clientY);
+                appState.contextMenuSvgX = pt.x;
+                appState.contextMenuSvgY = pt.y;
+                showCanvasContextMenu(e.clientX, e.clientY);
+            }
+        }
+
+        // === EVENT HANDLERS (Controls) ===
+        
+        function zoom(factor) {
+            const newZoom = Math.max(0.1, Math.min(5, view.zoom * factor));
+            const actualFactor = newZoom / view.zoom;
+            if (actualFactor === 1) return;
+            const centerX = canvas.clientWidth / 2;
+            const centerY = canvas.clientHeight / 2;
+            view.panX = centerX - (centerX - view.panX) * actualFactor;
+            view.panY = centerY - (centerY - view.panY) * actualFactor;
+            view.zoom = newZoom;
+            render();
+        }
+
+        function centerView() {
+            if (db.people.length === 0) {
+                view.zoom = 1; view.panX = 0; view.panY = 0;
+                render(); return;
+            }
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            db.people.forEach(p => {
+                minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+            });
+            const margin = 100;
+            const contentWidth = maxX - minX + margin * 2;
+            const contentHeight = maxY - minY + margin * 2;
+            const contentCenterX = (minX + maxX) / 2;
+            const contentCenterY = (minY + maxY) / 2;
+            const screenWidth = canvas.clientWidth;
+            const screenHeight = canvas.clientHeight;
+            const zoomX = screenWidth / contentWidth;
+            const zoomY = screenHeight / contentHeight;
+            view.zoom = Math.min(zoomX, zoomY, 1);
+            view.panX = (screenWidth / 2) - (contentCenterX * view.zoom);
+            view.panY = (screenHeight / 2) - (contentCenterY * view.zoom);
+            render();
+        }
+
+        // --- Persistence Handlers ---
+        function exportJSON() {
+            const dataStr = JSON.stringify(db, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            const client = db.people.find(p => p.isClient);
+            const clientSlug = (client && client.name)
+                ? client.name.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '') || 'Unnamed'
+                : 'Unnamed';
+            a.href = url; a.download = `genogram_${clientSlug}_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+            setDirtyState(false);
+            clearDraft();
+            showToast('Genogram exported as JSON', 'success');
+        }
+
+        function importJSON() {
+            importFileInput.click();
+        }
+
+        function onImportFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target.result;
+                if (db.people.length > 0) {
+                    _pendingImportText = content;
+                    showConfirmModal(
+                        'import-replace',
+                        null,
+                        'Replace current genogram?',
+                        'Importing will replace the genogram currently on the canvas. This cannot be undone. Continue?'
+                    );
+                } else {
+                    applyImportedJson(content);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = null;
+        }
+
+        function applyImportedJson(content) {
+            try {
+                const newDb = JSON.parse(content);
+                if (newDb && Array.isArray(newDb.people) && Array.isArray(newDb.relationships)) {
+                    db.people = newDb.people;
+                    db.relationships = newDb.relationships;
+                    db.emotionalLinks = migrateEmotionalLinks(newDb.emotionalLinks || []);
+                    render();
+                    centerView();
+                    setDirtyState(false);
+                    clearDraft();
+                    showToast('Genogram imported successfully', 'success');
+                } else {
+                    showToast('Invalid file format — expected a genogram JSON file.', 'error');
+                }
+            } catch (err) {
+                showToast('Could not read file: ' + err.message, 'error');
+            }
+        }
+
+        // --- UI Toggles ---
+        
+        function updateThemeIcons(isDark) {
+            if (isDark) {
+                themeIconSun.classList.remove('hidden');
+                themeIconMoon.classList.add('hidden');
+            } else {
+                themeIconSun.classList.add('hidden');
+                themeIconMoon.classList.remove('hidden');
+            }
+        }
+        
+        function positionHelpTooltip() {
+            if (!helpTooltip || !helpButton) return;
+            // Position below button, aligned to right edge (extends left)
+            const buttonRect = helpButton.getBoundingClientRect();
+            const parentRect = helpTooltip.parentElement.getBoundingClientRect();
+            const tooltipWidth = 240; // w-60 = 15rem = 240px
+            // Right-align: tooltip's right edge aligns with button's right edge
+            const right = parentRect.right - buttonRect.right;
+            const top = buttonRect.height + 8;
+            helpTooltip.style.right = `${right}px`;
+            helpTooltip.style.left = 'auto';
+            helpTooltip.style.top = `${top}px`;
+        }
+
+        // === MODAL FUNCTIONS ===
+        function showModal(mode, personId = null, sourcePersonId = null, defaultX = null, defaultY = null) {
+            personForm.reset();
+            modalActionInput.value = mode;
+            sourcePersonIdInput.value = sourcePersonId;
+            let title = '', saveText = '';
+            let finalDefaultX, finalDefaultY;
+
+            if (defaultX !== null && defaultY !== null) {
+                finalDefaultX = snap(defaultX);
+                finalDefaultY = snap(defaultY);
+            } else {
+                const centerPt = getSVGPoint(canvas.clientWidth / 2, canvas.clientHeight / 2);
+                finalDefaultX = snap(centerPt.x);
+                finalDefaultY = snap(centerPt.y);
+            }
+
+            // Reset existing-person connect UI (used for add-parent/child/partner)
+            if (structuralConnectSection && connectTargetSelect) {
+                structuralConnectSection.classList.add('hidden');
+                connectTargetSelect.innerHTML = '<option value=\"\">Create new person…</option>';
+            }
+
+            switch (mode) {
+                case 'add':
+                    title = 'Add New Person'; saveText = 'Add Person';
+                    personIdInput.value = '';
+                    break;
+                case 'edit':
+                    title = 'Edit Person'; saveText = 'Update Person';
+                    const person = getPerson(personId);
+                    if (!person) return;
+                    personIdInput.value = person.id;
+                    nameInput.value = person.name;
+                    birthYearInput.value = person.birthYear || '';
+                    genderInput.value = person.gender;
+                    isDeceasedInput.checked = person.isDeceased;
+                    const normalizedIssues = normalizeIssues(person.issues);
+                    traumaInput.checked = normalizedIssues.trauma;
+                    mentalHealthInput.checked = normalizedIssues.mentalHealth;
+                    substanceUseInput.checked = normalizedIssues.substanceUse;
+                    physicalAilmentInput.checked = normalizedIssues.physicalAilment;
+                    notesInput.value = person.notes || '';
+                    break;
+                case 'add-partner':
+                    const sourceForPartner = getPerson(sourcePersonId);
+                    if (!sourceForPartner) return;
+                    title = `Add Partner for ${sourceForPartner.name}`; saveText = 'Add Partner';
+                    personIdInput.value = '';
+                    finalDefaultX = sourceForPartner.x + appState.personSize * 2;
+                    finalDefaultY = sourceForPartner.y;
+                    if (structuralConnectSection && connectTargetSelect) {
+                        structuralConnectSection.classList.remove('hidden');
+                        connectTargetSelect.innerHTML = '<option value=\"\">Create new person…</option>';
+                        db.people
+                            .filter(p => p.id !== sourceForPartner.id)
+                            .forEach(p => {
+                                const opt = document.createElement('option');
+                                opt.value = p.id;
+                                opt.textContent = p.name || '(Unnamed person)';
+                                connectTargetSelect.appendChild(opt);
+                            });
+                    }
+                    break;
+                case 'add-parent':
+                    const childPerson = getPerson(sourcePersonId);
+                    if (!childPerson) return;
+                    title = `Add Parent for ${childPerson.name}`; saveText = 'Add Parent';
+                    personIdInput.value = '';
+                    finalDefaultX = childPerson.x;
+                    finalDefaultY = childPerson.y - appState.personSize * 2;
+                    if (structuralConnectSection && connectTargetSelect) {
+                        structuralConnectSection.classList.remove('hidden');
+                        connectTargetSelect.innerHTML = '<option value=\"\">Create new person…</option>';
+                        db.people
+                            .filter(p => p.id !== childPerson.id)
+                            .forEach(p => {
+                                const opt = document.createElement('option');
+                                opt.value = p.id;
+                                opt.textContent = p.name || '(Unnamed person)';
+                                connectTargetSelect.appendChild(opt);
+                            });
+                    }
+                    break;
+                case 'add-child':
+                    const parentPerson = getPerson(sourcePersonId);
+                    if (!parentPerson) return;
+                    title = `Add Child for ${parentPerson.name}`; saveText = 'Add Child';
+                    personIdInput.value = '';
+                    finalDefaultX = parentPerson.x + appState.personSize;
+                    finalDefaultY = parentPerson.y + appState.personSize * 2;
+                    if (structuralConnectSection && connectTargetSelect) {
+                        structuralConnectSection.classList.remove('hidden');
+                        connectTargetSelect.innerHTML = '<option value=\"\">Create new person…</option>';
+                        db.people
+                            .filter(p => p.id !== parentPerson.id)
+                            .forEach(p => {
+                                const opt = document.createElement('option');
+                                opt.value = p.id;
+                                opt.textContent = p.name || '(Unnamed person)';
+                                connectTargetSelect.appendChild(opt);
+                            });
+                    }
+                    break;
+            }
+            personForm.dataset.defaultX = finalDefaultX;
+            personForm.dataset.defaultY = finalDefaultY;
+            modalTitle.textContent = title;
+            modalSaveBtn.textContent = saveText;
+            modal.classList.remove('hidden');
+            nameInput.focus();
+        }
+
+        function hideModal() { modal.classList.add('hidden'); }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = personIdInput.value;
+            const mode = modalActionInput.value;
+            const sourceId = sourcePersonIdInput.value;
+            const existingId = (structuralConnectSection && connectTargetSelect) ? connectTargetSelect.value : '';
+
+            const personData = {
+                name: nameInput.value,
+                birthYear: birthYearInput.value ? parseInt(birthYearInput.value, 10) : null,
+                gender: genderInput.value,
+                isDeceased: isDeceasedInput.checked,
+                isClient: false,
+                issues: {
+                    trauma: traumaInput.checked,
+                    mentalHealth: mentalHealthInput.checked,
+                    substanceUse: substanceUseInput.checked,
+                    physicalAilment: physicalAilmentInput.checked,
+                },
+                notes: notesInput.value || '',
+            };
+
+            let person;
+            if (mode === 'edit') {
+                person = getPerson(id);
+                // Preserve isClient status on edit
+                personData.isClient = person.isClient; 
+                Object.assign(person, personData);
+            } else {
+                // For add-partner / add-parent / add-child we may connect to an existing person
+                if ((mode === 'add-partner' || mode === 'add-parent' || mode === 'add-child') && existingId) {
+                    person = getPerson(existingId);
+                    if (!person) {
+                        showToast("Selected person could not be found.", 'error');
+                        return;
+                    }
+                } else {
+                    const openPosition = findOpenPosition(
+                        parseInt(personForm.dataset.defaultX, 10),
+                        parseInt(personForm.dataset.defaultY, 10)
+                    );
+                    person = {
+                        id: generateId(),
+                        ...personData,
+                        x: openPosition.x,
+                        y: openPosition.y,
+                    };
+                    db.people.push(person);
+                    if (db.people.length === 1) person.isClient = true;
+                }
+            }
+
+            if (mode === 'add-partner') {
+                ensurePartnerRelationship(sourceId, person.id);
+            } else if (mode === 'add-child') {
+                const parents = [sourceId];
+                const partnerRel = db.relationships.find(r => r.type === 'partner' && (r.p1 === sourceId || r.p2 === sourceId));
+                if (partnerRel) {
+                    const otherParentId = partnerRel.p1 === sourceId ? partnerRel.p2 : partnerRel.p1;
+                    parents.push(otherParentId);
+                }
+                ensureChildRelationship(parents, person.id);
+            } else if (mode === 'add-parent') {
+                const childId = sourceId;
+                const parent1 = person;
+                const parentRel = db.relationships.find(r => r.type === 'child' && r.child === childId);
+                if (!parentRel) {
+                    const newRel = { id: generateId(), type: 'child', parents: [parent1.id], child: childId };
+                    db.relationships.push(newRel);
+                } else if (parentRel.parents.length === 1) {
+                    const parent2Id = parentRel.parents[0];
+                    const parent2 = getPerson(parent2Id);
+                    parentRel.parents.push(parent1.id);
+                    parentRel.parents.sort();
+                    const newPartnerRel = { id: generateId(), type: 'partner', p1: parent1.id, p2: parent2Id, structuralType: 'married' };
+                    db.relationships.push(newPartnerRel);
+                    parent1.x = parent2.x + appState.personSize * 2;
+                    parent1.y = parent2.y;
+                } else {
+                    showToast("This child already has two parents. Step-parents not yet supported.", 'info');
+                }
+            }
+            hideModal();
+            saveToLocalStorage();
+            render();
+        }
+
+        // --- Context Menu ---
+        function showContextMenu(x, y) {
+            contextMenu.style.left = `${x}px`; contextMenu.style.top = `${y}px`;
+            contextMenu.style.display = 'block';
+            const menuRect = contextMenu.getBoundingClientRect();
+            if (x + menuRect.width > window.innerWidth) contextMenu.style.left = `${x - menuRect.width}px`;
+            if (y + menuRect.height > window.innerHeight) contextMenu.style.top = `${y - menuRect.height}px`;
+            setTimeout(() => contextMenu.style.opacity = '1', 10);
+        }
+        function hideContextMenu() {
+            contextMenu.style.opacity = '0';
+            setTimeout(() => contextMenu.style.display = 'none', 100);
+        }
+        function showCanvasContextMenu(x, y) {
+            canvasContextMenu.style.left = `${x}px`; canvasContextMenu.style.top = `${y}px`;
+            canvasContextMenu.style.display = 'block';
+            const menuRect = canvasContextMenu.getBoundingClientRect();
+            if (x + menuRect.width > window.innerWidth) canvasContextMenu.style.left = `${x - menuRect.width}px`;
+            if (y + menuRect.height > window.innerHeight) canvasContextMenu.style.top = `${y - menuRect.height}px`;
+            setTimeout(() => canvasContextMenu.style.opacity = '1', 10);
+        }
+        function hideCanvasContextMenu() {
+            canvasContextMenu.style.opacity = '0';
+            setTimeout(() => canvasContextMenu.style.display = 'none', 100);
+        }
+
+        function handleContextMenuClick(e) {
+            const action = e.target.dataset.action;
+            const personId = appState.contextMenuTargetId;
+            if (!action || !personId) return;
+            const person = getPerson(personId);
+            hideContextMenu();
+            switch (action) {
+                case 'edit': showModal('edit', personId); break;
+                case 'set-client':
+                    db.people.forEach(p => p.isClient = false);
+                    if(person) person.isClient = true;
+                    saveToLocalStorage(); render();
+                    break;
+                case 'add-partner': 
+                    showModal('add-partner', null, personId); 
+                    break;
+                case 'add-parent': 
+                    showModal('add-parent', null, personId); 
+                    break;
+                case 'add-child':
+                    // Allow adding a child even if there is no partner yet; partner (if any) is
+                    // considered later when saving the form.
+                    showModal('add-child', null, personId);
+                    break;
+                case 'manage-relationships': showRelationshipModal(personId); break;
+                case 'set-partnership-type':
+                    const rel = db.relationships.find(r => r.type === 'partner' && (r.p1 === personId || r.p2 === personId));
+                    if (rel) showStructuralRelationshipModal(rel.id);
+                    break;
+                case 'remove': showConfirmModal('delete-person', personId, 'Delete Person?', `Are you sure you want to remove ${person.name}? This cannot be undone.`); break;
+            }
+        }
+        function handleCanvasContextMenuClick(e) {
+            const action = e.target.dataset.action;
+            if (action === 'add-person') showModal('add', null, null, appState.contextMenuSvgX, appState.contextMenuSvgY);
+            hideCanvasContextMenu();
+        }
+
+        // --- Tooltip ---
+        function showTooltip(personId, x, y) {
+            const person = getPerson(personId);
+            if (!person) return;
+            tooltipName.textContent = person.name;
+            tooltipRelationship.textContent = getRelationship(personId);
+            const infoItems = [];
+            if (person.birthYear) infoItems.push(`<li>Born: ${person.birthYear}</li>`);
+            if (person.isDeceased) infoItems.push(`<li class="text-red-300">Deceased</li>`);
+            const normalizedIssues = normalizeIssues(person.issues);
+            if (normalizedIssues.trauma) infoItems.push(`<li>Trauma / Suspected Trauma</li>`);
+            if (normalizedIssues.mentalHealth) infoItems.push(`<li>Mental Health (Confirmed / Suspected)</li>`);
+            if (normalizedIssues.substanceUse) infoItems.push(`<li>Substance Use</li>`);
+            if (normalizedIssues.physicalAilment) infoItems.push(`<li>Physical Ailment</li>`);
+            if (infoItems.length === 0 && !person.notes) infoItems.push(`<li>No clinical notes.</li>`);
+            if (person.notes) {
+                const noteHtml = escapeHtml(person.notes).replace(/\n/g, '<br>');
+                infoItems.push(`<li class="mt-2 pt-2 border-t border-gray-600"><span class="font-semibold">Notes:</span><br>${noteHtml}</li>`);
+            }
+            tooltipInfo.innerHTML = infoItems.join('');
+            tooltip.style.display = 'block';
+            const tooltipRect = tooltip.getBoundingClientRect();
+            let newX = x + 15; let newY = y + 15;
+            if (newX + tooltipRect.width > window.innerWidth) newX = x - tooltipRect.width - 15;
+            if (newY + tooltipRect.height > window.innerHeight) newY = y - tooltipRect.height - 15;
+            tooltip.style.left = `${newX}px`; tooltip.style.top = `${newY}px`;
+            tooltip.style.opacity = '1'; tooltip.style.transform = 'scale(1)';
+        }
+        function hideTooltip() {
+            tooltip.style.opacity = '0';
+            tooltip.style.transform = 'scale(0.95)';
+            setTimeout(() => tooltip.style.display = 'none', 100);
+        }
+        function getRelationship(personId) {
+            const client = db.people.find(p => p.isClient);
+            if (!client) return 'Set a client (right-click)';
+            if (personId === client.id) return 'Client';
+            if (db.relationships.some(r => r.type === 'partner' && ((r.p1 === personId && r.p2 === client.id) || (r.p1 === client.id && r.p2 === personId)))) return 'Partner';
+            if (db.relationships.some(r => r.type === 'child' && r.parents.includes(client.id) && r.child === personId)) return 'Child';
+            if (db.relationships.some(r => r.type === 'child' && r.child === client.id && r.parents.includes(personId))) return 'Parent';
+            const parentRels = db.relationships.filter(r => r.type === 'child' && r.child === client.id);
+            if (parentRels.length > 0) {
+                const parents = parentRels[0].parents;
+                if (db.relationships.some(r => r.type === 'child' && r.parents.join() === parents.join() && r.child === personId)) return 'Sibling';
+            }
+            return 'Relative';
+        }
+
+        // --- Relationship Modals ---
+        function showRelationshipModal(personAId = null) {
+            clearRelationshipForm();
+            relPersonAInput.innerHTML = ''; relPersonBInput.innerHTML = '';
+            const defaultOptionA = new Option("Select Person A", "");
+            const defaultOptionB = new Option("Select Person B", "");
+            relPersonAInput.add(defaultOptionA); relPersonBInput.add(defaultOptionB);
+            db.people.forEach(p => {
+                relPersonAInput.add(new Option(p.name, p.id));
+                relPersonBInput.add(new Option(p.name, p.id));
+            });
+            if (personAId) relPersonAInput.value = personAId;
+            populateExistingLinksList();
+            relationshipModal.classList.remove('hidden');
+        }
+        function populateExistingLinksList() {
+            existingRelationshipsList.innerHTML = '';
+            if (db.emotionalLinks.length === 0) {
+                existingRelationshipsList.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400">No emotional links defined.</p>`; return;
+            }
+            db.emotionalLinks.forEach(link => {
+                const p1 = getPerson(link.p1); const p2 = getPerson(link.p2);
+                if (!p1 || !p2) return;
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-md';
+                const qualityLabels = {
+                    default: 'connected',
+                    distant: 'distant',
+                    close: 'close',
+                    enmeshed: 'enmeshed',
+                    hostile: 'hostile',
+                    volatile: 'volatile (close + hostile)',
+                    cutoff: 'cut-off',
+                    abuse: 'abuse'
+                };
+                const qualityLabel = escapeHtml(qualityLabels[link.quality] || link.quality);
+                const p1Name = escapeHtml(p1.name);
+                const p2Name = escapeHtml(p2.name);
+                let text = `<strong>${p1Name} & ${p2Name}</strong>: ${qualityLabel}`;
+                if (link.quality === 'abuse') {
+                    if (link.abuseDirection === 'mutual') {
+                        text += ` (Mutual`;
+                    } else {
+                        text += ` (${link.abuseDirection === 'p1_to_p2' ? `${p1Name}→${p2Name}` : `${p2Name}→${p1Name}`}`;
+                    }
+                    const subtypeLabels = { physical: 'Physical', sexual: 'Sexual', emotional: 'Emotional' };
+                    const subtypeLabel = subtypeLabels[link.abuseType];
+                    if (subtypeLabel) text += `, ${subtypeLabel}`;
+                    text += `)`;
+                }
+                div.innerHTML = `<span class="text-sm text-gray-800 dark:text-gray-100">${text}</span>`;
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'space-x-2 flex-shrink-0 ml-2';
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button'; editBtn.className = 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium';
+                editBtn.textContent = 'Edit';
+                editBtn.onclick = () => editEmotionalLink(link.id);
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button'; deleteBtn.className = 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.onclick = () => deleteEmotionalLink(link.id);
+                buttonsDiv.appendChild(editBtn); buttonsDiv.appendChild(deleteBtn);
+                div.appendChild(buttonsDiv);
+                existingRelationshipsList.appendChild(div);
+            });
+        }
+        function hideRelationshipModal() { relationshipModal.classList.add('hidden'); }
+        function handleRelationshipFormSubmit(e) {
+            e.preventDefault();
+            const p1Id = relPersonAInput.value; const p2Id = relPersonBInput.value;
+            const quality = relationshipQualityInput.value; const linkId = relLinkIdInput.value;
+            if (!p1Id || !p2Id || p1Id === p2Id) { showToast('Please select two different people for the relationship.', 'error'); return; }
+            const existingLink = db.emotionalLinks.find(l => (l.id !== linkId) && ((l.p1 === p1Id && l.p2 === p2Id) || (l.p1 === p2Id && l.p2 === p1Id)));
+            if (existingLink) { showToast('A relationship already exists between these two people.', 'info'); return; }
+            const newLinkData = {
+                p1: p1Id,
+                p2: p2Id,
+                quality: quality,
+                abuseDirection: quality === 'abuse' ? abuseDirectionInput.value : null,
+                abuseType: quality === 'abuse' ? (abuseSubtypeInput?.value || 'unspecified') : null
+            };
+            if (quality === 'volatile') newLinkData._volatileCombined = true;
+            if (linkId) {
+                const linkToUpdate = db.emotionalLinks.find(l => l.id === linkId);
+                Object.assign(linkToUpdate, newLinkData);
+            } else {
+                newLinkData.id = generateId();
+                db.emotionalLinks.push(newLinkData);
+            }
+            saveToLocalStorage(); render();
+            populateExistingLinksList(); clearRelationshipForm();
+        }
+        
+        function clearRelationshipForm() {
+            relationshipForm.reset();
+            relLinkIdInput.value = '';
+            abuseDirectionGroup.classList.add('hidden');
+            if (abuseSubtypeGroup) abuseSubtypeGroup.classList.add('hidden');
+            if (abuseSubtypeInput) abuseSubtypeInput.value = 'unspecified';
+            relFormTitle.textContent = 'Add New Link';
+            relationshipModalSaveBtn.textContent = 'Add Link';
+            relPersonAInput.value = ""; relPersonBInput.value = "";
+        }
+        function editEmotionalLink(linkId) {
+            const link = db.emotionalLinks.find(l => l.id === linkId);
+            if (!link) return;
+            relLinkIdInput.value = link.id;
+            relPersonAInput.value = link.p1;
+            relPersonBInput.value = link.p2;
+            relationshipQualityInput.value = link.quality;
+            relationshipQualityInput.dispatchEvent(new Event('change'));
+            if (link.quality === 'abuse') {
+                abuseDirectionInput.value = link.abuseDirection;
+                if (abuseSubtypeInput) abuseSubtypeInput.value = link.abuseType || 'unspecified';
+            }
+            relFormTitle.textContent = 'Edit Link';
+            relationshipModalSaveBtn.textContent = 'Update Link';
+        }
+        function deleteEmotionalLink(linkId) {
+            db.emotionalLinks = db.emotionalLinks.filter(l => l.id !== linkId);
+            saveToLocalStorage(); render();
+            populateExistingLinksList();
+        }
+
+        // --- Structural Relationship Modal ---
+        function showStructuralRelationshipModal(relId) {
+            const rel = db.relationships.find(r => r.id === relId);
+            if (!rel || rel.type !== 'partner') return;
+            const p1 = getPerson(rel.p1); const p2 = getPerson(rel.p2);
+            structuralRelationshipForm.reset();
+            structuralRelIdInput.value = relId;
+            structuralRelationshipQualityInput.value = rel.structuralType || 'partner';
+            document.getElementById('structural-modal-title').textContent = `Set Partnership: ${p1.name} & ${p2.name}`;
+            structuralRelationshipModal.classList.remove('hidden');
+        }
+        function hideStructuralRelationshipModal() { structuralRelationshipModal.classList.add('hidden'); }
+        function handleStructuralRelationshipFormSubmit(e) {
+            e.preventDefault();
+            const relId = structuralRelIdInput.value;
+            const rel = db.relationships.find(r => r.id === relId);
+            if (!rel) return;
+            rel.structuralType = structuralRelationshipQualityInput.value;
+            hideStructuralRelationshipModal();
+            saveToLocalStorage(); render();
+        }
+
+        // --- Confirmation Modal ---
+        function showConfirmModal(action, targetId, title, message) {
+            confirmActionInput.value = action; confirmTargetIdInput.value = targetId;
+            confirmModalTitle.textContent = title; confirmModalMessage.textContent = message;
+            if (confirmModalExportBtn) {
+                confirmModalExportBtn.classList.toggle('hidden', action !== 'reset-genogram');
+            }
+            confirmModal.classList.remove('hidden');
+        }
+        function hideConfirmModal() {
+            confirmModal.classList.add('hidden');
+            _pendingImportText = null;
+        }
+        function handleConfirmFormSubmit(e) {
+            e.preventDefault();
+            const action = confirmActionInput.value; const targetId = confirmTargetIdInput.value;
+            if (action === 'delete-person') {
+                db.people = db.people.filter(p => p.id !== targetId);
+                db.relationships = db.relationships.filter(r => (r.type === 'partner' && r.p1 !== targetId && r.p2 !== targetId) || (r.type === 'child' && r.child !== targetId && !r.parents.includes(targetId)));
+                db.emotionalLinks = db.emotionalLinks.filter(l => l.p1 !== targetId && l.p2 !== targetId);
+                if (appState.selectedPersonId === targetId) appState.selectedPersonId = null;
+                saveToLocalStorage(); render();
+            } else if (action === 'reset-genogram') {
+                db.people = [];
+                db.relationships = [];
+                db.emotionalLinks = [];
+                appState.selectedPersonId = null;
+                setDirtyState(false);
+                clearDraft();
+                render();
+                centerView();
+            } else if (action === 'import-replace') {
+                if (_pendingImportText !== null) {
+                    const content = _pendingImportText;
+                    _pendingImportText = null;
+                    applyImportedJson(content);
+                }
+            }
+            hideConfirmModal();
+        }
+
+        // ============================================
+        // DRAFT RECOVERY (sessionStorage, tab-scoped)
+        // Mirrors the Life Map pattern: never auto-load on boot; offer a Keep/Discard
+        // banner if a draft exists. One-time migration honours any genogram that was
+        // autosaved to the legacy localStorage key before this pattern was adopted.
+        // ============================================
+        const GENOGRAM_DRAFT_KEY = 'bet-genogram-draft';
+        const GENOGRAM_LEGACY_KEY = 'genogramGenieSaveData';
+        const GENOGRAM_DRAFT_DEBOUNCE_MS = 2000;
+        let _draftPersistTimer = null;
+        let _pendingImportText = null;
+        let hasUnsavedChanges = false;
+
+        function setDirtyState(isDirty) {
+            hasUnsavedChanges = isDirty;
+            updateSaveStateHint();
+        }
+
+        function updateSaveStateHint() {
+            const hint = document.getElementById('save-state-hint');
+            if (!hint) return;
+            hint.classList.toggle('is-dirty', hasUnsavedChanges);
+            hint.textContent = hasUnsavedChanges
+                ? 'Unsaved changes in this tab. Export JSON to keep this genogram.'
+                : 'Working in this tab only. Export JSON to keep your genogram.';
+        }
+
+        function persistDraft() {
+            if (_draftPersistTimer) clearTimeout(_draftPersistTimer);
+            _draftPersistTimer = setTimeout(() => {
+                try {
+                    sessionStorage.setItem(GENOGRAM_DRAFT_KEY, JSON.stringify(db));
+                } catch (err) {
+                    console.warn('Genogram draft persist failed:', err);
+                }
+            }, GENOGRAM_DRAFT_DEBOUNCE_MS);
+        }
+
+        function clearDraft() {
+            if (_draftPersistTimer) {
+                clearTimeout(_draftPersistTimer);
+                _draftPersistTimer = null;
+            }
+            try {
+                sessionStorage.removeItem(GENOGRAM_DRAFT_KEY);
+            } catch (err) {
+                // sessionStorage may be unavailable in some embedded contexts; silent.
+            }
+        }
+
+        function markGenogramChanged() {
+            setDirtyState(true);
+            persistDraft();
+        }
+
+        function maybeOfferDraftRecovery() {
+            let draft = null;
+            let source = null;
+            try {
+                const raw = sessionStorage.getItem(GENOGRAM_DRAFT_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.people) && parsed.people.length > 0) {
+                        draft = parsed;
+                        source = 'session';
+                    } else if (parsed) {
+                        clearDraft();
+                    }
+                }
+            } catch (err) {
+                clearDraft();
+            }
+
+            if (!draft) {
+                try {
+                    const legacyRaw = localStorage.getItem(GENOGRAM_LEGACY_KEY);
+                    if (legacyRaw) {
+                        const parsed = JSON.parse(legacyRaw);
+                        if (parsed && Array.isArray(parsed.people) && parsed.people.length > 0) {
+                            draft = parsed;
+                            source = 'legacy';
+                        } else {
+                            try { localStorage.removeItem(GENOGRAM_LEGACY_KEY); } catch (e) {}
+                        }
+                    }
+                } catch (err) {
+                    try { localStorage.removeItem(GENOGRAM_LEGACY_KEY); } catch (e) {}
+                }
+            }
+
+            if (draft) {
+                showDraftRecoveryBanner(draft, source);
+            }
+        }
+
+        function showDraftRecoveryBanner(draft, source) {
+            if (document.getElementById('genogram-draft-banner')) return;
+
+            const banner = document.createElement('div');
+            banner.id = 'genogram-draft-banner';
+
+            const peopleCount = draft.people.length;
+            const peopleWord = peopleCount === 1 ? 'person' : 'people';
+            const headline = source === 'legacy'
+                ? `Found an autosaved genogram from before this update (${peopleCount} ${peopleWord}).`
+                : `Recovered unsaved genogram from this tab (${peopleCount} ${peopleWord}).`;
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'draft-banner-text';
+            textSpan.textContent = headline;
+
+            const keepBtn = document.createElement('button');
+            keepBtn.id = 'draft-banner-keep';
+            keepBtn.className = 'draft-banner-primary';
+            keepBtn.textContent = 'Keep';
+
+            const discardBtn = document.createElement('button');
+            discardBtn.id = 'draft-banner-discard';
+            discardBtn.textContent = 'Discard';
+
+            banner.appendChild(textSpan);
+            banner.appendChild(keepBtn);
+            banner.appendChild(discardBtn);
+            document.body.appendChild(banner);
+
+            keepBtn.addEventListener('click', () => {
+                try {
+                    db.people = (draft.people || []).map(p => ({ ...p, issues: normalizeIssues(p.issues) }));
+                    db.relationships = draft.relationships || [];
+                    db.emotionalLinks = migrateEmotionalLinks(draft.emotionalLinks || []);
+                } catch (err) {
+                    console.error('Failed to apply recovered genogram:', err);
+                    showToast('Could not restore genogram.', 'error');
+                    banner.remove();
+                    return;
+                }
+                if (source === 'legacy') {
+                    try { localStorage.removeItem(GENOGRAM_LEGACY_KEY); } catch (e) {}
+                }
+                render();
+                centerView();
+                setDirtyState(true);
+                banner.remove();
+                showToast('Genogram restored. Export JSON to keep it.', 'success');
+            });
+
+            discardBtn.addEventListener('click', () => {
+                if (source === 'legacy') {
+                    try { localStorage.removeItem(GENOGRAM_LEGACY_KEY); } catch (e) {}
+                } else {
+                    clearDraft();
+                }
+                banner.remove();
+            });
+        }
+
+        // --- Persistence ---
+        function saveToLocalStorage() {
+            // Legacy name kept for backward compatibility with existing call sites.
+            // Routes through the new draft/dirty pattern; no longer writes to localStorage.
+            markGenogramChanged();
+        }
+        function loadFromLocalStorage() {
+            // No-op: as of the privacy posture change, saved data is never auto-loaded.
+            // Recovery flows through maybeOfferDraftRecovery() called from init().
+        }
+
+        // === INITIALIZATION ===
+        function init() {
+            // === ASSIGN DOM ELEMENTS ===
+            sidebar = document.querySelector('aside');
+            canvas = document.getElementById('genogram-canvas');
+            viewportG = document.getElementById('viewport');
+            peopleG = document.getElementById('people-nodes');
+            relationshipsG = document.getElementById('relationship-lines');
+            addPersonBtn = document.getElementById('add-person-btn');
+            manageRelationshipsBtn = document.getElementById('manage-relationships-btn');
+            resetGenogramBtn = document.getElementById('reset-genogram-btn');
+            modal = document.getElementById('person-modal');
+            modalTitle = document.getElementById('modal-title');
+            modalSaveBtn = document.getElementById('modal-save-btn');
+            modalCancelBtn = document.getElementById('modal-cancel-btn');
+            personForm = document.getElementById('person-form');
+            personIdInput = document.getElementById('person-id');
+            modalActionInput = document.getElementById('modal-action');
+            sourcePersonIdInput = document.getElementById('source-person-id');
+            nameInput = document.getElementById('name');
+            birthYearInput = document.getElementById('birth-year');
+            genderInput = document.getElementById('gender');
+            isDeceasedInput = document.getElementById('is-deceased');
+            traumaInput = document.getElementById('trauma-history');
+            mentalHealthInput = document.getElementById('mental-health');
+            substanceUseInput = document.getElementById('substance-use');
+            physicalAilmentInput = document.getElementById('physical-ailment');
+            notesInput = document.getElementById('notes');
+            contextMenu = document.getElementById('context-menu');
+            canvasContextMenu = document.getElementById('canvas-context-menu');
+            tooltip = document.getElementById('tooltip');
+            tooltipName = document.getElementById('tooltip-name');
+            tooltipRelationship = document.getElementById('tooltip-relationship');
+            tooltipInfo = document.getElementById('tooltip-info');
+            zoomInBtn = document.getElementById('zoom-in-btn');
+            zoomOutBtn = document.getElementById('zoom-out-btn');
+            centerViewBtn = document.getElementById('center-view-btn');
+            exportJsonBtn = document.getElementById('export-json-btn');
+            importJsonBtn = document.getElementById('import-json-btn');
+            importFileInput = document.getElementById('import-file-input');
+            sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+            sidebarBackdrop = document.getElementById('sidebar-backdrop');
+            darkModeToggle = document.getElementById('dark-mode-toggle');
+            themeIconSun = document.getElementById('theme-sun');
+            themeIconMoon = document.getElementById('theme-moon');
+            fullscreenToggle = document.getElementById('fullscreen-toggle');
+            keyButton = document.getElementById('key-button');
+            keyTooltip = document.getElementById('key-tooltip');
+            helpButton = document.getElementById('help-tooltip-btn');
+            helpTooltip = document.getElementById('help-tooltip');
+            relationshipModal = document.getElementById('relationship-modal');
+            relationshipForm = document.getElementById('relationship-form');
+            relationshipModalTitle = document.getElementById('relationship-modal-title');
+            relPersonAInput = document.getElementById('rel-person-a');
+            relPersonBInput = document.getElementById('rel-person-b');
+            relationshipQualityInput = document.getElementById('relationship-quality');
+            abuseDirectionGroup = document.getElementById('abuse-direction-group');
+            abuseDirectionInput = document.getElementById('abuse-direction');
+            abuseSubtypeGroup = document.getElementById('abuse-subtype-group');
+            abuseSubtypeInput = document.getElementById('abuse-subtype');
+            relationshipModalCancelBtn = document.getElementById('relationship-modal-cancel-btn');
+            existingRelationshipsList = document.getElementById('existing-relationships-list');
+            relFormTitle = document.getElementById('rel-form-title');
+            relLinkIdInput = document.getElementById('rel-link-id');
+            relFormClearBtn = document.getElementById('rel-form-clear-btn');
+            relationshipModalSaveBtn = document.getElementById('relationship-modal-save-btn');
+            structuralRelationshipModal = document.getElementById('structural-relationship-modal');
+            structuralRelationshipForm = document.getElementById('structural-relationship-form');
+            structuralRelIdInput = document.getElementById('structural-rel-id');
+            structuralRelationshipQualityInput = document.getElementById('structural-relationship-quality');
+            structuralModalCancelBtn = document.getElementById('structural-modal-cancel-btn');
+            confirmModal = document.getElementById('confirm-modal');
+            confirmForm = document.getElementById('confirm-form');
+            confirmModalTitle = document.getElementById('confirm-modal-title');
+            confirmModalMessage = document.getElementById('confirm-modal-message');
+            confirmActionInput = document.getElementById('confirm-action');
+            confirmTargetIdInput = document.getElementById('confirm-target-id');
+            confirmModalCancelBtn = document.getElementById('confirm-modal-cancel-btn');
+            confirmModalConfirmBtn = document.getElementById('confirm-modal-confirm-btn');
+            confirmModalExportBtn = document.getElementById('confirm-modal-export-btn');
+            structuralConnectSection = document.getElementById('structural-connect-section');
+            connectTargetSelect = document.getElementById('connect-target');
+            // Hook up existing-person selector so it keeps the form valid and informative
+            if (connectTargetSelect) {
+                connectTargetSelect.addEventListener('change', () => {
+                    const existingId = connectTargetSelect.value;
+                    if (!existingId) {
+                        // Back to "create new person" mode; leave fields as-is
+                        nameInput.value = '';
+                        birthYearInput.value = '';
+                        genderInput.value = 'male';
+                        return;
+                    }
+                    const existingPerson = getPerson(existingId);
+                    if (existingPerson) {
+                        nameInput.value = existingPerson.name || '';
+                        birthYearInput.value = existingPerson.birthYear || '';
+                        genderInput.value = existingPerson.gender || 'male';
+                    }
+                });
+            }
+            // === END DOM ASSIGNMENTS ===
+
+
+            if (localStorage.getItem('genogram-theme') === 'dark' || (!('genogram-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                updateThemeIcons(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateThemeIcons(false);
+            }
+            loadFromLocalStorage();
+
+            window.addEventListener('mousemove', onWindowMouseMove);
+            window.addEventListener('mouseup', onWindowMouseUp);
+            window.addEventListener('click', onWindowClick);
+            window.addEventListener('keydown', onWindowKeyDown);
+            window.addEventListener('keyup', onWindowKeyUp);
+
+            if(canvas) {
+                canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
+                canvas.addEventListener('mousedown', (e) => {
+                    if (e.button === 2) { e.preventDefault(); e.stopPropagation(); onCanvasContextMenu(e); return; }
+                    if (e.button === 0 && view.isSpacePressed) {
+                        e.preventDefault();
+                        view.isSpacePanning = true;
+                        view.lastMouseX = e.clientX;
+                        view.lastMouseY = e.clientY;
+                        canvas.style.cursor = 'grabbing';
+                        return;
+                    }
+                    if (e.button === 0 && e.target === canvas) {
+                        e.preventDefault();
+                        view.isMousePanning = true;
+                        view.lastMouseX = e.clientX;
+                        view.lastMouseY = e.clientY;
+                        canvas.style.cursor = 'grabbing';
+                    }
+                });
+                canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            } else {
+                console.error("Canvas element not found on init!"); return;
+            }
+
+            // --- ADD ALL CONTROL LISTENERS ---
+            // Snap grid always on, listener removed to avoid issues
+            appState.snapToGrid = true;
+            
+            zoomInBtn.addEventListener('click', () => zoom(1.2));
+            zoomOutBtn.addEventListener('click', () => zoom(0.8));
+            centerViewBtn.addEventListener('click', centerView);
+            exportJsonBtn.addEventListener('click', exportJSON);
+            importJsonBtn.addEventListener('click', importJSON);
+            importFileInput.addEventListener('change', onImportFile);
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.addEventListener('click', () => setSidebarOpen(!document.body.classList.contains('sidebar-open')));
+            }
+            if (sidebarBackdrop) {
+                sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
+            }
+            darkModeToggle.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('genogram-theme', isDark ? 'dark' : 'light');
+                updateThemeIcons(isDark);
+            });
+            fullscreenToggle.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            });
+            document.addEventListener('fullscreenchange', () => {
+                // No icon change needed per user request
+            });
+            keyButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const nowPinned = !appState.isKeyTooltipPinned;
+                appState.isKeyTooltipPinned = nowPinned;
+                if (nowPinned) {
+                    keyTooltip.style.display = 'block';
+                    setTimeout(() => keyTooltip.style.opacity = '1', 10);
+                    keyTooltip.classList.add('pinned');
+                } else {
+                    keyTooltip.style.opacity = '0';
+                    setTimeout(() => keyTooltip.style.display = 'none', 100);
+                    keyTooltip.classList.remove('pinned');
+                    keyButton.blur();
+                }
+            });
+            helpButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                appState.isHelpTooltipPinned = !appState.isHelpTooltipPinned;
+                if (appState.isHelpTooltipPinned) {
+                    positionHelpTooltip();
+                    helpTooltip.classList.add('active');
+                } else {
+                    helpTooltip.classList.remove('active');
+                    helpButton.blur();
+                }
+            });
+            // --- END CONTROL LISTENERS ---
+
+
+            addPersonBtn.addEventListener('click', () => showModal('add'));
+            manageRelationshipsBtn.addEventListener('click', () => showRelationshipModal());
+            resetGenogramBtn.addEventListener('click', () => {
+                showConfirmModal(
+                    'reset-genogram', 
+                    null, 
+                    'Clear All Data?', 
+                    'Are you sure you want to delete the entire genogram? All people and relationships will be permanently removed. This cannot be undone.'
+                );
+            });
+            personForm.addEventListener('submit', handleFormSubmit);
+            modalCancelBtn.addEventListener('click', hideModal);
+            
+            // --- MOVED RELATIONSHIP LISTENERS ---
+            relationshipForm.addEventListener('submit', handleRelationshipFormSubmit);
+            relationshipModalCancelBtn.addEventListener('click', hideRelationshipModal);
+            relationshipQualityInput.addEventListener('change', (e) => {
+                const p1Name = relPersonAInput.options[relPersonAInput.selectedIndex]?.text || 'Person A';
+                const p2Name = relPersonBInput.options[relPersonBInput.selectedIndex]?.text || 'Person B';
+                
+                abuseDirectionInput.innerHTML = '';
+                abuseDirectionInput.add(new Option(`From ${p1Name} to ${p2Name}`, 'p1_to_p2'));
+                abuseDirectionInput.add(new Option(`From ${p2Name} to ${p1Name}`, 'p2_to_p1'));
+                abuseDirectionInput.add(new Option(`Mutual`, 'mutual'));
+
+                const isAbuse = e.target.value === 'abuse';
+                abuseDirectionGroup.classList.toggle('hidden', !isAbuse);
+                if (abuseSubtypeGroup) abuseSubtypeGroup.classList.toggle('hidden', !isAbuse);
+            });
+            relPersonAInput.addEventListener('change', () => relationshipQualityInput.dispatchEvent(new Event('change')));
+            relPersonBInput.addEventListener('change', () => relationshipQualityInput.dispatchEvent(new Event('change')));
+            relFormClearBtn.addEventListener('click', clearRelationshipForm);
+            // --- END MOVED RELATIONSHIP LISTENERS ---
+
+            // NEW Structural Modal Listeners
+            structuralRelationshipForm.addEventListener('submit', handleStructuralRelationshipFormSubmit);
+            structuralModalCancelBtn.addEventListener('click', hideStructuralRelationshipModal);
+
+            // Confirm Modal listeners
+            confirmForm.addEventListener('submit', handleConfirmFormSubmit);
+            confirmModalCancelBtn.addEventListener('click', hideConfirmModal);
+            confirmModalExportBtn.addEventListener('click', () => {
+                const action = confirmActionInput.value;
+                if (action === 'reset-genogram') {
+                    exportJSON();
+                    confirmForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            });
+
+            // Context Menu listener
+            contextMenu.addEventListener('click', handleContextMenuClick);
+            canvasContextMenu.addEventListener('click', handleCanvasContextMenuClick);
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 900) setSidebarOpen(false);
+            });
+
+            centerView(); // Call centerView directly
+            render();
+            maybeOfferDraftRecovery();
+        }
+
+        // --- Toast Notification System ---
+        function showToast(message, type = 'info') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3600);
+        }
+
+        // --- PNG Export ---
+        function exportPNG() {
+            try {
+                const svgEl = document.getElementById('genogram-canvas');
+                const viewport = svgEl.querySelector('#viewport');
+                const svgClone = svgEl.cloneNode(true);
+                const bbox = viewport.getBBox();
+                if (!Number.isFinite(bbox.width) || !Number.isFinite(bbox.height) || bbox.width === 0 || bbox.height === 0) {
+                    showToast('Add at least one person before exporting an image.', 'info');
+                    return;
+                }
+
+                const padding = 40;
+                const exportWidth = Math.ceil(bbox.width + padding * 2);
+                const exportHeight = Math.ceil(bbox.height + padding * 2);
+                svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${exportWidth} ${exportHeight}`);
+                svgClone.setAttribute('width', exportWidth);
+                svgClone.setAttribute('height', exportHeight);
+                // Inline critical styles
+                const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                styleEl.textContent = `
+                    .person-shape { fill: #ffffff; stroke: #1f2937; stroke-width: 2; }
+                    .issue-quadrant { fill: #374151; opacity: 0.8; }
+                    .client-highlight { stroke: #06b6d4 !important; stroke-width: 3; fill: #e0f7fa; }
+                    .relationship-line { stroke: #374151; stroke-width: 2; fill: none; }
+                    .rel-close { stroke: #06b6d4 !important; }
+                    .rel-enmeshed { stroke: #a855f7 !important; }
+                    .rel-hostile { stroke: #f97316 !important; }
+                    .rel-cutoff { stroke-dasharray: 6,6 !important; }
+                    .rel-abuse { stroke: #ef4444 !important; stroke-width: 3 !important; }
+                    .deceased-x { stroke: #6b4e34; stroke-width: 3; }
+                    text { font-family: Inter, sans-serif; }
+                `;
+                svgClone.insertBefore(styleEl, svgClone.firstChild);
+                // Set background
+                const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bg.setAttribute('x', String(bbox.x - padding));
+                bg.setAttribute('y', String(bbox.y - padding));
+                bg.setAttribute('width', String(exportWidth));
+                bg.setAttribute('height', String(exportHeight));
+                bg.setAttribute('fill', document.documentElement.classList.contains('dark') ? '#111827' : '#f9fafb');
+                svgClone.insertBefore(bg, svgClone.firstChild);
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svgClone);
+                const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const scale = 2; // 2x resolution
+                    canvas.width = exportWidth * scale;
+                    canvas.height = exportHeight * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(scale, scale);
+                    ctx.drawImage(img, 0, 0, exportWidth, exportHeight);
+                    URL.revokeObjectURL(url);
+                    canvas.toBlob((blob) => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `genogram_${new Date().toISOString().slice(0, 10)}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(a.href);
+                        showToast('Genogram exported as PNG', 'success');
+                    }, 'image/png');
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    showToast('Failed to export image. Try exporting as JSON instead.', 'error');
+                };
+                img.src = url;
+            } catch (err) {
+                console.error('PNG export error:', err);
+                showToast('Export failed: ' + err.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Bind PNG export button
+        document.addEventListener('DOMContentLoaded', () => {
+            const pngBtn = document.getElementById('export-png-btn');
+            if (pngBtn) pngBtn.addEventListener('click', exportPNG);
+        });
+
+        const _genogramOpenedAt = Date.now();
+        Auth.trackAppUsage('genogram', 'start');
+        window.addEventListener('beforeunload', (event) => {
+            const dur = Math.round((Date.now() - _genogramOpenedAt) / 1000);
+            Auth.trackAppUsage('genogram', 'end', dur);
+            if (!hasUnsavedChanges) return;
+            event.preventDefault();
+            event.returnValue = '';
+        });
+    </script>
+
 </body>
 </html>

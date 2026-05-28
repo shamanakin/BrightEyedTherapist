@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
+    clinical_email VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL,
@@ -26,7 +27,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     stripe_customer_id VARCHAR(255),
     stripe_subscription_id VARCHAR(255),
     stripe_price_id VARCHAR(255),
-    status ENUM('trialing', 'active', 'past_due', 'canceled', 'unpaid', 'incomplete', 'incomplete_expired') DEFAULT 'trialing',
+    status ENUM('free', 'trialing', 'active', 'past_due', 'canceled', 'unpaid', 'incomplete', 'incomplete_expired') DEFAULT 'trialing',
     plan_name VARCHAR(50), -- 'trial', 'early_access', 'vip'
     amount DECIMAL(10,2),
     currency VARCHAR(3) DEFAULT 'usd',
@@ -133,6 +134,7 @@ CREATE TABLE IF NOT EXISTS emdr_sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     owner_user_id INT NOT NULL,
     session_token VARCHAR(64) UNIQUE NOT NULL,
+    session_type ENUM('emdr', 'brainspotting') DEFAULT 'emdr',
     state_json JSON NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -176,6 +178,21 @@ CREATE TABLE IF NOT EXISTS feedback (
     INDEX idx_type (type),
     INDEX idx_status (status),
     INDEX idx_app (app_name),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Admin audit log (tracks all admin panel actions)
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_user_id INT NULL,
+    target_user_id INT NULL,
+    action VARCHAR(100) NOT NULL,
+    details TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_admin (admin_user_id),
+    INDEX idx_target (target_user_id),
+    INDEX idx_action (action),
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

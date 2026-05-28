@@ -18,37 +18,94 @@
         /* Dashboard specific overrides */
         body { background-color: #F3F4F6; }
         .app-header { background: #FFF; border-bottom: 1px solid #E5E7EB; padding: 1rem 0; box-shadow: var(--shadow-sm); }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
-        .tool-card { 
-            background: #FFF; 
-            padding: 1.5rem; 
-            border-radius: var(--radius-md); 
-            border: 1px solid #E5E7EB; 
-            transition: all 0.2s; 
-            display: block; 
-            text-decoration: none; 
-            color: inherit; 
-            position: relative;
-            overflow: hidden;
-        }
-        .tool-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--col-primary); }
-        .tool-icon { width: 48px; height: 48px; border-radius: 10px; background: rgba(44, 85, 88, 0.1); display: flex; align-items: center; justify-content: center; color: var(--col-primary); font-size: 1.2rem; margin-bottom: 1rem; }
         
-        /* App Version Badges */
-        .app-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 3px 8px;
-            border-radius: 12px;
+        /* Tool List Layout */
+        .tools-container {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .tool-section {
+            margin-bottom: 1.5rem;
+        }
+        .section-label {
+            font-family: 'Inter', sans-serif;
             font-size: 0.7rem;
+            color: var(--col-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.75rem;
+            padding-left: 0.25rem;
+        }
+        .tool-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background: #FFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .tool-row:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-color: var(--col-primary);
+        }
+        .tool-row:hover .tool-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .tool-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: rgba(44, 85, 88, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--col-primary);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .tool-info {
+            flex: 1;
+            margin-left: 1rem;
+            min-width: 0;
+        }
+        .tool-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--col-text-main);
+            margin: 0 0 0.2rem 0;
+        }
+        .tool-desc {
+            font-size: 0.85rem;
+            color: var(--col-text-muted);
+            margin: 0;
+        }
+        .tool-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-left: 1rem;
+            flex-shrink: 0;
         }
-        .app-badge-stable { background: #D1FAE5; color: #065F46; }
-        .app-badge-beta { background: #DBEAFE; color: #1E40AF; }
-        .app-badge-alpha { background: #FEF3C7; color: #92400E; }
+        .badge-free { background: #D1FAE5; color: #065F46; }
+        .badge-premium { background: #E0E7FF; color: #3730A3; }
+        .tool-arrow {
+            color: var(--col-text-muted);
+            margin-left: 0.75rem;
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.2s ease;
+        }
         .welcome-banner { 
             background: var(--col-primary); 
             color: white; 
@@ -164,56 +221,22 @@
                 padding: 8px 14px;
                 font-size: 12px;
             }
-        }
-
-        /* Email Verification Banner */
-        .verify-banner {
-            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-            border: 1px solid #F59E0B;
-            border-radius: var(--radius-md);
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.15);
-        }
-        .verify-banner-content {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .verify-banner-icon {
-            font-size: 1.25rem;
-            color: #92400E;
-        }
-        .verify-banner-text {
-            color: #78350F;
-            font-size: 0.9rem;
-        }
-        .verify-banner-text strong {
-            display: block;
-            margin-bottom: 2px;
-        }
-        .verify-banner-btn {
-            background: #92400E;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .verify-banner-btn:hover {
-            background: #78350F;
-        }
-        .verify-banner-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
+            .access-modal,
+            .welcome-modal-card {
+                width: calc(100vw - 1.5rem);
+                max-width: none;
+                padding: 1.5rem;
+            }
+            .welcome-feature-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.85rem !important;
+            }
+            .welcome-modal-tip {
+                text-align: left !important;
+            }
+            .break-btn {
+                max-width: calc(100vw - 2rem);
+            }
         }
     </style>
 </head>
@@ -226,36 +249,30 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links" style="display: flex; gap: 1.5rem; align-items: center;">
-                <a href="index.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Home</a>
-                <a href="demo.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Demo</a>
                 <a href="about.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">About</a>
                 <a href="contact.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Contact</a>
                 <a href="feedback.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Feedback</a>
-                <a href="account.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Account</a>
                 <span style="color: #E5E7EB;">|</span>
+                <a href="account.html" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Account</a>
                 <a href="#" onclick="Auth.logout()" class="nav-signout" style="color: var(--col-text-muted); text-decoration: none; font-size: 0.9rem;">Sign Out</a>
                 <!-- Avatar, populated if logged in -->
                 <a href="account.html" style="display:none; width: 32px; height: 32px; background: var(--col-accent-soft); border-radius: 50%; align-items: center; justify-content: center; color: var(--col-accent); font-weight: 600; font-size: 0.85rem; text-decoration: none;" id="user-avatar">JD</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" style="padding: 0.5rem 1.25rem 1rem;">
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="account.html">Account</a>
+            <a href="#" onclick="Auth.logout()">Sign Out</a>
         </div>
     </header>
 
     <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
         
-        <!-- Email Verification Banner (hidden by default) -->
-        <div id="verify-banner" class="verify-banner animate-on-scroll" style="display: none;">
-            <div class="verify-banner-content">
-                <i class="fa-solid fa-envelope-circle-check verify-banner-icon"></i>
-                <div class="verify-banner-text">
-                    <strong>Verify your email address</strong>
-                    Please check your inbox and click the verification link to unlock all features.
-                </div>
-            </div>
-            <button id="resend-verify-btn" class="verify-banner-btn" onclick="resendVerification()">
-                Resend Email
-            </button>
-        </div>
-
         <div class="welcome-banner animate-on-scroll">
             <div>
                 <h2 id="welcome-msg">Good Morning</h2>
@@ -265,78 +282,98 @@
                 <div id="status-indicator" class="status-pill">
                     <!-- Injected via JS -->
                 </div>
-                <button id="dash-subscribe-btn" class="subscribe-btn-dash" style="display: none;">Subscribe Now</button>
             </div>
         </div>
 
-        <h3 class="animate-on-scroll delay-100" style="font-family: 'Inter', sans-serif; font-size: 1.1rem; color: var(--col-text-muted); text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; margin-bottom: 1rem;">Your Tools</h3>
+        <div class="tools-container">
+            <!-- Free Tools -->
+            <div class="tool-section animate-on-scroll delay-100">
+                <div class="section-label">Free Tools</div>
+                
+                <a href="tool_emdr.html" class="tool-row">
+                    <div class="tool-icon">
+                        <i class="fa-regular fa-eye"></i>
+                    </div>
+                    <div class="tool-info">
+                        <h4 class="tool-title">EMDR Suite</h4>
+                        <p class="tool-desc">Bilateral stimulation with share-to-client</p>
+                    </div>
+                    <span class="tool-badge badge-free">Free</span>
+                    <i class="fa-solid fa-chevron-right tool-arrow"></i>
+                </a>
+            </div>
 
-        <div class="dashboard-grid">
-            <!-- 1. EMDR Webapp (v1.0) -->
-            <a href="tool_emdr.html" class="tool-card flashlight-card animate-on-scroll delay-100">
-                <span class="app-badge app-badge-stable">v1.0</span>
-                <div class="tool-icon">
-                    <i class="fa-regular fa-eye"></i>
+            <!-- Founding Member Tools -->
+            <div class="tool-section animate-on-scroll delay-200">
+                <div class="section-label" style="display:flex;align-items:center;gap:8px;">
+                    Founding Member Tools
+                    <span id="premium-section-badge" style="display:none;background:var(--col-accent-soft);color:var(--col-accent);padding:2px 8px;border-radius:12px;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;">ACTIVE</span>
                 </div>
-                <h4 style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--col-text-main);">EMDR Suite</h4>
-                <p style="font-size: 0.9rem; color: var(--col-text-muted);">Bilateral stimulation with share-to-client</p>
-            </a>
+                
+                <a href="tool_emdr_guided.html" class="tool-row" id="tool-emdr-guided">
+                    <div class="tool-icon" style="background-color: #E0E7FF; color: #3730A3;">
+                        <i class="fa-solid fa-route"></i>
+                    </div>
+                    <div class="tool-info">
+                        <h4 class="tool-title">EMDR Guided</h4>
+                        <p class="tool-desc">Standard protocol prompts (Phases 3–7); notes stay in your browser</p>
+                    </div>
+                    <span class="tool-badge badge-premium">Premium</span>
+                    <i class="fa-solid fa-chevron-right tool-arrow"></i>
+                </a>
 
-            <!-- 2. Trauma Timeline (Beta) -->
-            <a href="tool_timeline.html" class="tool-card flashlight-card animate-on-scroll delay-100">
-                <span class="app-badge app-badge-beta">Beta</span>
-                <div class="tool-icon">
-                    <i class="fa-solid fa-timeline"></i>
-                </div>
-                <h4 style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--col-text-main);">Trauma Timeline</h4>
-                <p style="font-size: 0.9rem; color: var(--col-text-muted);">Visual life event history mapping</p>
-            </a>
+                <a href="tool_brainspotting.html" class="tool-row" id="tool-brainspotting">
+                    <div class="tool-icon" style="background-color: #FEF3C7; color: #92400E;">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <div class="tool-info">
+                        <h4 class="tool-title">Brainspotting</h4>
+                        <p class="tool-desc">X/Y gaze scanning with biolateral audio</p>
+                    </div>
+                    <span class="tool-badge badge-premium">Premium</span>
+                    <i class="fa-solid fa-chevron-right tool-arrow"></i>
+                </a>
+                
+                <a href="tool_timeline.html" class="tool-row" id="tool-timeline">
+                    <div class="tool-icon">
+                        <i class="fa-solid fa-timeline"></i>
+                    </div>
+                    <div class="tool-info">
+                        <h4 class="tool-title">Life Map</h4>
+                        <p class="tool-desc">Visual life event mapping</p>
+                    </div>
+                    <span class="tool-badge badge-premium">Premium</span>
+                    <i class="fa-solid fa-chevron-right tool-arrow"></i>
+                </a>
+                
+                <a href="tool_genogram.html" class="tool-row" id="tool-genogram">
+                    <div class="tool-icon" style="background-color: var(--col-accent-soft); color: var(--col-accent);">
+                        <i class="fa-solid fa-sitemap"></i>
+                    </div>
+                    <div class="tool-info">
+                        <h4 class="tool-title">Genogram Genie</h4>
+                        <p class="tool-desc">Interactive family tree builder</p>
+                    </div>
+                    <span class="tool-badge badge-premium">Premium</span>
+                    <i class="fa-solid fa-chevron-right tool-arrow"></i>
+                </a>
 
-            <!-- 3. Genogram Genie (Beta) -->
-            <a href="tool_genogram.html" class="tool-card flashlight-card animate-on-scroll delay-200">
-                <span class="app-badge app-badge-beta">Beta</span>
-                <div class="tool-icon" style="background-color: var(--col-accent-soft); color: var(--col-accent);">
-                    <i class="fa-solid fa-sitemap"></i>
+                <!-- Upgrade banner for free users -->
+                <div id="upgrade-banner" style="display:none;margin-top:0.75rem;padding:1.25rem 1.5rem;background:linear-gradient(135deg,rgba(44,85,88,0.06),rgba(217,119,87,0.06));border:1px dashed rgba(44,85,88,0.2);border-radius:12px;text-align:center;">
+                    <p style="font-size:0.9rem;color:var(--col-text-main);margin-bottom:0.75rem;font-weight:500;">Unlock all tools for <strong>$5/month</strong> — founding member pricing, locked in forever.</p>
+                    <button id="dash-upgrade-btn" style="background:var(--col-primary);color:#fff;padding:0.6rem 1.5rem;border-radius:9999px;border:none;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;font-size:0.9rem;transition:all 0.2s;">Become a Founding Member</button>
                 </div>
-                <h4 style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--col-text-main);">Genogram Genie</h4>
-                <p style="font-size: 0.9rem; color: var(--col-text-muted);">Interactive family tree builder</p>
-            </a>
-
-            <!-- 4. Guided Clarity (Beta) -->
-            <a href="tool_guidedclarity.html" class="tool-card flashlight-card animate-on-scroll delay-200">
-                <span class="app-badge app-badge-beta">Beta</span>
-                <div class="tool-icon" style="background-color: #DBEAFE; color: #1E40AF;">
-                    <i class="fa-solid fa-compass"></i>
-                </div>
-                <h4 style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--col-text-main);">Guided Clarity</h4>
-                <p style="font-size: 0.9rem; color: var(--col-text-muted);">Motivational interviewing decision tool</p>
-            </a>
-
-            <!-- 5. ERP Fear Facer (Alpha) -->
-            <a href="tool_fearfacer.html" class="tool-card flashlight-card animate-on-scroll delay-300">
-                <span class="app-badge app-badge-alpha">Alpha</span>
-                <div class="tool-icon" style="background-color: #FEF3C7; color: #92400E;">
-                    <i class="fa-solid fa-mountain"></i>
-                </div>
-                <h4 style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--col-text-main);">ERP Fear Facer</h4>
-                <p style="font-size: 0.9rem; color: var(--col-text-muted);">Fear hierarchy builder & exposure tracker</p>
-            </a>
-
-            <!-- 6. Note Genie (Alpha) -->
-            <a href="tool_notegenie.html" class="tool-card flashlight-card animate-on-scroll delay-300">
-                <span class="app-badge app-badge-alpha">Alpha</span>
-                <div class="tool-icon" style="background-color: #FEF3C7; color: #92400E;">
-                    <i class="fa-solid fa-scale-balanced"></i>
-                </div>
-                <h4 style="font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--col-text-main);">Note Genie</h4>
-                <p style="font-size: 0.9rem; color: var(--col-text-muted);">AI-assisted clinical documentation</p>
-            </a>
+            </div>
         </div>
 
     </main>
 
+    <footer style="padding: 1.5rem 0; text-align: center;">
+        <p style="font-size: 0.8rem; color: var(--col-text-muted);">&copy; 2025–2026 Bright Eyed Therapist.</p>
+    </footer>
+
     <!-- Need a Break Button -->
-    <a href="game_firefly.html" class="break-btn">
+    <a href="games/breathblocks/index.html" class="break-btn">
         <span class="break-icon">✨</span>
         Need a break?
     </a>
@@ -358,7 +395,7 @@
 
     <!-- Welcome Modal (First Visit) -->
     <div id="welcome-modal" class="access-overlay" style="background-color: rgba(31, 41, 55, 0.75);">
-        <div class="access-modal" style="max-width: 520px; text-align: left;">
+        <div class="access-modal welcome-modal-card" style="max-width: 520px; text-align: left;">
             <div style="text-align: center; margin-bottom: 1.5rem;">
                 <i class="fa-solid fa-sparkles" style="font-size: 2.5rem; color: var(--col-accent);"></i>
             </div>
@@ -369,7 +406,7 @@
                 Here's a quick look at what you can do:
             </p>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="welcome-feature-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                 <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
                     <i class="fa-regular fa-eye" style="color: var(--col-primary); margin-top: 2px;"></i>
                     <div>
@@ -378,9 +415,23 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <i class="fa-solid fa-list-check" style="color: #3730A3; margin-top: 2px;"></i>
+                    <div>
+                        <strong style="font-size: 0.9rem;">EMDR Guided</strong>
+                        <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">Protocol prompts; notes stay local</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <i class="fa-solid fa-bullseye" style="color: #92400E; margin-top: 2px;"></i>
+                    <div>
+                        <strong style="font-size: 0.9rem;">Brainspotting</strong>
+                        <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">X/Y gaze scanning tool</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
                     <i class="fa-solid fa-timeline" style="color: var(--col-primary); margin-top: 2px;"></i>
                     <div>
-                        <strong style="font-size: 0.9rem;">Trauma Timeline</strong>
+                        <strong style="font-size: 0.9rem;">Life Map</strong>
                         <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">Visual life event mapping</p>
                     </div>
                 </div>
@@ -391,30 +442,9 @@
                         <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">Family tree visualization</p>
                     </div>
                 </div>
-                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
-                    <i class="fa-solid fa-compass" style="color: #1E40AF; margin-top: 2px;"></i>
-                    <div>
-                        <strong style="font-size: 0.9rem;">Guided Clarity</strong>
-                        <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">Motivational interviewing</p>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
-                    <i class="fa-solid fa-mountain" style="color: #92400E; margin-top: 2px;"></i>
-                    <div>
-                        <strong style="font-size: 0.9rem;">ERP Fear Facer</strong>
-                        <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">Exposure therapy tracking</p>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
-                    <i class="fa-solid fa-scale-balanced" style="color: #92400E; margin-top: 2px;"></i>
-                    <div>
-                        <strong style="font-size: 0.9rem;">Note Genie</strong>
-                        <p style="font-size: 0.8rem; color: var(--col-text-muted); margin: 0;">AI-assisted clinical notes</p>
-                    </div>
-                </div>
             </div>
             
-            <p style="font-size: 0.85rem; color: var(--col-text-muted); text-align: center; margin-bottom: 1.5rem;">
+            <p class="welcome-modal-tip" style="font-size: 0.85rem; color: var(--col-text-muted); text-align: center; margin-bottom: 1.5rem;">
                 <i class="fa-solid fa-lightbulb" style="color: var(--col-accent); margin-right: 0.5rem;"></i>
                 <em>Tip: All tools save locally — your client data never touches our servers.</em>
             </p>
@@ -458,6 +488,18 @@
             overlay.classList.remove('active');
             document.body.classList.remove('locked');
 
+            // Show confirmation if returning from Stripe checkout
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                const toast = document.createElement('div');
+                toast.innerHTML = '<i class="fa-solid fa-check-circle" style="margin-right:0.5rem;"></i>Welcome aboard! Your Founding Member subscription is now active.';
+                toast.style.cssText = 'position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:10000;background:#2C5558;color:#fff;padding:1rem 1.5rem;border-radius:10px;font-size:0.9rem;box-shadow:0 8px 24px rgba(0,0,0,0.2);max-width:500px;text-align:center;';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 6000);
+                // Clean the URL so it doesn't show again on refresh
+                window.history.replaceState({}, '', 'dashboard.html');
+            }
+
             // Show welcome modal for first-time visitors
             const welcomeModal = document.getElementById('welcome-modal');
             const hasSeenWelcome = localStorage.getItem('bet_seen_welcome');
@@ -467,12 +509,9 @@
 
             // Display user info using fresh API data
             const firstName = user.firstName || user.email.split('@')[0];
-            document.getElementById('welcome-msg').textContent = `Good Morning, ${firstName}`;
-
-            // Show email verification banner if not verified
-            if (!Auth.isEmailVerified()) {
-                document.getElementById('verify-banner').style.display = 'flex';
-            }
+            const hour = new Date().getHours();
+            const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+            document.getElementById('welcome-msg').textContent = `${greeting}, ${firstName}`;
             
             const avatar = document.getElementById('user-avatar');
             const initials = ((user.firstName?.[0] || '') + (user.lastName?.[0] || '')).toUpperCase() || user.email[0].toUpperCase();
@@ -480,40 +519,33 @@
             avatar.style.display = 'flex';
 
             const statusEl = document.getElementById('status-indicator');
-            const subBtn = document.getElementById('dash-subscribe-btn');
-            const subscription = user.subscription;
+            const upgradeBanner = document.getElementById('upgrade-banner');
+            const premiumSectionBadge = document.getElementById('premium-section-badge');
+            const hasPremiumAccess = Auth.checkPremiumAccess();
 
-            if (!subscription) {
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> No Subscription';
-                statusEl.style.background = 'rgba(220, 38, 38, 0.2)';
-                subBtn.style.display = 'inline-block';
-                return;
-            }
-
-            if (subscription.status === 'active') {
-                const planLabel = subscription.plan_name === 'vip' ? 'VIP Tier' : 'Early Access Beta';
-                statusEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${planLabel} · Active`;
-                subBtn.style.display = 'none';
-            } else if (subscription.status === 'trialing') {
-                const daysLeft = Auth.getDaysLeft();
-                if (daysLeft > 0) {
-                    statusEl.innerHTML = `<i class="fa-regular fa-clock"></i> Trial: ${daysLeft} Days Left`;
-                    subBtn.style.display = 'inline-block';
-                } else {
-                    statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Trial Expired';
-                    statusEl.style.background = 'rgba(220, 38, 38, 0.2)';
-                    subBtn.style.display = 'inline-block';
-                }
+            if (hasPremiumAccess) {
+                statusEl.innerHTML = '<i class="fa-solid fa-check-circle"></i> Founding Member';
+                upgradeBanner.style.display = 'none';
+                if (premiumSectionBadge) premiumSectionBadge.style.display = 'inline-block';
             } else {
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Subscription Inactive';
-                statusEl.style.background = 'rgba(220, 38, 38, 0.2)';
-                subBtn.style.display = 'inline-block';
+                statusEl.innerHTML = '<i class="fa-solid fa-sparkles"></i> Free';
+                upgradeBanner.style.display = 'block';
+                // Add subtle lock indicators to paid tools
+                ['tool-emdr-guided', 'tool-brainspotting', 'tool-timeline', 'tool-genogram'].forEach(id => {
+                    const row = document.getElementById(id);
+                    if (row) {
+                        const lockIcon = document.createElement('i');
+                        lockIcon.className = 'fa-solid fa-lock';
+                        lockIcon.style.cssText = 'color:var(--col-text-muted);font-size:0.75rem;margin-left:0.5rem;opacity:0.5;';
+                        row.querySelector('.tool-arrow')?.before(lockIcon);
+                    }
+                });
             }
         });
         
-        // Subscribe button handler
+        // Upgrade button handler
         document.addEventListener('click', async (e) => {
-            const btn = e.target.id === 'dash-subscribe-btn' ? e.target : e.target.closest('#dash-subscribe-btn');
+            const btn = e.target.id === 'dash-upgrade-btn' ? e.target : e.target.closest('#dash-upgrade-btn');
             if (btn) {
                 e.preventDefault();
                 const originalText = btn.textContent;
@@ -521,26 +553,26 @@
                 btn.textContent = 'Loading...';
                 
                 try {
-                    await Auth.createCheckoutSession('early_access');
+                    await Auth.createCheckoutSession('founding_member');
                 } catch (error) {
                     console.error('Checkout error:', error);
                     btn.style.pointerEvents = 'auto';
                     btn.textContent = originalText;
                     
-                    // Show user-friendly error
                     let errorMsg = 'Unable to start checkout. ';
-                    if (error.message.includes('verify your email')) {
-                        // Show verification banner and alert
-                        document.getElementById('verify-banner').style.display = 'flex';
-                        errorMsg = error.message;
-                    } else if (error.message.includes('SDK_MISSING') || error.message.includes('not configured')) {
+                    if (error.message.includes('SDK_MISSING') || error.message.includes('not configured')) {
                         errorMsg += 'The payment system is being set up. Please try again later or contact support.';
                     } else if (error.message.includes('already have an active subscription')) {
                         errorMsg = error.message;
                     } else {
                         errorMsg += 'Please try again. If the problem persists, contact support.';
                     }
-                    alert(errorMsg);
+                    // Show inline error toast
+                    const toast = document.createElement('div');
+                    toast.textContent = errorMsg;
+                    toast.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:10000;background:#dc2626;color:#fff;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.875rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:400px;';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 5000);
                 }
             }
         });
@@ -553,41 +585,6 @@
                 welcomeModal.classList.remove('active');
             }
         });
-
-        // Resend verification email handler
-        async function resendVerification() {
-            const btn = document.getElementById('resend-verify-btn');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-
-            try {
-                const result = await Auth.resendVerification();
-                
-                if (result.alreadyVerified) {
-                    // Already verified - hide banner and refresh
-                    document.getElementById('verify-banner').style.display = 'none';
-                    btn.textContent = 'Verified!';
-                } else {
-                    btn.textContent = 'Email Sent!';
-                    btn.style.background = '#065F46';
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                        btn.style.background = '';
-                        btn.disabled = false;
-                    }, 3000);
-                }
-            } catch (error) {
-                console.error('Resend error:', error);
-                btn.textContent = 'Failed - Try Again';
-                btn.style.background = '#DC2626';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '';
-                    btn.disabled = false;
-                }, 3000);
-            }
-        }
     </script>
 
 </body>

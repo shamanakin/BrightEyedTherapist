@@ -24,14 +24,21 @@
                 Bright Eyed Therapist
             </a>
             <div class="nav-links">
-                <a href="index.html">Features</a>
-                <a href="demo.html">Demo</a>
+                <a href="index.html#tools">Tools</a>
                 <a href="about.html">About</a>
                 <a href="contact.html">Contact</a>
-                <a href="feedback.html" class="active">Feedback</a>
             </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
             <a href="login.html" class="nav-cta">Sign In</a>
         </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="login.html">Sign In</a>
+        </div>
     </header>
 
     <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
@@ -46,6 +53,10 @@
 
             <div class="card flashlight-card animate-on-scroll delay-200">
                 <form id="feedback-form">
+                    <div style="margin-bottom: 1rem; padding: 0.9rem 1rem; border-radius: 12px; background: #FFFBEB; color: #92400E; font-size: 0.9rem; line-height: 1.5;">
+                        <i class="fa-solid fa-shield-heart" style="margin-right: 0.5rem;"></i>
+                        Please keep feedback de-identified. Do not include client names, dates of birth, or detailed session content.
+                    </div>
                     <!-- Feedback Type -->
                     <div class="form-group">
                         <label class="form-label" for="feedback-type">Type</label>
@@ -83,11 +94,11 @@
                         <select id="feedback-app" class="form-input">
                             <option value="">General / All Apps</option>
                             <option value="emdr">EMDR Suite</option>
-                            <option value="timeline">Trauma Timeline</option>
+                            <option value="emdr-guided">EMDR Guided</option>
+                            <option value="brainspotting">Brainspotting</option>
+                            <option value="lifemap">Life Map</option>
                             <option value="genogram">Genogram Genie</option>
-                            <option value="guidedclarity">Guided Clarity</option>
-                            <option value="notegenie">Note Genie</option>
-                            <option value="fearfacer">ERP Fear Facer</option>
+                            <option value="website">Website / Account / Billing</option>
                         </select>
                     </div>
 
@@ -125,34 +136,40 @@
     <footer>
         <div class="container footer-content">
             <h4>Bright Eyed Therapist</h4>
-            <p style="margin-top: 0.5rem;">&copy; 2025 Bright Eyed Therapist.</p>
+            <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Trauma telehealth tools for clinicians who do this work.
+            </p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
         </div>
     </footer>
 
     <script>
-        // Pre-fill app from URL parameter
-        (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const appParam = urlParams.get('app');
-            if (appParam) {
-                const appSelect = document.getElementById('feedback-app');
-                if (appSelect) {
-                    // Map URL param to option value
-                    const appMap = {
-                        'emdr': 'emdr',
-                        'timeline': 'timeline',
-                        'genogram': 'genogram',
-                        'guidedclarity': 'guidedclarity',
-                        'notegenie': 'notegenie',
-                        'fearfacer': 'fearfacer'
-                    };
-                    const appValue = appMap[appParam.toLowerCase()];
-                    if (appValue) {
-                        appSelect.value = appValue;
-                    }
-                }
-            }
-        })();
+        const FEEDBACK_APP_VALUES = ['emdr', 'emdr-guided', 'brainspotting', 'lifemap', 'genogram', 'website'];
+        const FEEDBACK_APP_URL_ALIASES = {
+            timeline: 'lifemap',
+            lifemap: 'lifemap',
+            'emdr-guided': 'emdr-guided',
+            guidedclarity: '',
+            notegenie: '',
+            fearfacer: '',
+            motivational: '',
+        };
+
+        function feedbackAppFromUrl(param) {
+            if (!param) return '';
+            const key = param.toLowerCase();
+            const mapped = FEEDBACK_APP_URL_ALIASES[key] || key;
+            return FEEDBACK_APP_VALUES.includes(mapped) ? mapped : '';
+        }
+
+        function setFeedbackAppFromUrl() {
+            const appSelect = document.getElementById('feedback-app');
+            if (!appSelect) return;
+            const value = feedbackAppFromUrl(new URLSearchParams(window.location.search).get('app'));
+            if (value) appSelect.value = value;
+        }
+
+        setFeedbackAppFromUrl();
         
         // Handle radio button visual feedback
         document.querySelectorAll('input[name="feedback-type"]').forEach(radio => {
@@ -212,23 +229,7 @@
                     document.getElementById('type-bug-label').style.borderColor = '#E5E7EB';
                     document.getElementById('type-bug-label').style.backgroundColor = 'transparent';
                     document.getElementById('feedback-type-feature').checked = true;
-                    // Restore app selection from URL if present
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const appParam = urlParams.get('app');
-                    if (appParam) {
-                        const appMap = {
-                            'emdr': 'emdr',
-                            'timeline': 'timeline',
-                            'genogram': 'genogram',
-                            'guidedclarity': 'guidedclarity',
-                            'notegenie': 'notegenie',
-                            'fearfacer': 'fearfacer'
-                        };
-                        const appValue = appMap[appParam.toLowerCase()];
-                        if (appValue) {
-                            document.getElementById('feedback-app').value = appValue;
-                        }
-                    }
+                    setFeedbackAppFromUrl();
                 } else {
                     status.textContent = result.error || 'Failed to submit feedback.';
                     status.style.color = '#ef4444';
