@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="js/emdr/bls-toolbar.css">
     <script src="auth.js"></script>
     <script>window.TOOL_ACCESS_LEVEL = 'paid';</script>
     <script src="subscription_overlay.js"></script>
@@ -1812,37 +1813,65 @@
         savePref(PREF_KEYS.mode, controlMode);
     }
 
+    function helpKbd(label) {
+        return `<kbd class="help-kbd">${label}</kbd>`;
+    }
+
+    function helpIconRow(btnId, name, desc) {
+        const btn = document.getElementById(btnId);
+        let iconHtml = '';
+        if (btn) {
+            const clone = btn.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+            clone.disabled = false;
+            iconHtml = clone.outerHTML;
+        }
+        return `<div class="help-row"><div class="help-row-icon">${iconHtml}</div><div class="help-row-text"><strong>${name}</strong><span>${desc}</span></div></div>`;
+    }
+
     function openHelpModal() {
         const html = `
-          <section class="space-y-2">
-            <p class="text-sm text-gray-200 font-semibold">Quick Start</p>
-            <ol class="list-decimal list-inside space-y-1.5 text-xs text-gray-200">
-              <li>Click <span class="font-semibold">Start Session</span> and choose your session type.</li>
-              <li>In <span class="font-semibold">Scan Mode</span>: Follow the pointer horizontally, then vertically. Press SPACE or click to lock each axis.</li>
-              <li>In <span class="font-semibold">Manual Mode</span>: Move your mouse to guide the pointer. Click to lock the brainspot.</li>
-              <li>Once the brainspot is set, the pointer stays fixed while you process.</li>
-              <li>Use <span class="font-semibold">Another Round</span> for another pass or <span class="font-semibold">Review / End</span> to open the wrap-up step.</li>
-            </ol>
-          </section>
-          <section class="pt-3 border-t border-gray-700 mt-3">
-            <p class="text-sm text-gray-200 font-semibold mb-3">Controls</p>
-            <ul class="space-y-2 text-xs text-gray-200">
-              <li><span class="font-semibold">Speed</span> – Adjust scanning pace (Slow/Medium/Fast)</li>
-              <li><span class="font-semibold">Mode</span> – Toggle between Scan and Manual control</li>
-              <li><span class="font-semibold">Color</span> – Change pointer color</li>
-              <li><span class="font-semibold">Audio</span> – Enable/disable biolateral audio</li>
-              <li><span class="font-semibold">Share</span> – Reopen the active viewer link or create one if sharing is not active</li>
-              <li><span class="font-semibold">SUDs / Notes</span> – Stay in the toolbar and become available once a session is active</li>
-            </ul>
-          </section>
-          <section class="pt-3 border-t border-gray-700 mt-3 text-xs text-gray-300">
-            <p class="italic">
-              <span class="font-semibold">Clinical note:</span>
-              This tool is intended for trained Brainspotting practitioners. Monitor your client's activation levels and take breaks as needed.
-            </p>
-          </section>
-        `;
-        openModal('Brainspotting Tool – Quick Guide', html);
+          <div class="help-sheet">
+            <section>
+              <h4>Start here</h4>
+              <ol>
+                <li>Click <strong>Start Session</strong> and choose your session type.</li>
+                <li><strong>Scan</strong>: your client follows the pointer — horizontal first, then vertical. ${helpKbd('Space')} or click locks each axis. <strong>Manual</strong>: you guide the pointer with your mouse and click to lock the spot.</li>
+                <li>Once locked, the pointer holds still while your client processes. ${helpKbd('Space')} pauses.</li>
+                <li><strong>Another Round</strong> for another pass; <strong>Review / End</strong> to wrap up with SUDs and notes.</li>
+              </ol>
+            </section>
+            <section>
+              <h4>Session phases</h4>
+              <div class="help-phase-strip">
+                <span>Setup</span><span class="help-phase-arrow">→</span>
+                <span>Scan</span><span class="help-phase-arrow">→</span>
+                <span>Lock</span><span class="help-phase-arrow">→</span>
+                <span>Process</span><span class="help-phase-arrow">→</span>
+                <span>Review</span>
+              </div>
+              <p style="font-size:0.75rem;color:#9ca3af;margin:0;">Check-ins ask for SUDs as you go; the Review screen collects the session.</p>
+            </section>
+            <section>
+              <h4>Controls</h4>
+              ${helpIconRow('speed-btn', 'Speed', 'Scanning pace (Slow / Medium / Fast).')}
+              ${helpIconRow('mode-btn', 'Mode', 'Scan (automatic) or Manual (you guide).')}
+              ${helpIconRow('color-btn', 'Color', 'Pointer color.')}
+              ${helpIconRow('audio-btn', 'Audio', 'Biolateral audio, alternating left-right.')}
+              ${helpIconRow('suds-btn', 'Progress', 'SUDs over time for this session.')}
+              ${helpIconRow('notes-btn', 'Notes', 'Session notes — available once a session is active.')}
+              ${helpIconRow('share-btn', 'Share', 'A private viewer link for telehealth; your client sees only the pointer.')}
+              ${helpIconRow('fullscreen-btn', 'Fullscreen', 'Fullscreen for sessions.')}
+            </section>
+            <section>
+              <h4>Keys</h4>
+              <div class="help-key-row">${helpKbd('Space')} <span>Lock an axis during scan; pause during processing.</span></div>
+              <div class="help-key-row">${helpKbd('Esc')} <span>Close any window</span></div>
+            </section>
+            <p class="help-footer">Your settings — speed, color, audio, mode — are remembered on this device. For trained Brainspotting practitioners; monitor activation and take breaks as needed.</p>
+          </div>`;
+        openModal('Help — Brainspotting', html);
     }
 
     /*************** Event Listeners ***************/

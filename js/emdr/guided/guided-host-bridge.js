@@ -16,6 +16,13 @@
 
         const hostApi = global.BET.BlsHost.init({
             guidedMode: true,
+            helpExtraHtml: `
+                    <section>
+                      <h4>This page: Guided protocol</h4>
+                      <div class="help-row"><div class="help-row-text" style="margin-left:0"><strong>Protocol picker</strong><span>Five protocols, one goal each: <strong>Standard</strong> (reprocess a past memory) · <strong>Recent Event</strong> (a memory from the last weeks) · <strong>Present Trigger</strong> (a current cue that sets the client off) · <strong>Flash-Forward</strong> (desensitize a worst-case future image) · <strong>Future Template</strong> (rehearse coping in an upcoming situation).</span></div></div>
+                      <div class="help-row"><div class="help-row-text" style="margin-left:0"><strong>Your notes stay here</strong><span>Phase notes live in this browser tab only and are never sent to our servers.</span></div></div>
+                      <div class="help-row"><div class="help-row-text" style="margin-left:0"><strong>Session report</strong><span>When you finish, download a plain-text report from the panel, ready for your chart.</span></div></div>
+                    </section>`,
             onSetComplete: () => {
                 if (!panel?.isResettingSession?.()) panel?.refresh();
             },

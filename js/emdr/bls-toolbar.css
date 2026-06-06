@@ -202,3 +202,125 @@
     border: 2px solid #4f46e5;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
+
+/* Help sheet (shared EMDR + Brainspotting dark-canvas tools) */
+.help-sheet { font-size: 0.8125rem; line-height: 1.45; color: #e5e7eb; }
+.help-sheet section { margin-bottom: 1rem; }
+.help-sheet section:last-child { margin-bottom: 0; }
+.help-sheet h4 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    margin: 0 0 0.5rem;
+}
+.help-sheet ol {
+    margin: 0;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.help-sheet ol li { color: #f3f4f6; }
+.help-row {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    padding: 0.35rem 0;
+}
+.help-row-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(31, 41, 55, 0.92);
+    pointer-events: none;
+}
+.help-row-icon .bls-toolbar-btn,
+.help-row-icon .control-btn {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    transform: scale(0.85);
+    pointer-events: none;
+    cursor: default;
+}
+.help-row-icon .bls-toolbar-label,
+.help-row-icon .control-btn-label { display: none !important; }
+.help-row-text { min-width: 0; flex: 1; }
+.help-row-text strong {
+    display: block;
+    font-size: 0.8125rem;
+    color: #f9fafb;
+    margin-bottom: 0.1rem;
+}
+.help-row-text span { font-size: 0.75rem; color: #9ca3af; }
+.help-kbd {
+    display: inline-block;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: rgba(55, 65, 81, 0.9);
+    border: 1px solid rgba(107, 114, 128, 0.6);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    color: #f3f4f6;
+}
+.help-key-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.25rem 0;
+    font-size: 0.75rem;
+}
+.help-key-row .help-kbd { min-width: 3.5rem; text-align: center; }
+.help-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(75, 85, 99, 0.6);
+    font-size: 0.72rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+.help-phase-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #d1d5db;
+    margin-bottom: 0.35rem;
+}
+.help-phase-strip span:not(.help-phase-arrow) {
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(55, 65, 81, 0.7);
+}
+.help-phase-arrow { color: #6b7280; }
+.help-size-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    border-radius: 10px;
+    background: rgba(31, 41, 55, 0.72);
+}
+.help-size-icon label {
+    font-size: 0.55rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+}
+.help-size-icon input[type="range"] {
+    width: 2.5rem;
+    height: 3px;
+    accent-color: #818cf8;
+    pointer-events: none;
+}

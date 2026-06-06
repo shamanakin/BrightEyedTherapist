@@ -116,20 +116,183 @@
             visibility: visible;
             transform: translateY(0);
         }
-        /* Help tooltip - positioned below button, extending left */
-        #help-tooltip {
-            position: absolute;
-            right: 0;
-            top: 100%;
-            margin-top: 8px;
-            z-index: 100;
-        }
-        #help-tooltip h3,
         #key-tooltip h3 {
             color: #7CB590; /* Bright sage - readable on dark tooltip bg */
             font-weight: 600;
             font-size: 0.85rem;
         }
+        /* Help modal sheet (matches empty-state card styling) */
+        .genogram-help-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 55;
+            background: rgba(17, 24, 39, 0.55);
+            backdrop-filter: blur(2px);
+            justify-content: center;
+            align-items: center;
+            padding: 1.25rem;
+        }
+        .genogram-help-overlay.open { display: flex; }
+        .genogram-help-sheet {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 1.35rem 1.4rem 1.15rem;
+            text-align: left;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid rgba(107,114,128,0.18);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(15,23,42,0.12);
+            backdrop-filter: blur(6px);
+            font-family: 'Inter', sans-serif;
+            color: #1f2937;
+        }
+        .dark .genogram-help-sheet {
+            background: rgba(31,41,55,0.94);
+            border-color: rgba(156,163,175,0.18);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+            color: #f3f4f6;
+        }
+        .genogram-help-close {
+            position: absolute;
+            top: 0.65rem;
+            right: 0.65rem;
+            width: 2rem;
+            height: 2rem;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 1.35rem;
+            line-height: 1;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .genogram-help-close:hover { background: rgba(0,0,0,0.06); color: #374151; }
+        .dark .genogram-help-close:hover { background: rgba(255,255,255,0.08); color: #e5e7eb; }
+        .genogram-help-sheet > h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #2C5558;
+            margin: 0 2rem 0.85rem 0;
+        }
+        .dark .genogram-help-sheet > h2 { color: #7CB590; }
+        .genogram-help-sheet .help-sheet {
+            font-size: 0.8125rem;
+            line-height: 1.45;
+        }
+        .genogram-help-sheet .help-sheet section { margin-bottom: 1rem; }
+        .genogram-help-sheet .help-sheet section:last-of-type { margin-bottom: 0; }
+        .genogram-help-sheet .help-sheet h4 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6b7280;
+            margin: 0 0 0.5rem;
+        }
+        .dark .genogram-help-sheet .help-sheet h4 { color: #9ca3af; }
+        .genogram-help-sheet .help-sheet ol {
+            margin: 0;
+            padding-left: 1.15rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .genogram-help-sheet .help-legend-row {
+            display: flex;
+            gap: 0.65rem;
+            align-items: center;
+            padding: 0.3rem 0;
+            font-size: 0.75rem;
+        }
+        .genogram-help-sheet .help-legend-swatch {
+            flex-shrink: 0;
+            width: 88px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .genogram-help-sheet .help-legend-swatch svg {
+            width: 88px;
+            height: 36px;
+            overflow: visible;
+        }
+        .genogram-help-sheet .help-legend-label { min-width: 0; flex: 1; line-height: 1.35; }
+        .genogram-help-sheet .help-kbd {
+            display: inline-block;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.72rem;
+            color: #374151;
+        }
+        .dark .genogram-help-sheet .help-kbd {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+        .genogram-help-sheet .help-key-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: baseline;
+            padding: 0.25rem 0;
+            font-size: 0.75rem;
+        }
+        .genogram-help-sheet .help-key-row .help-kbd { min-width: 3.5rem; text-align: center; }
+        .genogram-help-sheet .help-footer {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(107,114,128,0.15);
+            font-size: 0.72rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .dark .genogram-help-sheet .help-footer {
+            border-color: rgba(156,163,175,0.18);
+            color: #9ca3af;
+        }
+        .genogram-help-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.85rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(107,114,128,0.15);
+        }
+        .dark .genogram-help-links { border-color: rgba(156,163,175,0.18); }
+        .genogram-help-links button {
+            flex: 1;
+            min-width: 8rem;
+            padding: 0.4rem 0.65rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .genogram-help-links .help-link-primary {
+            background: #2C5558;
+            color: #fff;
+            border: 1px solid #2C5558;
+        }
+        .genogram-help-links .help-link-secondary {
+            background: transparent;
+            color: #2C5558;
+            border: 1px solid rgba(44, 85, 88, 0.35);
+        }
+        .dark .genogram-help-links .help-link-secondary {
+            color: #7CB590;
+            border-color: rgba(124, 181, 144, 0.35);
+        }
+        .genogram-help-links .help-link-secondary.hidden { display: none; }
         
         /* Use site's Playfair Display for main title, Inter for UI */
         .genogram-title {
@@ -573,7 +736,6 @@
                 opacity: 1;
                 pointer-events: auto;
             }
-            #help-tooltip,
             #key-tooltip {
                 position: fixed !important;
                 left: 12px !important;
@@ -585,7 +747,6 @@
                 margin-top: 0 !important;
                 z-index: 60 !important;
             }
-            #help-tooltip .absolute,
             #key-tooltip .absolute {
                 display: none;
             }
@@ -755,26 +916,9 @@
                 </div>
             </div>
             <!-- Help Button -->
-            <div class="relative">
-                <button id="help-tooltip-btn" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 control-btn" title="Help">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </button>
-                <div id="help-tooltip" class="control-tooltip w-60 bg-gray-800 text-white text-xs rounded-lg shadow-lg p-3">
-                    <h3 class="font-medium text-sm mb-1">How to Use</h3>
-                    <ul class="list-disc list-inside space-y-1">
-                        <li>Click 'Add New Person' or right-click the canvas.</li>
-                        <li>Right-click a person to edit, or add parents, partners, and children.</li>
-                        <li>Use 'Manage Relationships' to add emotional links (e.g., Close, Hostile).</li>
-                        <li>Drag people to rearrange.</li>
-                        <li>Left-click and drag the canvas to pan.</li>
-                        <li>Hold <span class="font-mono bg-gray-600 px-1 rounded">Space</span> and drag to pan without selecting people.</li>
-                        <li>Select a person and press <span class="font-mono bg-gray-600 px-1 rounded">Delete</span> or <span class="font-mono bg-gray-600 px-1 rounded">Backspace</span> to remove.</li>
-                        <li>Press <span class="font-mono bg-gray-600 px-1 rounded">Esc</span> to close any open modal.</li>
-                        <li>Hold <span class="font-mono bg-gray-600 px-1 rounded">⌘</span> / <span class="font-mono bg-gray-600 px-1 rounded">Ctrl</span> and scroll to zoom over the canvas.</li>
-                    </ul>
-                    <button type="button" id="help-quickstart-btn" class="help-quickstart-btn">Quick start</button>
-                </div>
-            </div>
+            <button id="help-tooltip-btn" type="button" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 control-btn" title="Help" aria-haspopup="dialog">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
             <!-- Fullscreen (least used) -->
             <button id="fullscreen-toggle" class="p-2 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600" title="Fullscreen">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m7-5h4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m7 5h4m0 0v-4m0 4l-5-5"/></svg>
@@ -1086,6 +1230,41 @@
         </div>
     </div>
 
+    <!-- Genogram Help Modal -->
+    <div id="genogram-help-modal" class="genogram-help-overlay" role="dialog" aria-modal="true" aria-labelledby="genogram-help-title" aria-hidden="true">
+        <div class="genogram-help-sheet" role="document">
+            <button type="button" class="genogram-help-close" id="genogram-help-close-btn" aria-label="Close help">&times;</button>
+            <h2 id="genogram-help-title">How to Use Genogram Genie</h2>
+            <div class="help-sheet">
+                <section>
+                    <h4>Start here</h4>
+                    <ol>
+                        <li>Add your first person — sidebar button or right-click the canvas.</li>
+                        <li>Right-click anyone to add a partner, parent, or child.</li>
+                        <li>Use Manage Relationships to set emotional links between people.</li>
+                        <li>Export JSON before you close — your genogram lives in this tab only until you save it.</li>
+                    </ol>
+                </section>
+                <section>
+                    <h4>Reading the map</h4>
+                    <div id="genogram-help-legend"></div>
+                </section>
+                <section>
+                    <h4>Keys</h4>
+                    <div class="help-key-row"><span class="help-kbd">Space + drag</span><span>Pan without selecting people</span></div>
+                    <div class="help-key-row"><span class="help-kbd">Delete</span><span>Remove selected person</span></div>
+                    <div class="help-key-row"><span class="help-kbd">⌘/Ctrl + scroll</span><span>Zoom the canvas</span></div>
+                    <div class="help-key-row"><span class="help-kbd">Esc</span><span>Close help or any open modal</span></div>
+                </section>
+                <p class="help-footer">Nothing sent to servers — your genogram stays in this browser tab until you export JSON.</p>
+            </div>
+            <div class="genogram-help-links">
+                <button type="button" id="genogram-help-quickstart-btn" class="help-link-primary">Quick start</button>
+                <button type="button" id="genogram-help-example-btn" class="help-link-secondary">See an example</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 10. Confirmation Modal (Hidden) -->
     <div id="confirm-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm">
@@ -1163,7 +1342,7 @@
 
         const EXAMPLE_GENOGRAM_TOAST = 'Fictional example loaded — explore freely. Reset / New starts your own.';
         const view = { zoom: 1, panX: 0, panY: 0, isSpacePressed: false, isSpacePanning: false, isMousePanning: false, lastMouseX: 0, lastMouseY: 0 };
-        const appState = { isDragging: false, wasDragging: false, dragTarget: null, dragOffsetX: 0, dragOffsetY: 0, contextMenuTargetId: null, contextMenuSvgX: 0, contextMenuSvgY: 0, selectedPersonId: null, snapToGrid: true, gridSize: 20, personSize: 60, isKeyTooltipPinned: false, isHelpTooltipPinned: false };
+        const appState = { isDragging: false, wasDragging: false, dragTarget: null, dragOffsetX: 0, dragOffsetY: 0, contextMenuTargetId: null, contextMenuSvgX: 0, contextMenuSvgY: 0, selectedPersonId: null, snapToGrid: true, gridSize: 20, personSize: 60, isKeyTooltipPinned: false };
         let lastPointerClientX = 0;
         let lastPointerClientY = 0;
 
@@ -1177,7 +1356,7 @@
         let tooltip, tooltipName, tooltipRelationship, tooltipInfo;
         let zoomInBtn, zoomOutBtn, centerViewBtn, exportJsonBtn, importJsonBtn, importFileInput;
         let darkModeToggle, themeIconSun, themeIconMoon, fullscreenToggle;
-        let keyButton, keyTooltip, helpButton, helpTooltip;
+        let keyButton, keyTooltip, helpButton, genogramHelpModal;
         let sidebarToggleBtn, sidebarBackdrop;
         let relationshipModal, relationshipForm, relationshipModalTitle, relPersonAInput, relPersonBInput;
         let relationshipQualityInput, abuseDirectionGroup, abuseDirectionInput, abuseSubtypeGroup, abuseSubtypeInput, relationshipModalCancelBtn;
@@ -1697,20 +1876,260 @@
             if (_activeJitHintKey) {
                 requestAnimationFrame(() => positionGenogramJitHint(db.people[0]?.id));
             }
+            updateGenogramHelpExampleLink();
+        }
+
+        function updateGenogramHelpExampleLink() {
+            const btn = document.getElementById('genogram-help-example-btn');
+            if (btn) btn.classList.toggle('hidden', db.people.length > 0);
+        }
+
+        function openGenogramHelpSheet() {
+            if (!genogramHelpModal) return;
+            updateGenogramHelpExampleLink();
+            genogramHelpModal.classList.add('open');
+            genogramHelpModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeGenogramHelpSheet() {
+            if (!genogramHelpModal) return;
+            genogramHelpModal.classList.remove('open');
+            genogramHelpModal.setAttribute('aria-hidden', 'true');
+            if (helpButton) helpButton.blur();
         }
 
         function openQuickstartFromHelp() {
             _quickstartForceShow = true;
-            if (helpTooltip) helpTooltip.classList.remove('active');
-            appState.isHelpTooltipPinned = false;
+            closeGenogramHelpSheet();
             evaluateQuickstart();
+        }
+
+        function loadExampleGenogramFromHelp() {
+            closeGenogramHelpSheet();
+            loadExampleGenogram();
+        }
+
+        function createHelpLegendSvg(width, height) {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('width', String(width));
+            svg.setAttribute('height', String(height));
+            return svg;
+        }
+
+        function appendHelpLegendRow(container, label, buildContent) {
+            const row = document.createElement('div');
+            row.className = 'help-legend-row';
+            const swatch = document.createElement('div');
+            swatch.className = 'help-legend-swatch';
+            const svg = createHelpLegendSvg(88, 36);
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', 'translate(4, 18)');
+            buildContent(g);
+            svg.appendChild(g);
+            swatch.appendChild(svg);
+            const lbl = document.createElement('div');
+            lbl.className = 'help-legend-label';
+            lbl.textContent = label;
+            row.appendChild(swatch);
+            row.appendChild(lbl);
+            container.appendChild(row);
+        }
+
+        function buildLegendPersonShape(g, gender, size, options = {}) {
+            const shape = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shape.setAttribute('class', 'person-shape');
+            shape.setAttribute('d', getShapePath(gender, size));
+            g.appendChild(shape);
+            if (options.quadrant) {
+                g.appendChild(createQuadrant(gender, options.quadrant));
+            }
+            if (options.deceased) {
+                const [x1, x2] = getDeceasedLines(gender, size);
+                g.appendChild(x1);
+                g.appendChild(x2);
+            }
+        }
+
+        function buildLegendStructuralLine(g, structuralType) {
+            const x1 = 0, y1 = 0, x2 = 72, y2 = 0;
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('class', 'relationship-line');
+            if (structuralType === 'partner') {
+                line.classList.add('relationship-line-partner');
+            }
+            line.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+            g.appendChild(line);
+            if (structuralType === 'separated' || structuralType === 'divorced') {
+                const slashLength = 14;
+                const overlay1Pos = structuralType === 'divorced' ? 0.45 : 0.5;
+                const overlay = line.cloneNode();
+                overlay.setAttribute('d', buildPerpendicularSlash(x1, y1, x2, y2, overlay1Pos, slashLength));
+                overlay.classList.remove('relationship-line-partner');
+                g.appendChild(overlay);
+                if (structuralType === 'divorced') {
+                    const overlay2 = line.cloneNode();
+                    overlay2.setAttribute('d', buildPerpendicularSlash(x1, y1, x2, y2, 0.55, slashLength));
+                    overlay2.classList.remove('relationship-line-partner');
+                    g.appendChild(overlay2);
+                }
+            }
+        }
+
+        function buildLegendEmotionalLine(g, quality) {
+            const p1x = 0, p1y = 0, p2x = 72, p2y = 0;
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('class', 'relationship-line');
+            let d = '';
+
+            switch (quality) {
+                case 'distant': {
+                    line.setAttribute('stroke', 'var(--tt-axis, #9ca3af)');
+                    line.setAttribute('stroke-width', '1.5');
+                    line.setAttribute('stroke-dasharray', '2 5');
+                    d = `M ${p1x} ${p1y} L ${p2x} ${p2y}`;
+                    break;
+                }
+                case 'close': {
+                    line.classList.add('rel-close');
+                    const { dx, dy } = perpendicularOffset(p1x, p1y, p2x, p2y, 4);
+                    d = `M ${p1x + dx} ${p1y + dy} L ${p2x + dx} ${p2y + dy} ` +
+                        `M ${p1x - dx} ${p1y - dy} L ${p2x - dx} ${p2y - dy}`;
+                    break;
+                }
+                case 'enmeshed': {
+                    line.classList.add('rel-enmeshed');
+                    const { dx, dy } = perpendicularOffset(p1x, p1y, p2x, p2y, 5);
+                    d = `M ${p1x + dx} ${p1y + dy} L ${p2x + dx} ${p2y + dy} ` +
+                        `M ${p1x - dx} ${p1y - dy} L ${p2x - dx} ${p2y - dy} ` +
+                        `M ${p1x} ${p1y} L ${p2x} ${p2y}`;
+                    break;
+                }
+                case 'hostile': {
+                    line.classList.add('rel-hostile');
+                    d = buildZigzagPath(p1x, p1y, p2x, p2y, 5, 16);
+                    break;
+                }
+                case 'volatile': {
+                    line.classList.add('rel-close');
+                    const { dx, dy } = perpendicularOffset(p1x, p1y, p2x, p2y, 6);
+                    d = `M ${p1x + dx} ${p1y + dy} L ${p2x + dx} ${p2y + dy} ` +
+                        `M ${p1x - dx} ${p1y - dy} L ${p2x - dx} ${p2y - dy}`;
+                    line.setAttribute('d', d);
+                    g.appendChild(line);
+                    const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    overlay.setAttribute('class', 'relationship-line rel-hostile');
+                    overlay.setAttribute('stroke-width', '1.5');
+                    overlay.setAttribute('d', buildZigzagPath(p1x, p1y, p2x, p2y, 3, 14));
+                    g.appendChild(overlay);
+                    return;
+                }
+                case 'cutoff': {
+                    line.setAttribute('stroke', 'var(--tt-text, #1f2937)');
+                    const dx = p2x - p1x;
+                    const dy = p2y - p1y;
+                    const L = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const gapHalf = 8;
+                    const midX = (p1x + p2x) / 2;
+                    const midY = (p1y + p2y) / 2;
+                    const ux = dx / L, uy = dy / L;
+                    d = `M ${p1x} ${p1y} L ${midX - ux * gapHalf} ${midY - uy * gapHalf} ` +
+                        `M ${midX + ux * gapHalf} ${midY + uy * gapHalf} L ${p2x} ${p2y}`;
+                    const barLen = 14;
+                    const bar1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    bar1.setAttribute('class', 'relationship-line');
+                    bar1.setAttribute('stroke', 'var(--tt-text, #1f2937)');
+                    bar1.setAttribute('d', buildPerpendicularSlash(p1x, p1y, p2x, p2y, 0.46, barLen));
+                    g.appendChild(bar1);
+                    const bar2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    bar2.setAttribute('class', 'relationship-line');
+                    bar2.setAttribute('stroke', 'var(--tt-text, #1f2937)');
+                    bar2.setAttribute('d', buildPerpendicularSlash(p1x, p1y, p2x, p2y, 0.54, barLen));
+                    g.appendChild(bar2);
+                    break;
+                }
+                case 'abuse': {
+                    const svg = g.parentNode;
+                    const markerId = 'legend-abuse-marker';
+                    let defs = svg.querySelector('defs');
+                    if (!defs) {
+                        defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                        svg.insertBefore(defs, svg.firstChild);
+                    }
+                    if (!defs.querySelector(`#${markerId}`)) {
+                        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                        marker.setAttribute('id', markerId);
+                        marker.setAttribute('markerWidth', '10');
+                        marker.setAttribute('markerHeight', '7');
+                        marker.setAttribute('refX', '8');
+                        marker.setAttribute('refY', '3.5');
+                        marker.setAttribute('orient', 'auto');
+                        marker.setAttribute('markerUnits', 'strokeWidth');
+                        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                        polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+                        polygon.setAttribute('fill', '#ef4444');
+                        marker.appendChild(polygon);
+                        defs.appendChild(marker);
+                    }
+                    line.classList.add('rel-abuse');
+                    d = buildAbuseJaggedPath(p1x, p1y, p2x, p2y);
+                    line.setAttribute('marker-end', `url(#${markerId})`);
+                    break;
+                }
+                default:
+                    break;
+            }
+            if (d) {
+                line.setAttribute('d', d);
+                g.appendChild(line);
+            }
+        }
+
+        function buildGenogramHelpLegend() {
+            const container = document.getElementById('genogram-help-legend');
+            if (!container) return;
+            container.innerHTML = '';
+            const legendSize = 24;
+
+            appendHelpLegendRow(container, 'Male (square)', (g) => {
+                g.setAttribute('transform', 'translate(36, 18)');
+                buildLegendPersonShape(g, 'male', legendSize);
+            });
+            appendHelpLegendRow(container, 'Female (circle)', (g) => {
+                g.setAttribute('transform', 'translate(36, 18)');
+                buildLegendPersonShape(g, 'female', legendSize);
+            });
+            appendHelpLegendRow(container, 'Other / nonbinary (diamond)', (g) => {
+                g.setAttribute('transform', 'translate(36, 18)');
+                buildLegendPersonShape(g, 'other', legendSize);
+            });
+            appendHelpLegendRow(container, 'Deceased (X inside shape)', (g) => {
+                g.setAttribute('transform', 'translate(36, 18)');
+                buildLegendPersonShape(g, 'male', legendSize, { deceased: true });
+            });
+            appendHelpLegendRow(container, 'Clinical quadrant shading', (g) => {
+                g.setAttribute('transform', 'translate(36, 18)');
+                buildLegendPersonShape(g, 'male', legendSize, { quadrant: 'tl' });
+            });
+            appendHelpLegendRow(container, 'Married (solid line)', (g) => buildLegendStructuralLine(g, 'married'));
+            appendHelpLegendRow(container, 'Partner / unmarried (dashed)', (g) => buildLegendStructuralLine(g, 'partner'));
+            appendHelpLegendRow(container, 'Separated (slash)', (g) => buildLegendStructuralLine(g, 'separated'));
+            appendHelpLegendRow(container, 'Divorced (double slash)', (g) => buildLegendStructuralLine(g, 'divorced'));
+            appendHelpLegendRow(container, 'Distant (thin dashed)', (g) => buildLegendEmotionalLine(g, 'distant'));
+            appendHelpLegendRow(container, 'Close (parallel cyan)', (g) => buildLegendEmotionalLine(g, 'close'));
+            appendHelpLegendRow(container, 'Enmeshed (triple purple)', (g) => buildLegendEmotionalLine(g, 'enmeshed'));
+            appendHelpLegendRow(container, 'Hostile (zigzag orange)', (g) => buildLegendEmotionalLine(g, 'hostile'));
+            appendHelpLegendRow(container, 'Volatile (close + zigzag)', (g) => buildLegendEmotionalLine(g, 'volatile'));
+            appendHelpLegendRow(container, 'Cut-off (gap + bars)', (g) => buildLegendEmotionalLine(g, 'cutoff'));
+            appendHelpLegendRow(container, 'Abuse (jagged red + arrow)', (g) => buildLegendEmotionalLine(g, 'abuse'));
         }
 
         function initQuickstart() {
             const card = document.getElementById('genogram-quickstart-card');
             const dismissBtn = document.getElementById('genogram-quickstart-dismiss');
             const exampleBtn = document.getElementById('genogram-quickstart-load-example');
-            const helpQsBtn = document.getElementById('help-quickstart-btn');
+            const helpQsBtn = document.getElementById('genogram-help-quickstart-btn');
+            const helpExampleBtn = document.getElementById('genogram-help-example-btn');
             const jitHint = document.getElementById('genogram-jit-hint');
 
             if (dismissBtn) dismissBtn.addEventListener('click', dismissQuickstartCard);
@@ -1721,6 +2140,10 @@
             if (helpQsBtn) helpQsBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 openQuickstartFromHelp();
+            });
+            if (helpExampleBtn) helpExampleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                loadExampleGenogramFromHelp();
             });
             if (jitHint) {
                 jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissJitHint);
@@ -2214,15 +2637,15 @@
                 keyTooltip.classList.remove('pinned');
                 keyButton.blur();
             }
-            if (appState.isHelpTooltipPinned && !helpButton.contains(e.target) && !helpTooltip.contains(e.target)) {
-                appState.isHelpTooltipPinned = false;
-                helpTooltip.classList.remove('active');
-                helpButton.blur();
-            }
         }
 
         function onWindowKeyDown(e) {
             if (e.key === 'Escape') {
+                if (genogramHelpModal && genogramHelpModal.classList.contains('open')) {
+                    closeGenogramHelpSheet();
+                    e.preventDefault();
+                    return;
+                }
                 if (!confirmModal.classList.contains('hidden')) {
                     hideConfirmModal();
                     e.preventDefault();
@@ -2442,20 +2865,6 @@
             }
         }
         
-        function positionHelpTooltip() {
-            if (!helpTooltip || !helpButton) return;
-            // Position below button, aligned to right edge (extends left)
-            const buttonRect = helpButton.getBoundingClientRect();
-            const parentRect = helpTooltip.parentElement.getBoundingClientRect();
-            const tooltipWidth = 240; // w-60 = 15rem = 240px
-            // Right-align: tooltip's right edge aligns with button's right edge
-            const right = parentRect.right - buttonRect.right;
-            const top = buttonRect.height + 8;
-            helpTooltip.style.right = `${right}px`;
-            helpTooltip.style.left = 'auto';
-            helpTooltip.style.top = `${top}px`;
-        }
-
         // === MODAL FUNCTIONS ===
         function showModal(mode, personId = null, sourcePersonId = null, defaultX = null, defaultY = null) {
             personForm.reset();
@@ -3182,7 +3591,7 @@
             keyButton = document.getElementById('key-button');
             keyTooltip = document.getElementById('key-tooltip');
             helpButton = document.getElementById('help-tooltip-btn');
-            helpTooltip = document.getElementById('help-tooltip');
+            genogramHelpModal = document.getElementById('genogram-help-modal');
             relationshipModal = document.getElementById('relationship-modal');
             relationshipForm = document.getElementById('relationship-form');
             relationshipModalTitle = document.getElementById('relationship-modal-title');
@@ -3325,15 +3734,17 @@
             });
             helpButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                appState.isHelpTooltipPinned = !appState.isHelpTooltipPinned;
-                if (appState.isHelpTooltipPinned) {
-                    positionHelpTooltip();
-                    helpTooltip.classList.add('active');
-                } else {
-                    helpTooltip.classList.remove('active');
-                    helpButton.blur();
-                }
+                openGenogramHelpSheet();
             });
+            const genogramHelpCloseBtn = document.getElementById('genogram-help-close-btn');
+            if (genogramHelpCloseBtn) {
+                genogramHelpCloseBtn.addEventListener('click', closeGenogramHelpSheet);
+            }
+            if (genogramHelpModal) {
+                genogramHelpModal.addEventListener('click', (e) => {
+                    if (e.target === genogramHelpModal) closeGenogramHelpSheet();
+                });
+            }
             // --- END CONTROL LISTENERS ---
 
 
@@ -3401,6 +3812,7 @@
                 if (window.innerWidth > 900) setSidebarOpen(false);
             });
 
+            buildGenogramHelpLegend();
             centerView(); // Call centerView directly
             render();
             maybeOfferDraftRecovery();

@@ -19,6 +19,7 @@
             const analyticsApp = guidedMode ? 'emdr-guided' : 'emdr';
             const onSetComplete = typeof options.onSetComplete === 'function' ? options.onSetComplete : null;
             const onShareChange = typeof options.onShareChange === 'function' ? options.onShareChange : null;
+            const helpExtraHtml = options.helpExtraHtml || '';
 
             const els = {
                 container: document.getElementById('bls-container'),
@@ -402,21 +403,59 @@
                 });
             }
 
+            function helpKbd(label) {
+                return `<kbd class="help-kbd">${label}</kbd>`;
+            }
+
+            function helpIconRow(btnId, name, desc) {
+                const btn = document.getElementById(btnId);
+                let iconHtml = '';
+                if (btn) {
+                    const clone = btn.cloneNode(true);
+                    clone.removeAttribute('id');
+                    clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+                    clone.classList.remove('share-btn-active', 'is-active');
+                    iconHtml = clone.outerHTML;
+                }
+                return `<div class="help-row"><div class="help-row-icon">${iconHtml}</div><div class="help-row-text"><strong>${name}</strong><span>${desc}</span></div></div>`;
+            }
+
+            function helpSizeRow() {
+                return `<div class="help-row"><div class="help-row-icon"><div class="help-size-icon"><label>Size</label><input type="range" min="28" max="90" value="50" tabindex="-1" aria-hidden="true"></div></div><div class="help-row-text"><strong>Size</strong><span>Slider for dot or bar size.</span></div></div>`;
+            }
+
             function openHelpModal() {
                 const html = `
-                  <section class="space-y-2">
-                    <p class="text-sm text-gray-200 font-semibold">Quick start</p>
-                    <ol class="list-decimal list-inside space-y-1.5 text-xs text-gray-200">
-                      <li>Center your client on the screen.</li>
-                      <li>Use <strong>Path</strong>: Horiz (smooth), Diag (corner-to-corner), or Saccade (instant left–right jumps, dot only).</li>
-                      <li>Adjust <strong>Speed</strong>, the <strong>size slider</strong> (dot or lightbar), <strong>Mode</strong>, and <strong>Color</strong>.</li>
-                      <li>Press <strong>Start BLS</strong> or spacebar. Share link for remote viewing.</li>
-                    </ol>
-                  </section>
-                  <section class="pt-3 border-t border-gray-700 mt-3 text-xs text-gray-300">
-                    <p class="italic">For trained EMDR clinicians. Pace with your client's window of tolerance.</p>
-                  </section>`;
-                openModal('EMDR BLS — Quick Guide', html);
+                  <div class="help-sheet">
+                    <section>
+                      <h4>Start here</h4>
+                      <ol>
+                        <li>Have your client settle where they can comfortably track the whole screen.</li>
+                        <li>Choose a path, speed, and size together — what matters is what your client tracks easily.</li>
+                        <li>Press <strong>Start BLS</strong> or tap ${helpKbd('Space')}. Same to stop between sets.</li>
+                        <li>Telehealth? Click <strong>Share</strong> and send your client the link.</li>
+                      </ol>
+                    </section>
+                    <section>
+                      <h4>Controls</h4>
+                      ${helpIconRow('speed-btn', 'Speed', 'How fast the target moves. Start slow; adjust to your client\'s tracking.')}
+                      ${helpIconRow('mode-btn', 'Mode', 'Moving dot or full lightbar.')}
+                      ${helpIconRow('color-btn', 'Color', 'Pick what your client tracks comfortably against the dark screen.')}
+                      ${helpIconRow('path-btn', 'Path', 'Horizontal (smooth sweep), Diagonal, or Saccade (instant left-right jumps — some clients track jumps better than sweeps).')}
+                      ${helpSizeRow()}
+                      ${helpIconRow('audio-btn', 'Audio', 'Tones that alternate left-right in sync with the visual. Headphones on the client\'s side work best.')}
+                      ${helpIconRow('fullscreen-btn', 'Full', 'Fullscreen for sessions.')}
+                      ${helpIconRow('share-btn', 'Share', 'Creates a private link your client opens on their end. They see only the moving target — never your controls and never any clinical information.')}
+                    </section>
+                    ${helpExtraHtml}
+                    <section>
+                      <h4>Keys</h4>
+                      <div class="help-key-row">${helpKbd('Space')} <span>Start / stop a set</span></div>
+                      <div class="help-key-row">${helpKbd('Esc')} <span>Close any window</span></div>
+                    </section>
+                    <p class="help-footer">Sets are counted at the bottom of the screen. For trained EMDR clinicians — pace within your client's window of tolerance.</p>
+                  </div>`;
+                openModal('Help — EMDR BLS', html);
             }
 
             let lastViewerUrl = null;
