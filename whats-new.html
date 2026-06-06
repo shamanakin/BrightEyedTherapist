@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/owl_favicon_mattegray.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/owl_favicon_mattegray_512.png">
+    <link rel="apple-touch-icon" href="assets/owl_favicon_mattegray_512.png">
+    <title>What's New - Bright Eyed Therapist</title>
+    <meta name="description" content="Recent updates, improvements, and fixes to Bright Eyed Therapist's clinical tools.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script src="main.js" defer></script>
+    <style>
+        .updates-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .update-card {
+            padding: 1.5rem 1.75rem;
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .update-meta {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .update-date {
+            color: var(--col-text-muted);
+            font-size: 0.85rem;
+        }
+        .update-category {
+            display: inline-block;
+            padding: 0.2rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .update-category.cat-new-feature { background: #D1FAE5; color: #065F46; }
+        .update-category.cat-improvement { background: #DBEAFE; color: #1E40AF; }
+        .update-category.cat-bug-fix { background: #FEF3C7; color: #92400E; }
+        .update-category.cat-security { background: #FEE2E2; color: #991B1B; }
+        .update-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem;
+            color: var(--col-text-main);
+            line-height: 1.3;
+        }
+        .update-summary {
+            color: var(--col-text-muted);
+            line-height: 1.6;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        .updates-empty {
+            text-align: center;
+            color: var(--col-text-muted);
+            padding: 3rem 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="container animate-on-scroll">
+        <nav>
+            <a href="index.html" class="nav-logo">
+                <i class="fa-solid fa-leaf" style="color: var(--col-accent);"></i>
+                Bright Eyed Therapist
+            </a>
+            <div class="nav-links">
+                <a href="index.html#tools">Tools</a>
+                <a href="about.html">About</a>
+                <a href="feedback.html">Feedback</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="login.html" class="nav-cta">Sign In</a>
+        </nav>
+        <div class="mobile-menu">
+            <a href="index.html#tools">Tools</a>
+            <a href="about.html">About</a>
+            <a href="feedback.html">Feedback</a>
+            <a href="contact.html">Contact</a>
+            <a href="login.html">Sign In</a>
+        </div>
+    </header>
+
+    <main class="container" style="padding-top: 4rem; padding-bottom: 6rem;">
+        <div style="max-width: 720px; margin: 0 auto 3rem; text-align: center;" class="animate-on-scroll">
+            <h1 style="margin-bottom: 0.75rem;">What's New</h1>
+            <p style="color: var(--col-text-muted); font-size: 1.05rem; max-width: 540px; margin-left: auto; margin-right: auto;">
+                Recent updates, improvements, and fixes. Bright Eyed Therapist is built and maintained by a therapist who uses these tools in practice.
+            </p>
+        </div>
+
+        <div id="updates-list" class="updates-list">
+            <div class="updates-empty">Loading updates...</div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <h4>Bright Eyed Therapist</h4>
+            <p style="margin-top: 0.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                Trauma telehealth tools for clinicians who do this work.
+            </p>
+            <p style="margin-top: 2rem; font-size: 0.85rem;">&copy; 2025–2026 Bright Eyed Therapist.</p>
+        </div>
+    </footer>
+
+    <script>
+        const CATEGORY_CLASS = {
+            'New feature': 'cat-new-feature',
+            'Improvement': 'cat-improvement',
+            'Bug fix': 'cat-bug-fix',
+            'Security': 'cat-security'
+        };
+
+        function escapeText(value) {
+            if (value == null) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatDate(isoDate) {
+            try {
+                const date = new Date(isoDate + 'T00:00:00');
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            } catch (e) {
+                return isoDate;
+            }
+        }
+
+        async function loadUpdates() {
+            const list = document.getElementById('updates-list');
+            try {
+                const response = await fetch('whats-new.json?v=' + Date.now());
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                const entries = Array.isArray(data.entries) ? data.entries : [];
+                renderUpdates(entries);
+                markWhatsNewSeen(entries);
+            } catch (err) {
+                list.innerHTML = '';
+                const empty = document.createElement('div');
+                empty.className = 'updates-empty';
+                empty.textContent = 'Could not load updates. Please try again later.';
+                list.appendChild(empty);
+                console.error('Failed to load whats-new.json:', err);
+            }
+        }
+
+        function renderUpdates(entries) {
+            const list = document.getElementById('updates-list');
+            list.innerHTML = '';
+            if (!entries.length) {
+                const empty = document.createElement('div');
+                empty.className = 'updates-empty';
+                empty.textContent = 'No updates yet.';
+                list.appendChild(empty);
+                return;
+            }
+            const sorted = [...entries].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            sorted.forEach(entry => {
+                const card = document.createElement('article');
+                card.className = 'update-card animate-on-scroll';
+
+                const meta = document.createElement('div');
+                meta.className = 'update-meta';
+
+                const category = document.createElement('span');
+                const categoryClass = CATEGORY_CLASS[entry.category] || 'cat-improvement';
+                category.className = `update-category ${categoryClass}`;
+                category.textContent = entry.category || 'Improvement';
+
+                const date = document.createElement('span');
+                date.className = 'update-date';
+                date.textContent = formatDate(entry.date);
+
+                meta.appendChild(category);
+                meta.appendChild(date);
+
+                const title = document.createElement('h2');
+                title.className = 'update-title';
+                title.textContent = entry.title || '';
+
+                const summary = document.createElement('p');
+                summary.className = 'update-summary';
+                summary.textContent = entry.summary || '';
+
+                card.appendChild(meta);
+                card.appendChild(title);
+                card.appendChild(summary);
+                list.appendChild(card);
+            });
+            // Reveal cards injected after the load-time IntersectionObserver already ran.
+            // rAF lets the browser paint the opacity:0 start state first, so the transition plays.
+            requestAnimationFrame(() => {
+                list.querySelectorAll('.update-card.animate-on-scroll:not(.in-view)')
+                    .forEach(el => el.classList.add('in-view'));
+            });
+        }
+
+        function markWhatsNewSeen(entries) {
+            if (!Array.isArray(entries) || !entries.length) return;
+            const latest = entries.map(e => e.date || '').sort().pop();
+            if (!latest) return;
+            try {
+                localStorage.setItem('bet_whats_new_last_seen', latest);
+            } catch (e) {
+                // sessionStorage / localStorage may be unavailable in some embedded contexts
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUpdates);
+    </script>
+
+</body>
+</html>

@@ -236,6 +236,13 @@
             return sub.cancel_at_period_end === true || sub.cancel_at_period_end === 1;
         }
 
+        function isPeriodEndPast(dateStr) {
+            if (!dateStr) return false;
+            const d = new Date(dateStr);
+            if (Number.isNaN(d.getTime())) return false;
+            return d.getTime() < Date.now();
+        }
+
         function formatPeriodEnd(dateStr) {
             if (!dateStr) return 'the end of your billing period';
             const d = new Date(dateStr);
@@ -276,15 +283,27 @@
                 planName.textContent = planLabel;
 
                 if (pending) {
-                    planStatus.textContent = `Cancellation scheduled — you keep full access until ${periodEndLabel}.`;
-                    cancelBanner.style.display = 'block';
-                    cancelBanner.innerHTML = `
-                        <strong><i class="fa-solid fa-calendar-xmark" style="margin-right: 0.35rem;"></i>Cancellation scheduled</strong>
-                        <p style="margin: 0.5rem 0 0;">Your Founding Member billing stops after <strong>${periodEndLabel}</strong>. Founding Member tools remain available until then; free EMDR stays after that.</p>
-                    `;
-                    planActions.innerHTML = adminNote + `
-                        <button onclick="resumeSub()" class="btn btn-beam">Keep my subscription</button>
-                    `;
+                    if (isPeriodEndPast(subscription.current_period_end)) {
+                        planName.style.color = '#ef4444';
+                        planStatus.textContent = 'Your subscription has ended. Free EMDR remains available.';
+                        planActions.innerHTML = adminNote + `
+                            <a href="subscribe.html" class="btn btn-beam">Resubscribe</a>
+                            <p style="color: var(--col-text-muted); font-size: 0.8rem; margin-top: 0.75rem;">
+                                <i class="fa-solid fa-lock" style="margin-right: 4px;"></i>
+                                Secure checkout via Stripe. Cancel anytime.
+                            </p>
+                        `;
+                    } else {
+                        planStatus.textContent = `Cancellation scheduled — you keep full access until ${periodEndLabel}.`;
+                        cancelBanner.style.display = 'block';
+                        cancelBanner.innerHTML = `
+                            <strong><i class="fa-solid fa-calendar-xmark" style="margin-right: 0.35rem;"></i>Cancellation scheduled</strong>
+                            <p style="margin: 0.5rem 0 0;">Your Founding Member billing stops after <strong>${periodEndLabel}</strong>. Founding Member tools remain available until then; free EMDR stays after that.</p>
+                        `;
+                        planActions.innerHTML = adminNote + `
+                            <button onclick="resumeSub()" class="btn btn-beam">Keep my subscription</button>
+                        `;
+                    }
                 } else {
                     planStatus.textContent = `Active subscription ($${amount}/month). Renews on ${periodEndLabel}.`;
                     planActions.innerHTML = adminNote + `

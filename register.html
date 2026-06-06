@@ -87,6 +87,16 @@
     </main>
 
     <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (Auth.getToken()) {
+                const user = await Auth.getCurrentUser();
+                if (user) {
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            }
+        });
+
         let turnstileToken = null;
 
         function onTurnstileSuccess(token) {
