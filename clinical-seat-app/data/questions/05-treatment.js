@@ -1501,6 +1501,97 @@
   },
   difficulty: 2,
   tags: ['theory', 'Bowen', 'differentiation']
+},
+
+// ===== Items migrated from 06-law-ethics.js =====
+
+{
+  id: 'TX-5A-012',
+  domain: 5, subsection: '5A',
+  stem: 'A couple has been in therapy for six months. The therapist has been using emotionally focused therapy. The wife mentions that she has been keeping a journal and wonders if the therapist would like to read it to "understand her better." Which of the following actions should the therapist take?',
+  options: [
+    'Read the journal to better understand the wife\'s inner experience',
+    'Decline to read the journal but invite her to bring relevant material into session',
+    'Read the journal but only the parts the wife marks as relevant',
+    'Refer the wife to individual therapy where journal review is more appropriate'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'Reading the wife\'s journal — even with consent — creates an asymmetric channel between therapist and one partner, undermines the couple frame, and introduces material the husband does not have access to. Declining while inviting her to bring relevant material into session preserves the couple frame.',
+    distractors: {
+      0: 'Reading the journal creates the asymmetric channel that undermines couple work.',
+      2: 'Reading parts she marks still creates the asymmetric channel, just partially.',
+      3: 'Referring her to individual therapy reframes her sharing as inappropriate when the appropriate move is to bring it into the couple session.'
+    }
+  },
+  difficulty: 3,
+  tags: ['EFT', 'couple-frame', 'asymmetric-information']
+},
+{
+  id: 'TX-5C-015',
+  domain: 5, subsection: '5C',
+  stem: 'A 40-year-old client with type 2 diabetes has been in therapy for depression. She has gradually disclosed that she binges on sweets weekly. She tells the therapist she is "ashamed" and asks for help stopping. Which of the following interventions would BEST address her presentation?',
+  options: [
+    'Recommend she see a registered dietitian for nutrition counseling',
+    'Assess whether the binge pattern meets binge eating disorder criteria; integrate eating-disorder-informed treatment with the depression work; coordinate with her medical team',
+    'Suggest she use willpower and self-monitoring to control the behavior',
+    'Recommend she remove all sweets from her home to reduce access'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'Binge eating in a client with diabetes warrants assessment for binge eating disorder, integration with the depression work, and coordination with the medical team. The binge pattern may meet BED criteria (recurrent binge episodes, distress, no compensatory behaviors) and requires specific clinical attention.',
+    distractors: {
+      0: 'A dietitian referral may be useful but is not a substitute for the eating-disorder assessment and integrated treatment.',
+      2: '"Willpower" is not an evidence-based treatment for binge eating; this response oversimplifies and may increase shame.',
+      3: 'Removing sweets is a stimulus-control intervention that may have limited effect on binge eating disorder without the underlying clinical work.'
+    }
+  },
+  difficulty: 2,
+  tags: ['BED', 'diabetes', 'integrated-care']
+},
+{
+  id: 'TX-5D-016',
+  domain: 5, subsection: '5D',
+  stem: 'A 28-year-old client who is Deaf and uses American Sign Language is in therapy with you. You are not fluent in ASL. The client has requested an ASL interpreter for sessions, but you do not have funding for one. Which of the following actions should the therapist take?',
+  options: [
+    'Continue sessions with the client using written notes since she can read English',
+    'Refer her to a therapist who is fluent in ASL or has access to interpretation services, since competent communication is essential to ethical practice',
+    'Use a family member as an informal interpreter',
+    'Use an online translation tool to translate between English and ASL'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'Therapy requires competent communication. If you cannot provide that — through your own fluency, qualified interpretation, or telehealth via providers who can — referring the client to a provider who can is the ethically required response. Family members are not appropriate as interpreters (confidentiality, dynamics). Translation tools are inadequate for clinical communication.',
+    distractors: {
+      0: 'Written English is not equivalent to ASL for Deaf clients; ASL is the native language and clinical depth requires fluency, not text exchange.',
+      2: 'Family members as informal interpreters create confidentiality breaches and introduce family dynamics into the interpretation.',
+      3: 'Online tools cannot provide the clinical-grade interpretation that therapy requires.'
+    }
+  },
+  difficulty: 3,
+  tags: ['Deaf-client', 'interpretation', 'competent-communication']
+},
+{
+  id: 'TX-5E-020',
+  domain: 5, subsection: '5E',
+  stem: 'A therapist working with a client who experiences chronic worry uses a specific intervention: scheduling a 30-minute "worry period" each evening during which the client deliberately worries about her concerns, and instructing her to postpone worries that arise outside the worry period until the scheduled time. Which intervention is the therapist using?',
+  options: [
+    'Cognitive restructuring',
+    'Stimulus-control / worry-postponement within CBT for GAD',
+    'Mindfulness meditation',
+    'Acceptance and commitment therapy'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'Worry-postponement (or worry-scheduling, stimulus control) is a specific CBT-for-GAD technique. The intervention establishes worry as bounded behavior tied to a specific time and place, breaking the all-day pattern that maintains generalized worry.',
+    distractors: {
+      0: 'Cognitive restructuring works on the content of thoughts; this technique works on when and where worry happens.',
+      2: 'Mindfulness has the client observe thoughts non-judgmentally without postponement.',
+      3: 'ACT uses defusion and values rather than time-and-place scheduling of worry.'
+    }
+  },
+  difficulty: 3,
+  tags: ['CBT-GAD', 'worry-postponement']
 }
   );
 })(window.LMFT_BANK);

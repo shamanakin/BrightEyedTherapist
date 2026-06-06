@@ -237,9 +237,9 @@
   stem: 'A 9-year-old client is brought to therapy by her parents for "trouble paying attention." They report that she frequently fails to follow through on instructions, loses school items, is easily distracted, makes careless mistakes on her schoolwork, and avoids tasks requiring sustained mental effort. The behaviors have been present since kindergarten and occur both at home and at school. She is not noticeably hyperactive or impulsive. Which of the following diagnoses is MOST consistent with this client\'s symptoms?',
   options: [
     'Attention-deficit/hyperactivity disorder, predominantly inattentive presentation',
-    'Specific learning disorder',
-    'Generalized anxiety disorder',
-    'Oppositional defiant disorder'
+    'Specific learning disorder with impairment in academic performance',
+    'Generalized anxiety disorder with concentration difficulty',
+    'Oppositional defiant disorder with school-context defiance'
   ],
   correctIndex: 0,
   rationale: {
@@ -306,10 +306,10 @@
   domain: 2, subsection: '2A',
   stem: 'A 19-year-old college student reports two weeks of low mood, sleeping 12+ hours a day, increased appetite with weight gain, and feeling "like lead" in his arms and legs. He says his mood "lifts" briefly when he sees his girlfriend. He has had similar episodes each fall during the past three years that resolved by spring. Which of the following diagnoses is MOST consistent with his symptoms?',
   options: [
-    'Persistent depressive disorder',
-    'Bipolar II disorder',
-    'Major depressive disorder with seasonal pattern and atypical features',
-    'Cyclothymic disorder'
+    'Persistent depressive disorder with seasonal worsening',
+    'Bipolar II disorder, current episode depressed',
+    'Major depressive disorder, recurrent, with seasonal pattern and atypical features',
+    'Cyclothymic disorder with seasonal pattern'
   ],
   correctIndex: 2,
   rationale: {
@@ -549,6 +549,75 @@
   },
   difficulty: 3,
   tags: ['dissociative', 'depersonalization', 'differential']
+},
+
+// ===== Items migrated from 06-law-ethics.js =====
+
+{
+  id: 'DX-2A-014',
+  domain: 2, subsection: '2A',
+  stem: 'A 45-year-old client reports two weeks of low mood, anhedonia, weight loss, insomnia, and feelings of worthlessness following her father\'s death three weeks ago. She is significantly distressed and her functioning is impaired. Which of the following diagnoses is MOST consistent with this client\'s presentation?',
+  options: [
+    'Adjustment disorder with depressed mood',
+    'Major depressive disorder',
+    'Bereavement (V62.82) — exclusion applies',
+    'Persistent depressive disorder'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'DSM-5 and DSM-5-TR removed the "bereavement exclusion" from MDD — major depressive episodes may be diagnosed even when occurring within bereavement context, when criteria are otherwise met. This presentation meets MDD criteria; bereavement context is noted but does not exclude the diagnosis.',
+    distractors: {
+      0: 'Adjustment disorder is a residual category; when MDD criteria are met, MDD takes precedence.',
+      2: 'Bereavement as a V-code with exclusion from MDD was removed in DSM-5. This is a common pre-DSM-5 understanding that is now incorrect.',
+      3: 'PDD requires depressed mood for at least 2 years; this is a 2-week presentation.'
+    }
+  },
+  difficulty: 3,
+  tags: ['MDD-bereavement', 'DSM-5-change']
+},
+{
+  id: 'DX-2A-015',
+  domain: 2, subsection: '2A',
+  stem: 'A 35-year-old client describes intrusive memories, nightmares, and hypervigilance following a violent assault she experienced six weeks ago. Symptoms have been present continuously since the event and significantly impair her functioning. Which of the following diagnoses is MOST consistent with her presentation?',
+  options: [
+    'Acute stress disorder',
+    'Post-traumatic stress disorder',
+    'Adjustment disorder with anxiety',
+    'Other specified trauma- and stressor-related disorder'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'PTSD requires symptoms persisting more than 1 month after the traumatic event. At 6 weeks (more than 1 month) post-trauma, with the full symptom profile described and functional impairment, PTSD is the appropriate diagnosis.',
+    distractors: {
+      0: 'ASD is limited to the 3-day to 1-month window post-trauma. At 6 weeks, this window has closed.',
+      2: 'Adjustment disorder is a residual category; when PTSD criteria are met, PTSD takes precedence.',
+      3: 'OSTSD is for presentations not meeting full criteria for a specified trauma disorder; PTSD criteria are met here.'
+    }
+  },
+  difficulty: 2,
+  tags: ['PTSD-timing', 'ASD-vs-PTSD']
+},
+{
+  id: 'DX-2B-012',
+  domain: 2, subsection: '2B',
+  stem: 'A 16-year-old client has lost a significant amount of weight, has a fear of weight gain, restricts food intake severely, and exercises compulsively. Her BMI is in the low-normal range (not severely underweight). She has not menstruated in three months. Which of the following diagnoses is MOST consistent with this client\'s presentation?',
+  options: [
+    'Anorexia nervosa, restricting type',
+    'Atypical anorexia nervosa within Other Specified Feeding or Eating Disorder',
+    'Avoidant/Restrictive Food Intake Disorder',
+    'Bulimia nervosa, non-purging type'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'DSM-5-TR includes "atypical anorexia nervosa" under Other Specified Feeding or Eating Disorder (OSFED) for presentations where all criteria for AN are met EXCEPT that the weight is not significantly low. The clinical severity is equivalent or greater than typical AN; the diagnosis acknowledges this.',
+    distractors: {
+      0: 'Full anorexia nervosa requires significantly low weight; this client\'s BMI is low-normal.',
+      2: 'ARFID involves restrictive intake driven by sensory features, lack of interest, or fear of aversive consequences — NOT body image disturbance. This presentation includes fear of weight gain (body image disturbance).',
+      3: 'Bulimia nervosa requires recurrent binge eating and compensatory behaviors; not described here.'
+    }
+  },
+  difficulty: 3,
+  tags: ['atypical-AN', 'OSFED', 'DSM-5-TR']
 }
   );
 })(window.LMFT_BANK);

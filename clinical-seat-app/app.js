@@ -1,13 +1,22 @@
 /* LMFT Clinical Exam Prep — quiz engine
  *
- * Question banks register themselves into window.LMFT_BANK via the data/questions/*.js files.
- * Blueprint is loaded inline at the top of index.html.
+ * Architecture:
+ *   - Blueprint loaded inline at the top of index.html (window.LMFT_BLUEPRINT)
+ *   - Question banks register into window.LMFT_BANK via data/questions/*.js
+ *   - Vignettes register into window.LMFT_VIGNETTES via data/vignettes/*.js
+ *   - User state persists to localStorage under key `lmft_prep_v1`
  *
- * Storage: localStorage key `lmft_prep_v1` holds { stats, flagged, prefs }.
+ * Full state shape (see defaultState below):
+ *   { stats, tagStats, flagged, notes, sr, calibration, activity,
+ *     welcomeShown, prefs: { sessionLength, confidenceRating, weeklyGoal,
+ *                            examDate, referenceTab } }
  */
 
 (function () {
   'use strict';
+
+  // -------- APP METADATA --------
+  const APP_VERSION = '0.6.0';
 
   // -------- STORAGE --------
   const STORAGE_KEY = 'lmft_prep_v1';
@@ -38,6 +47,8 @@
       activity: [],
       // First-run welcome shown: tracks whether onboarding was dismissed
       welcomeShown: false,
+      // Demo-mode flag: state is sample/demo data (loaded via About page), not real progress
+      isDemo: false,
       prefs: { sessionLength: 20, confidenceRating: true, weeklyGoal: 0, examDate: '' }
     };
   }
@@ -53,6 +64,10 @@
   function recordActivity(mode, items, correct) {
     const ts = Date.now();
     state.activity.push({ ts, mode, items, correct, dateKey: dateKey(ts) });
+    // Soft cap: keep only last 500 entries. Prevents localStorage bloat for heavy users.
+    if (state.activity.length > 500) {
+      state.activity = state.activity.slice(-500);
+    }
   }
 
   function activitySummary() {
@@ -92,16 +107,22 @@
   }
 
   function recordCalibration(itemId, confidence, correct) {
+    if (!state.calibration) state.calibration = {};
     if (!state.calibration[itemId]) state.calibration[itemId] = [];
     state.calibration[itemId].push({ confidence, correct, ts: Date.now() });
+    // Soft cap: keep last 20 attempts per item (most recent matters most for overconfident-wrong logic)
+    if (state.calibration[itemId].length > 20) {
+      state.calibration[itemId] = state.calibration[itemId].slice(-20);
+    }
   }
 
   // Returns items the user got wrong but rated "sure" or "probable" — the highest-priority study targets.
   function overconfidentWrongItems() {
+    const calibration = state.calibration || {};
     const result = [];
-    for (const itemId of Object.keys(state.calibration)) {
-      const history = state.calibration[itemId];
-      // Look at the most recent call
+    for (const itemId of Object.keys(calibration)) {
+      const history = calibration[itemId];
+      if (!history || history.length === 0) continue;
       const last = history[history.length - 1];
       if (!last.correct && (last.confidence === 'sure' || last.confidence === 'probable')) {
         result.push({ itemId, lastCall: last, history });
@@ -111,9 +132,10 @@
   }
 
   function calibrationSummary() {
-    // Tally: for each confidence level, what fraction were correct?
+    const calibration = state.calibration || {};
     const tallies = { sure: { total: 0, correct: 0 }, probable: { total: 0, correct: 0 }, guess: { total: 0, correct: 0 } };
-    for (const history of Object.values(state.calibration)) {
+    for (const history of Object.values(calibration)) {
+      if (!Array.isArray(history)) continue;
       for (const call of history) {
         const t = tallies[call.confidence];
         if (!t) continue;
@@ -297,12 +319,20 @@
   function render() {
     root.innerHTML = '';
     root.appendChild(renderTopbar());
+    if (state.isDemo) root.appendChild(renderDemoBanner());
     if (view === 'home') root.appendChild(renderHome());
     else if (view === 'quiz') root.appendChild(renderQuiz());
     else if (view === 'stats') root.appendChild(renderStats());
     else if (view === 'flagged') root.appendChild(renderFlagged());
     else if (view === 'reference') root.appendChild(renderReference());
     else if (view === 'activity') root.appendChild(renderActivity());
+  }
+
+  function renderDemoBanner() {
+    return el('div', { class: 'demo-banner' },
+      el('span', null, '⚠ Demo data — not your real progress.'),
+      el('button', { class: 'demo-banner-clear', onclick: clearDemoData }, 'Clear demo data')
+    );
   }
 
   function escapeHTML(s) {
@@ -341,18 +371,54 @@
   }
 
   // Generate the most useful next-step suggestions based on current state.
-  // Returns up to 3 prioritized suggestions.
+  // Returns up to 3 prioritized suggestions, sorted by priority number ascending.
   function nextStepSuggestions() {
     const suggestions = [];
     const sr = srCounts();
     const overconfident = overconfidentWrongItems();
     const totalSessions = state.activity.length;
 
-    // 1. Overconfident-wrong items are the highest study priority (gaps you don't know you have)
+    // Resume saved mock — highest priority if one exists
+    const savedMock = loadSavedMock();
+    if (savedMock) {
+      const elapsedMin = Math.floor((Date.now() - savedMock.startedAt) / 60000);
+      const answered = savedMock.answers.filter(a => a != null).length;
+      suggestions.push({
+        priority: -1,
+        title: `Resume mock exam in progress (${answered}/${savedMock.items.length} answered, ${elapsedMin} min elapsed)`,
+        why: 'Your mock exam was paused. Resume to continue with the original timer.',
+        action: () => resumeMockExam(),
+        actionLabel: 'Resume mock'
+      });
+    }
+
+    // Exam countdown — near-exam this is the most important suggestion
+    let daysLeft = null;
+    if (state.prefs.examDate) {
+      const exam = new Date(state.prefs.examDate + 'T00:00:00');
+      const today = new Date(); today.setHours(0,0,0,0);
+      daysLeft = Math.ceil((exam - today) / 86400000);
+    }
+    if (daysLeft !== null && daysLeft > 0 && daysLeft <= 14) {
+      // Within 14 days of exam: mock-exam suggestion is top priority
+      suggestions.push({
+        priority: daysLeft <= 7 ? 0 : 2,
+        title: `${daysLeft} day${daysLeft === 1 ? '' : 's'} until your exam — try a mock`,
+        why: 'Final-stretch prep benefits from full-length timed simulation. Practice the endurance, not just the content.',
+        action: () => {
+          if (!confirm('Start a full mock exam? 130 items, 240-minute timer.')) return;
+          const items = buildBlueprintSession(130);
+          startMockExam(items);
+        },
+        actionLabel: 'Start mock'
+      });
+    }
+
+    // Overconfident-wrong items — gaps you don't know you have
     if (overconfident.length >= 3) {
       suggestions.push({
         priority: 1,
-        title: `Review ${overconfident.length} overconfident-wrong items`,
+        title: `Review ${overconfident.length} overconfident-wrong item${overconfident.length === 1 ? '' : 's'}`,
         why: 'Items you were Sure or Probable on but missed — highest-priority study targets.',
         action: () => {
           const items = overconfident.map(o => BANK.find(b => b.id === o.itemId)).filter(Boolean);
@@ -362,18 +428,18 @@
       });
     }
 
-    // 2. SR-due items if there are enough to constitute a session
+    // SR-due items if there are enough to constitute a session
     if (sr.due >= 5) {
       suggestions.push({
-        priority: 2,
+        priority: 3,
         title: `${sr.due} items due for spaced-rep review`,
-        why: 'These are items the SR queue says you should see today to consolidate.',
+        why: 'The SR queue says you should see these today to consolidate.',
         action: () => startSession(dueForReview(), 'Due for review'),
         actionLabel: 'Review queue'
       });
     }
 
-    // 3. Weakest subsection (if user has sufficient data)
+    // Weakest subsection (if user has sufficient data)
     let weakest = null;
     BLUEPRINT.domains.forEach(d => d.subsections.forEach(s => {
       const stat = state.stats[s.id];
@@ -385,7 +451,7 @@
     }));
     if (weakest) {
       suggestions.push({
-        priority: 3,
+        priority: 4,
         title: `Drill ${weakest.sub.id} — your weakest subsection (${Math.round(weakest.acc * 100)}%)`,
         why: `${weakest.sub.name}, ${weakest.seen} items answered.`,
         action: () => {
@@ -397,10 +463,10 @@
       });
     }
 
-    // 4. First-time setup hint
+    // First-time setup hint — only if no other suggestion fired and no sessions yet
     if (totalSessions === 0 && suggestions.length === 0) {
       suggestions.push({
-        priority: 4,
+        priority: 5,
         title: 'Take a Blueprint mix to calibrate',
         why: 'A representative 20-item session establishes a baseline across all domains. After 3+ sessions, Adaptive mode will use the data to focus.',
         action: () => startSession(buildBlueprintSession(20), 'Blueprint mix · baseline'),
@@ -408,26 +474,7 @@
       });
     }
 
-    // 5. Exam countdown nudge when exam is close (< 14 days)
-    if (state.prefs.examDate) {
-      const exam = new Date(state.prefs.examDate + 'T00:00:00');
-      const today = new Date(); today.setHours(0,0,0,0);
-      const daysLeft = Math.ceil((exam - today) / 86400000);
-      if (daysLeft > 0 && daysLeft <= 14) {
-        suggestions.push({
-          priority: 5,
-          title: `${daysLeft} day${daysLeft === 1 ? '' : 's'} until exam — consider a mock exam`,
-          why: 'Final-stretch prep benefits from full-length timed simulation to acclimate to sustained focus and pacing.',
-          action: () => {
-            if (!confirm('Start a full mock exam? 130 items, 240-minute timer.')) return;
-            const items = buildBlueprintSession(130);
-            startMockExam(items);
-          },
-          actionLabel: 'Start mock'
-        });
-      }
-    }
-
+    suggestions.sort((a, b) => a.priority - b.priority);
     return suggestions.slice(0, 3);
   }
 
@@ -471,48 +518,72 @@
     );
     container.appendChild(config);
 
-    container.appendChild(el('h2', null, 'Mode'));
     const sr = srCounts();
     const dueLabel = sr.due > 0 ? `${sr.due} due today` : (Object.keys(state.sr).length === 0 ? 'Nothing scheduled yet' : 'Caught up');
-    container.appendChild(el('div', { class: 'mode-grid' },
-      modeCard('Adaptive', 'Weighted toward weak subsections', () => startSession(buildAdaptiveSession(state.prefs.sessionLength), 'Adaptive')),
-      modeCard('Blueprint mix', 'Proportional to BBS domain percentages', () => startSession(buildBlueprintSession(state.prefs.sessionLength), 'Blueprint mix')),
-      modeCard('Due for review', dueLabel, () => {
-        const items = dueForReview();
-        if (items.length === 0) {
-          alert(Object.keys(state.sr).length === 0
-            ? 'Take a session in another mode first — items only enter the review queue once you\'ve seen them.'
-            : 'Nothing due right now. Items return at 1d, 3d, 7d, 14d, then 30d intervals based on whether you got them right.');
-          return;
-        }
-        startSession(items.map(i => i), 'Due for review');
-      }),
-      modeCard('Recently missed', `Items missed in the last 7 days (${recentlyMissedItems(7).length})`, () => {
-        const items = recentlyMissedItems(7);
-        if (items.length === 0) {
-          alert('No items missed in the last 7 days. Take more sessions with confidence rating on to populate this queue.');
-          return;
-        }
-        startSession(items, 'Recently missed (7d)');
-      }),
-      modeCard('Hard items only', `Difficulty-3 items (${itemsByDifficulty(3).length} available)`, () => {
-        const items = itemsByDifficulty(3);
-        if (items.length === 0) { alert('No difficulty-3 items in the bank.'); return; }
-        shuffle(items);
-        startSession(items.slice(0, state.prefs.sessionLength), 'Hard items only');
-      }),
-      modeCard('Crisis vignettes', `${VIGNETTES.length} branching scenarios`, () => {
-        if (VIGNETTES.length === 0) { alert('No vignettes loaded.'); return; }
-        startVignette(VIGNETTES[Math.floor(Math.random() * VIGNETTES.length)]);
-      }),
-      modeCard('Mock exam', 'Full 130-item timed run (240 min)', () => {
-        if (!confirm('Start a full mock exam? 130 items, 240-minute timer, no rationale until the end. Make sure you can sit uninterrupted.')) return;
-        const items = buildBlueprintSession(130);
-        if (items.length < 130) {
-          if (!confirm(`Bank currently has ${items.length} items. Run a shorter mock with what's available?`)) return;
-        }
-        startMockExam(items);
-      })
+
+    // Mode cards grouped by intent. Each group has a label and 2-3 cards.
+    container.appendChild(el('h2', null, 'Practice'));
+
+    container.appendChild(el('div', { class: 'mode-group' },
+      el('div', { class: 'mode-group-label' }, 'Build coverage'),
+      el('div', { class: 'mode-grid' },
+        modeCard('Adaptive', 'Weighted toward your weak subsections, with SR-due items mixed in', () => startSession(buildAdaptiveSession(state.prefs.sessionLength), 'Adaptive')),
+        modeCard('Blueprint mix', 'Items selected proportional to BBS domain percentages', () => startSession(buildBlueprintSession(state.prefs.sessionLength), 'Blueprint mix'))
+      )
+    ));
+
+    container.appendChild(el('div', { class: 'mode-group' },
+      el('div', { class: 'mode-group-label' }, 'Review what you\'ve seen'),
+      el('div', { class: 'mode-grid' },
+        modeCard('Due for review', dueLabel, () => {
+          const items = dueForReview();
+          if (items.length === 0) {
+            alert(Object.keys(state.sr).length === 0
+              ? 'Take a session in another mode first — items only enter the review queue once you\'ve seen them.'
+              : 'Nothing due right now. Items return at 1d, 3d, 7d, 14d, then 30d intervals based on whether you got them right.');
+            return;
+          }
+          startSession(items.slice(), 'Due for review');
+        }),
+        modeCard('Recently missed', `Items missed in the last 7 days (${recentlyMissedItems(7).length})`, () => {
+          const items = recentlyMissedItems(7);
+          if (items.length === 0) {
+            alert('No items missed in the last 7 days. Take more sessions with confidence rating on to populate this queue.');
+            return;
+          }
+          startSession(items, 'Recently missed (7d)');
+        })
+      )
+    ));
+
+    container.appendChild(el('div', { class: 'mode-group' },
+      el('div', { class: 'mode-group-label' }, 'Test conditions'),
+      el('div', { class: 'mode-grid' },
+        modeCard('Hard items only', `Difficulty-3 items (${itemsByDifficulty(3).length} available)`, () => {
+          const items = itemsByDifficulty(3);
+          if (items.length === 0) { alert('No difficulty-3 items in the bank.'); return; }
+          shuffle(items);
+          startSession(items.slice(0, state.prefs.sessionLength), 'Hard items only');
+        }),
+        modeCard('Mock exam', 'Full 130-item timed run (240 min) with auto-save', () => {
+          if (!confirm('Start a full mock exam? 130 items, 240-minute timer, no rationale until the end. Progress auto-saves every 30s.')) return;
+          const items = buildBlueprintSession(130);
+          if (items.length < 130) {
+            if (!confirm(`Bank currently has ${items.length} items. Run a shorter mock with what's available?`)) return;
+          }
+          startMockExam(items);
+        })
+      )
+    ));
+
+    container.appendChild(el('div', { class: 'mode-group' },
+      el('div', { class: 'mode-group-label' }, 'Different format'),
+      el('div', { class: 'mode-grid' },
+        modeCard('Crisis vignettes', `${VIGNETTES.length} multi-stage branching scenarios`, () => {
+          if (VIGNETTES.length === 0) { alert('No vignettes loaded.'); return; }
+          startVignette(VIGNETTES[Math.floor(Math.random() * VIGNETTES.length)]);
+        })
+      )
     ));
 
     container.appendChild(el('h2', null, 'Domains'));
@@ -547,12 +618,13 @@
           const q = e.target.value.toLowerCase().trim();
           searchResultsEl.innerHTML = '';
           if (q.length < 2) return;
-          const matches = BANK.filter(it =>
+          // Single pass through BANK; collect all matches, then slice for display.
+          const allMatches = BANK.filter(it =>
             it.stem.toLowerCase().includes(q) ||
             (Array.isArray(it.tags) && it.tags.some(t => t.toLowerCase().includes(q))) ||
             it.id.toLowerCase().includes(q)
-          ).slice(0, 30);
-          if (matches.length === 0) {
+          );
+          if (allMatches.length === 0) {
             const empty = document.createElement('div');
             empty.className = 'empty-state';
             empty.style.padding = '12px';
@@ -560,11 +632,11 @@
             searchResultsEl.appendChild(empty);
             return;
           }
-          matches.forEach(item => {
+          allMatches.slice(0, 30).forEach(item => {
             const row = document.createElement('div');
             row.className = 'domain-row';
             row.innerHTML = `
-              <span class="dom-id">${item.subsection}</span>
+              <span class="dom-id">${escapeHTML(item.subsection)}</span>
               <span class="dom-name">${escapeHTML(item.stem.slice(0, 110))}${item.stem.length > 110 ? '…' : ''}</span>
               <span></span>
               <span></span>
@@ -572,15 +644,15 @@
             const btn = document.createElement('button');
             btn.className = 'dom-action';
             btn.textContent = 'Drill';
-            btn.onclick = () => startSession([item], `Search: ${item.id}`);
+            btn.onclick = () => startSingleItemReview(item, `Search: ${item.id}`);
             row.appendChild(btn);
             searchResultsEl.appendChild(row);
           });
-          if (BANK.filter(it => it.stem.toLowerCase().includes(q)).length > 30) {
+          if (allMatches.length > 30) {
             const more = document.createElement('div');
             more.className = 'empty-state';
             more.style.padding = '8px';
-            more.textContent = `Showing first 30. Refine query for more.`;
+            more.textContent = `Showing first 30 of ${allMatches.length}. Refine query for more.`;
             searchResultsEl.appendChild(more);
           }
         }
@@ -634,7 +706,8 @@
           class: 'secondary',
           style: 'margin-top: 8px;',
           onclick: function() {
-            // Append remaining chips
+            // Capture the current filter so newly appended chips respect it
+            const currentFilter = (tagSearch.value || '').toLowerCase().trim();
             overflowBatch.forEach(({ tag, count }) => {
               const chip = el('button', {
                 class: 'tag-chip',
@@ -648,6 +721,9 @@
                 el('span', { class: 'tag-chip-label' }, tag),
                 el('span', { class: 'tag-chip-count' }, String(count))
               );
+              if (currentFilter && !tag.toLowerCase().includes(currentFilter)) {
+                chip.style.display = 'none';
+              }
               cloud.appendChild(chip);
             });
             this.remove();
@@ -661,7 +737,20 @@
   }
 
   function modeCard(title, desc, onclick) {
-    return el('div', { class: 'mode-card', onclick },
+    // Use div with tabindex/role for accessibility (since H3 can't be inside <button>).
+    // Keydown handler enables Enter/Space activation, matching button behavior.
+    return el('div', {
+      class: 'mode-card',
+      role: 'button',
+      tabindex: '0',
+      onclick,
+      onkeydown: (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onclick();
+        }
+      }
+    },
       el('h3', null, title),
       el('p', null, desc)
     );
@@ -679,6 +768,72 @@
     session = { items: presented, index: 0, results: [], label, answered: false, selectedIndex: null, mode: 'practice' };
     view = 'quiz';
     render();
+  }
+
+  // Single-item review: show stem + options + rationale immediately, no quiz mechanics.
+  // Used when drilling a flagged/noted/searched single item — the session flow with "1/1 → Submit"
+  // is awkward for what's really just looking at one item.
+  function startSingleItemReview(item, label) {
+    if (!item) return;
+    // Wrap with shuffleItemOptions so we still randomize display order, but mark the wrapped
+    // item as already-answered with the correct answer selected.
+    const wrapped = shuffleItemOptions(item);
+    session = {
+      mode: 'single-review',
+      item: wrapped,
+      label: label || 'Item review'
+    };
+    view = 'quiz';
+    render();
+  }
+
+  function renderSingleItemReview() {
+    const item = session.item;
+    const letters = ['a', 'b', 'c', 'd'];
+    const container = el('div');
+
+    container.appendChild(el('div', { class: 'quiz-header' },
+      el('span', { class: 'progress' }, session.label),
+      el('span', null,
+        el('span', { class: 'domain-tag', style: 'margin-right:8px' },
+          item.subsection + ' · ' + (BLUEPRINT.domains.find(d => d.id === item.domain)?.name.slice(0, 30) || '')
+        )
+      )
+    ));
+
+    const card = el('div', { class: 'item-card' });
+    card.appendChild(el('div', { class: 'item-stem' }, item.stem));
+
+    // Show all options with correct highlighted
+    const optsEl = el('div', { class: 'options' });
+    item.options.forEach((opt, i) => {
+      const cls = 'option' + (i === item.correctIndex ? ' correct' : '');
+      optsEl.appendChild(el('div', { class: cls },
+        el('span', { class: 'letter' }, letters[i] + '.'),
+        el('span', null, opt)
+      ));
+    });
+    card.appendChild(optsEl);
+
+    // Show rationale immediately
+    card.appendChild(renderRationale(item));
+
+    // Actions: Flag toggle + Back to home
+    const flagged = state.flagged.find(f => f.itemId === item.source.id);
+    card.appendChild(el('div', { class: 'actions' },
+      el('div', null,
+        el('button', {
+          class: 'secondary' + (flagged ? ' flagged' : ''),
+          onclick: () => toggleFlag(item.source)
+        }, flagged ? '⚑ Flagged' : '⚐ Flag item')
+      ),
+      el('div', null,
+        el('button', { class: 'primary', onclick: () => go('home') }, 'Done')
+      )
+    ));
+
+    container.appendChild(card);
+    return container;
   }
 
   function startVignette(vignette) {
@@ -722,12 +877,14 @@
     if (next == null) {
       // Vignette complete
       session.finished = true;
-      // Record activity
+      // Record activity. Normalize score to a 0..choices.length count so vignettes
+      // contribute to activity stats on the same scale as MCQ sessions.
+      // Use stages-actually-played (choices.length) — handles branching paths that skip stages.
       const totalScore = session.choices.reduce((sum, c) => sum + c.score, 0);
-      const possible = session.vignette.stages.length * 2; // max score per stage = 2
-      const normalizedCorrect = Math.max(0, Math.round((totalScore / possible) * session.choices.length));
+      const possible = session.choices.length * 2; // max score per stage = 2
+      const ratio = possible > 0 ? totalScore / possible : 0;
+      const normalizedCorrect = Math.max(0, Math.round(ratio * session.choices.length));
       recordActivity(`Vignette: ${session.vignette.title}`, session.choices.length, normalizedCorrect);
-      // Update tag stats
       const tags = session.vignette.tags || [];
       tags.forEach(t => {
         const ts = state.tagStats[t] || { seen: 0, correct: 0 };
@@ -744,26 +901,82 @@
     render();
   }
 
+  const MOCK_STORAGE_KEY = 'lmft_mock_v1';
+
   function startMockExam(items) {
     const presented = items.map(it => shuffleItemOptions(it));
-    // Mock mode: timed, no rationale until end, navigation between items
     session = {
       items: presented,
       index: 0,
-      // answers indexed by item position: null = unanswered, number = selected display index
       answers: new Array(presented.length).fill(null),
       label: `Mock exam (${presented.length} items)`,
       mode: 'mock',
       startedAt: Date.now(),
       durationMs: 240 * 60 * 1000, // 240 minutes
-      finished: false
+      finished: false,
+      // Warning flags so we only show each warning once
+      warned5min: false
     };
+    view = 'quiz';
+    render();
+    startMockTimer();
+    saveMockProgress();
+  }
+
+  function saveMockProgress() {
+    if (!session || session.mode !== 'mock' || session.finished) return;
+    try {
+      localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify({
+        savedAt: Date.now(),
+        session: session
+      }));
+    } catch (e) {
+      console.warn('Could not save mock progress:', e);
+    }
+  }
+
+  function clearSavedMock() {
+    try { localStorage.removeItem(MOCK_STORAGE_KEY); } catch (e) {}
+  }
+
+  function loadSavedMock() {
+    try {
+      const raw = localStorage.getItem(MOCK_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Stale-mock check: if started over 12 hours ago, discard
+      const STALE_MS = 12 * 60 * 60 * 1000;
+      if (Date.now() - parsed.session.startedAt > STALE_MS) {
+        clearSavedMock();
+        return null;
+      }
+      // Also discard if already finished
+      if (parsed.session.finished) {
+        clearSavedMock();
+        return null;
+      }
+      return parsed.session;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function resumeMockExam() {
+    const saved = loadSavedMock();
+    if (!saved) {
+      alert('No saved mock exam found.');
+      return;
+    }
+    session = saved;
+    // Backfill warning flags if missing from older saves
+    if (typeof session.warned5min !== 'boolean') session.warned5min = false;
     view = 'quiz';
     render();
     startMockTimer();
   }
 
   let mockTimerHandle = null;
+  let mockLastSaveAt = 0;
   function startMockTimer() {
     if (mockTimerHandle) clearInterval(mockTimerHandle);
     mockTimerHandle = setInterval(() => {
@@ -777,10 +990,31 @@
         finishMockExam(true);
         return;
       }
-      // Patch only the timer element to avoid full re-render
-      const el = document.getElementById('mock-timer');
-      if (el) el.textContent = formatRemaining(remaining);
+      const elTimer = document.getElementById('mock-timer');
+      if (elTimer) elTimer.textContent = formatRemaining(remaining);
+      // 5-minute warning — fire once when remaining drops to <= 5 min
+      if (!session.warned5min && remaining <= 5 * 60 * 1000) {
+        session.warned5min = true;
+        showMockWarning('5 minutes remaining. Use the Item list to revisit unanswered items quickly.');
+      }
+      // Auto-save every 30 seconds
+      if (Date.now() - mockLastSaveAt > 30000) {
+        mockLastSaveAt = Date.now();
+        saveMockProgress();
+      }
     }, 1000);
+  }
+
+  function showMockWarning(message) {
+    // Toast-like overlay, auto-dismissing after 8s
+    const existing = document.querySelector('.mock-warning-toast');
+    if (existing) existing.remove();
+    const toast = el('div', { class: 'mock-warning-toast' },
+      el('span', null, '⚠ ' + message),
+      el('button', { class: 'mock-warning-close', onclick: function() { this.parentNode.remove(); } }, '×')
+    );
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 8000);
   }
 
   function formatRemaining(ms) {
@@ -795,6 +1029,7 @@
     if (!session || session.mode !== 'mock') return;
     session.finished = true;
     if (mockTimerHandle) { clearInterval(mockTimerHandle); mockTimerHandle = null; }
+    clearSavedMock();
     // Score all answered items and update stats + SR
     let totalAnswered = 0;
     let totalCorrect = 0;
@@ -850,9 +1085,24 @@
     };
   }
 
-  function go(v) { view = v; render(); }
+  function go(v) {
+    // Guard: if a mock exam is running, warn before navigating away
+    if (session && session.mode === 'mock' && !session.finished && v !== 'quiz') {
+      if (!confirm('A mock exam is in progress. Leaving will end it without recording results. (Your progress is auto-saved — you can resume from the home view.) Continue?')) {
+        return;
+      }
+      // Cancel the mock interval but KEEP the saved state for resumption
+      if (mockTimerHandle) { clearInterval(mockTimerHandle); mockTimerHandle = null; }
+      // Do a final save so the latest state is captured before abandoning the in-memory session
+      saveMockProgress();
+      session = null;
+    }
+    view = v;
+    render();
+  }
 
   function renderQuiz() {
+    if (session.mode === 'single-review') return renderSingleItemReview();
     if (session.mode === 'vignette') {
       return session.finished ? renderVignetteReview() : renderVignetteStage();
     }
@@ -1041,9 +1291,12 @@
 
     container.appendChild(el('div', { class: 'quiz-header' },
       el('span', { class: 'progress' }, `${session.index + 1} / ${session.items.length} · ${answeredCount} answered`),
-      el('span', { class: 'domain-tag', id: 'mock-timer-tag', style: 'background:#3a2e1e;color:#f0c674' },
-        el('span', { id: 'mock-timer' }, formatRemaining(remaining)),
-        ' remaining'
+      el('span', null,
+        el('span', { class: 'domain-tag', id: 'mock-timer-tag', style: 'background:#3a2e1e;color:#f0c674;margin-right:8px' },
+          el('span', { id: 'mock-timer' }, formatRemaining(remaining)),
+          ' remaining'
+        ),
+        el('button', { class: 'kbd-hint', onclick: toggleKeyboardHelp, title: 'Keyboard shortcuts' }, '⌨ ?')
       )
     ));
 
@@ -1112,13 +1365,21 @@
     const answered = session.answers.filter(a => a != null).length;
     const total = session.items.length;
     const elapsed = Math.min(session.durationMs, Date.now() - session.startedAt);
+    const overallPct = Math.round(100 * correct / total);
+    const answeredPct = answered > 0 ? Math.round(100 * correct / answered) : 0;
 
     const container = el('div');
     const head = el('div', { class: 'completion' });
     head.appendChild(el('h2', null, session.timedOut ? 'Time expired' : 'Mock exam complete'));
     head.appendChild(el('p', null, session.label));
     head.appendChild(el('div', { class: 'score' }, correct + ' / ' + total));
-    head.appendChild(el('p', null, `${Math.round(100 * correct / total)}% overall · ${answered}/${total} answered · ${formatRemaining(elapsed)} used`));
+    // Show both: raw % (real exam logic — unanswered is wrong) AND answered-only %
+    // (what you'd score if you finished). The distinction matters when time runs out.
+    head.appendChild(el('p', null,
+      answered === total
+        ? `${overallPct}% correct · ${formatRemaining(elapsed)} used`
+        : `${overallPct}% of all items · ${answeredPct}% of items you answered · ${answered}/${total} answered · ${formatRemaining(elapsed)} used`
+    ));
     head.appendChild(el('div', { class: 'actions', style: 'justify-content: center;' },
       el('button', { class: 'primary', onclick: () => go('home') }, 'Back to home'),
       el('button', { class: 'secondary', onclick: () => go('stats') }, 'View stats')
@@ -1214,11 +1475,24 @@
     const flagged = state.flagged.find(f => f.itemId === item.id);
     const useConfidence = state.prefs.confidenceRating;
     return el('div', { class: 'actions' },
-      el('div', null,
+      el('div', { style: 'display: flex; gap: 6px;' },
         el('button', {
           class: 'secondary' + (flagged ? ' flagged' : ''),
           onclick: () => toggleFlag(item)
-        }, flagged ? '⚑ Flagged' : '⚐ Flag item')
+        }, flagged ? '⚑ Flagged' : '⚐ Flag item'),
+        el('button', {
+          class: 'secondary',
+          onclick: () => {
+            const remaining = session.items.length - session.index;
+            const msg = remaining > 1
+              ? `Exit this session with ${remaining} items remaining? Your progress so far is saved.`
+              : 'Exit this session?';
+            if (confirm(msg)) {
+              session = null;
+              go('home');
+            }
+          }
+        }, 'Exit')
       ),
       el('div', { class: 'submit-cluster' },
         session.answered
@@ -1249,7 +1523,6 @@
     const isCorrect = session.selectedIndex === item.correctIndex;
     session.results.push({ itemId: item.id, correct: isCorrect, selected: session.selectedIndex, confidence });
     session.answered = true;
-    session.lastConfidence = confidence;
     // Update subsection stats
     const s = state.stats[item.subsection] || { seen: 0, correct: 0 };
     s.seen += 1;
@@ -1297,8 +1570,36 @@
       wrap.appendChild(div);
     });
     if (source.lawCitation) wrap.appendChild(el('div', { class: 'citation' }, '📖 ' + source.lawCitation));
+    wrap.appendChild(renderItemHistory(source.id));
     wrap.appendChild(renderNoteEditor(source.id));
     return wrap;
+  }
+
+  function renderItemHistory(itemId) {
+    const cal = (state.calibration || {})[itemId] || [];
+    const srEntry = (state.sr || {})[itemId];
+    if (cal.length === 0 && !srEntry) {
+      return el('div', null); // No history to show — return empty placeholder
+    }
+    const histWrap = el('div', { class: 'item-history' });
+    histWrap.appendChild(el('h4', null, '📊 Your history with this item'));
+    const parts = [];
+    if (cal.length > 0) {
+      const correctCount = cal.filter(c => c.correct).length;
+      parts.push(`Seen ${cal.length} time${cal.length === 1 ? '' : 's'}, got it right ${correctCount} time${correctCount === 1 ? '' : 's'}.`);
+      // Last attempt details
+      const last = cal[cal.length - 1];
+      const when = new Date(last.ts);
+      parts.push(`Last seen ${when.toLocaleDateString()}, ${last.confidence ? `confidence "${last.confidence}", ` : ''}${last.correct ? 'correct' : 'incorrect'}.`);
+    }
+    if (srEntry) {
+      const boxLabel = { 1: '1 day', 2: '3 days', 3: '7 days', 4: '14 days', 5: '30 days' }[srEntry.box] || '?';
+      const nextDue = new Date(srEntry.nextDue);
+      const dueIn = Math.ceil((srEntry.nextDue - Date.now()) / (24 * 60 * 60 * 1000));
+      parts.push(`SR box ${srEntry.box}/5 (interval: ${boxLabel}). Next due ${nextDue.toLocaleDateString()}${dueIn > 0 ? ` (in ${dueIn} day${dueIn === 1 ? '' : 's'})` : ' (now)'}.`);
+    }
+    histWrap.appendChild(el('div', { class: 'item-history-body' }, parts.join(' ')));
+    return histWrap;
   }
 
   function renderNoteEditor(itemId) {
@@ -1326,7 +1627,35 @@
       const d = new Date(note.updatedAt);
       noteWrap.appendChild(el('div', { class: 'note-meta' }, `Last updated ${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
     }
+    // "Report this item" button — opens prompt for issue description, downloads JSON for sharing
+    noteWrap.appendChild(el('div', { class: 'report-item-wrap' },
+      el('button', {
+        class: 'report-item-btn',
+        title: 'Report a factual error, voice issue, or anything off about this item',
+        onclick: () => reportItem(itemId)
+      }, '⚐ Report an issue with this item')
+    ));
     return noteWrap;
+  }
+
+  function reportItem(itemId) {
+    const item = BANK.find(b => b.id === itemId);
+    if (!item) return;
+    const description = prompt(
+      `Reporting item ${itemId}.\n\nDescribe the issue (factual error, telegraphed answer, voice problem, etc.):`
+    );
+    if (description == null || description.trim() === '') return;
+    const report = {
+      itemId: itemId,
+      subsection: item.subsection,
+      domain: item.domain,
+      stemPreview: item.stem.slice(0, 120) + (item.stem.length > 120 ? '…' : ''),
+      issueDescription: description.trim(),
+      reportedAt: new Date().toISOString(),
+      appVersion: APP_VERSION
+    };
+    downloadJSON(`lmft-item-report-${itemId}-${new Date().toISOString().slice(0, 10)}.json`, report);
+    alert(`Report for ${itemId} downloaded as JSON. Share it with the app author to suggest a revision.`);
   }
 
   function renderCompletion() {
@@ -1374,8 +1703,15 @@
         ));
       });
     });
-    if (!anyStats) c.appendChild(el('div', { class: 'empty-state' }, 'No stats yet. Take a session to populate this view.'));
-    else c.appendChild(grid);
+    if (!anyStats) {
+      const emptyEl = el('div', { class: 'empty-state' });
+      emptyEl.appendChild(el('div', { style: 'margin-bottom: 12px;' }, 'No performance data yet. Stats populate after you answer items.'));
+      emptyEl.appendChild(el('button', {
+        class: 'primary',
+        onclick: () => startSession(buildBlueprintSession(20), 'Blueprint mix · baseline')
+      }, 'Take a 20-item baseline session'));
+      c.appendChild(emptyEl);
+    } else c.appendChild(grid);
 
     // Per-tag stats — accuracy by concept tag
     const tagEntries = Object.entries(state.tagStats || {})
@@ -1526,17 +1862,20 @@
     c.appendChild(el('h2', null, 'Flagged items'));
     const notedItemIds = Object.keys(state.notes || {});
     if (state.flagged.length === 0 && notedItemIds.length === 0) {
-      c.appendChild(el('div', { class: 'empty-state' }, 'Nothing flagged or noted. Flag items during a session to revisit them here, or add notes via the rationale section after answering.'));
+      const emptyEl = el('div', { class: 'empty-state' });
+      emptyEl.appendChild(el('div', { style: 'margin-bottom: 8px;' }, 'Nothing flagged or noted yet.'));
+      emptyEl.appendChild(el('div', { style: 'font-size: 13px; color: var(--text-dim);' },
+        'During a session: use the ⚐ Flag button to mark items for revisit, or add a personal note in the rationale section after answering. Both appear here.'
+      ));
+      c.appendChild(emptyEl);
       return c;
     }
     if (state.flagged.length > 0) {
-      c.appendChild(el('p', { class: 'lede' }, `${state.flagged.length} items flagged. Use these to review weak areas or mark items that read as off-voice for revision.`));
+      c.appendChild(el('p', { class: 'lede' }, `${state.flagged.length} item${state.flagged.length === 1 ? '' : 's'} flagged. Use these to review weak areas or mark items that read as off-voice for revision.`));
       c.appendChild(el('div', { class: 'actions' },
         el('button', { class: 'primary', onclick: () => startSession(buildFlaggedSession(), 'Flagged items') }, 'Review flagged'),
         el('button', { class: 'secondary', onclick: exportFlagged }, 'Export flagged list')
       ));
-    }
-    if (state.flagged.length > 0) {
       const list = el('div', { class: 'domain-list', style: 'margin-top: 16px;' });
       state.flagged.forEach(f => {
         const item = BANK.find(b => b.id === f.itemId);
@@ -1565,7 +1904,7 @@
         card.appendChild(el('div', { class: 'note-card-header' },
           el('span', { class: 'dom-id' }, item.subsection),
           el('span', { class: 'note-card-stem' }, item.stem.slice(0, 110) + (item.stem.length > 110 ? '…' : '')),
-          el('button', { class: 'dom-action', onclick: () => startSession([item], 'Note review') }, 'Drill')
+          el('button', { class: 'dom-action', onclick: () => startSingleItemReview(item, 'Note review') }, 'Review')
         ));
         card.appendChild(el('div', { class: 'note-card-text' }, note.text));
         noteList.appendChild(card);
@@ -1576,42 +1915,136 @@
     return c;
   }
 
+  function downloadJSON(filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    // Free the blob URL after the click is dispatched
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
   function exportFlagged() {
     const data = state.flagged.map(f => {
       const item = BANK.find(b => b.id === f.itemId);
       return { id: f.itemId, ts: f.ts, subsection: item?.subsection, stem: item?.stem };
     });
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'lmft-flagged-review.json';
-    a.click();
+    downloadJSON('lmft-flagged-review.json', data);
   }
 
   function exportBank() {
-    // Export full question bank as a single JSON file for backup, sharing,
-    // or external editing. Includes all source-side data (no UI state).
-    const payload = {
+    downloadJSON(`lmft-bank-${new Date().toISOString().slice(0, 10)}.json`, {
       exported: new Date().toISOString(),
       itemCount: BANK.length,
       blueprint: BLUEPRINT,
       items: BANK
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `lmft-bank-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
+    });
   }
 
   function exportState() {
-    // Export user state (stats, SR, calibration, flags, activity) so the user
-    // can move their progress between machines or back it up.
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `lmft-state-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
+    downloadJSON(`lmft-state-${new Date().toISOString().slice(0, 10)}.json`, state);
+  }
+
+  // Demo data: synthesizes 14 days of plausible practice so new users can preview
+  // what the Stats / Activity / Flagged views look like populated. Marks state with
+  // a flag so the user can clear demo data without affecting their real progress.
+  function loadDemoData() {
+    if (!confirm('Load demo data? This will populate Stats, Activity, and Calibration views with sample data so you can preview them. Your existing progress (if any) will be backed up to "Export progress" before being overwritten — make sure to back up first if you have real data.')) return;
+
+    // Backup check: if any real activity exists, refuse without explicit second confirm
+    if (state.activity.length > 0 || Object.keys(state.calibration).length > 0) {
+      if (!confirm('You have existing progress. Loading demo data will overwrite it. Are you SURE you have exported your progress first?')) return;
+    }
+
+    const fresh = defaultState();
+    fresh.welcomeShown = true; // Don't re-show welcome after demo load
+    fresh.isDemo = true;
+
+    // 14 days of sessions, roughly increasing accuracy over time
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+    const modes = ['Adaptive', 'Blueprint mix', 'Adaptive', 'Hard items only', 'Adaptive'];
+    for (let dayBack = 14; dayBack >= 0; dayBack -= 1) {
+      // Skip ~30% of days to simulate realistic gaps
+      if (Math.random() < 0.3) continue;
+      const sessionsToday = 1 + Math.floor(Math.random() * 2);
+      for (let s = 0; s < sessionsToday; s++) {
+        const ts = now - dayBack * DAY - Math.floor(Math.random() * (DAY - 60000));
+        const items = 15 + Math.floor(Math.random() * 10); // 15-24 items
+        const baseAcc = 0.55 + (14 - dayBack) * 0.015; // improves over time
+        const correct = Math.round(items * (baseAcc + (Math.random() - 0.5) * 0.15));
+        const mode = modes[Math.floor(Math.random() * modes.length)];
+        fresh.activity.push({ ts, mode, items, correct: Math.max(0, Math.min(items, correct)), dateKey: dateKey(ts) });
+      }
+    }
+    fresh.activity.sort((a, b) => a.ts - b.ts);
+
+    // Subsection stats — populate with varying accuracy across subsections
+    BLUEPRINT.domains.forEach(d => d.subsections.forEach(s => {
+      const seen = 8 + Math.floor(Math.random() * 20);
+      const acc = 0.4 + Math.random() * 0.55; // 40-95% per subsection
+      fresh.stats[s.id] = { seen, correct: Math.round(seen * acc) };
+    }));
+
+    // Tag stats — pick top 20 tags from bank
+    const tagCounts = {};
+    BANK.forEach(it => (it.tags || []).forEach(t => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+    Object.keys(tagCounts).slice(0, 20).forEach(tag => {
+      const seen = 3 + Math.floor(Math.random() * 12);
+      const acc = 0.4 + Math.random() * 0.55;
+      fresh.tagStats[tag] = { seen, correct: Math.round(seen * acc) };
+    });
+
+    // SR — populate 30 random items with varying box positions
+    const sampleItems = BANK.slice(0, 30);
+    sampleItems.forEach((it, idx) => {
+      const box = 1 + (idx % 5);
+      const intervalMs = [1, 3, 7, 14, 30][box - 1] * DAY;
+      const lastSeen = now - Math.floor(Math.random() * 10 * DAY);
+      fresh.sr[it.id] = {
+        box,
+        lastSeen,
+        nextDue: lastSeen + intervalMs,
+        misses: Math.floor(Math.random() * 3)
+      };
+    });
+
+    // Calibration — populate 25 items with mixed history including overconfident-wrong
+    const calibrationItems = BANK.slice(0, 25);
+    calibrationItems.forEach((it, idx) => {
+      const history = [];
+      const numAttempts = 1 + Math.floor(Math.random() * 3);
+      for (let a = 0; a < numAttempts; a++) {
+        const confidence = ['sure', 'probable', 'guess'][Math.floor(Math.random() * 3)];
+        // Engineer some overconfident-wrong cases (sure but incorrect)
+        const correct = idx < 5 ? false : (Math.random() < 0.6);
+        const conf = idx < 5 && a === numAttempts - 1 ? (Math.random() < 0.7 ? 'sure' : 'probable') : confidence;
+        history.push({ confidence: conf, correct, ts: now - (numAttempts - a) * DAY });
+      }
+      fresh.calibration[it.id] = history;
+    });
+
+    // Some flagged + noted samples
+    BANK.slice(0, 3).forEach(it => fresh.flagged.push({ itemId: it.id, ts: now - DAY }));
+    fresh.notes[BANK[0].id] = { text: '[Demo note] Remember: assessment before intervention. The exam tests this distinction repeatedly.', updatedAt: now - 2 * DAY };
+
+    fresh.prefs = state.prefs;
+    fresh.prefs.examDate = new Date(now + 30 * DAY).toISOString().slice(0, 10);
+
+    state = fresh;
+    saveState();
+    render();
+    alert('Demo data loaded. Explore the Stats, Activity, and Flagged views to see what they look like populated. To remove, click "Clear demo data" from the About page.');
+  }
+
+  function clearDemoData() {
+    if (!confirm('Clear demo data and return to a clean state? This resets everything (stats, SR, calibration, flags, notes, activity).')) return;
+    state = defaultState();
+    state.welcomeShown = true;
+    saveState();
+    render();
   }
 
   function importState() {
@@ -1752,7 +2185,13 @@
     c.appendChild(el('p', { class: 'lede' }, 'Records of completed sessions. Shows what you have done, not what you have missed — designed to make practice visible without adding pressure.'));
 
     if (summary.totalSessions === 0) {
-      c.appendChild(el('div', { class: 'empty-state' }, 'No sessions yet. Take a session and your activity will appear here.'));
+      const emptyEl = el('div', { class: 'empty-state' });
+      emptyEl.appendChild(el('div', { style: 'margin-bottom: 12px;' }, 'No completed sessions yet. Activity tracking begins after your first session.'));
+      emptyEl.appendChild(el('button', {
+        class: 'primary',
+        onclick: () => startSession(buildBlueprintSession(20), 'Blueprint mix · baseline')
+      }, 'Start a 20-item session'));
+      c.appendChild(emptyEl);
       return c;
     }
 
@@ -1985,8 +2424,23 @@
     c.appendChild(el('h3', { class: 'ref-group' }, 'Feedback and iteration'));
     c.appendChild(el('p', { class: 'about-para' }, `Items that read off-voice, telegraph the answer, contain factual errors, or land as clinically unrepresentative are flaggable in-app. The bank is intended to be iterated on — flag freely, and revisions will follow.`));
 
+    c.appendChild(el('h3', { class: 'ref-group' }, 'Try a demo'));
+    c.appendChild(el('p', { class: 'about-para' }, 'See what the Stats, Activity, and Flagged views look like with sample data populated. The demo synthesizes 14 days of plausible practice without you having to actually do sessions first. Useful for evaluating whether this app fits your workflow.'));
+    c.appendChild(el('div', { style: 'display: flex; gap: 8px; flex-wrap: wrap;' },
+      el('button', {
+        class: state.isDemo ? 'secondary' : 'primary',
+        onclick: loadDemoData
+      }, state.isDemo ? '↻ Reload demo data' : 'Load demo data'),
+      state.isDemo ? el('button', { class: 'secondary', onclick: clearDemoData }, 'Clear demo data') : null
+    ));
+    if (state.isDemo) {
+      c.appendChild(el('p', { style: 'margin-top: 8px; font-size: 13px; color: var(--flag);' },
+        '⚐ You are currently viewing demo data. Clear it before recording your own progress.'
+      ));
+    }
+
     c.appendChild(el('h3', { class: 'ref-group' }, 'Version'));
-    c.appendChild(el('p', { class: 'about-para' }, `${BANK.length} items + ${(window.LMFT_VIGNETTES || []).length} multi-stage crisis vignettes. Content outline effective January 2021 (still current per the BBS rev 12/2024 candidate handbook).`));
+    c.appendChild(el('p', { class: 'about-para' }, `App version ${APP_VERSION} · ${BANK.length} items + ${(window.LMFT_VIGNETTES || []).length} multi-stage crisis vignettes. Content outline effective January 2021 (still current per the BBS rev 12/2024 candidate handbook).`));
 
     return c;
   }
@@ -2082,7 +2536,7 @@
     }
     // Escape closes any open overlay
     if (e.key === 'Escape') {
-      const overlay = document.querySelector('.keyboard-help-overlay, .mock-nav-overlay');
+      const overlay = document.querySelector('.keyboard-help-overlay, .mock-nav-overlay, .welcome-overlay');
       if (overlay) { overlay.remove(); return; }
     }
 

@@ -1012,10 +1012,10 @@
   domain: 1, subsection: '1D',
   stem: 'A 45-year-old single woman tells the therapist she has very few close relationships and "always has." She prefers solitude, has never wanted to marry or have children, and finds social events draining. She is otherwise functioning well in her career and reports satisfaction with her life. She mentions a friend told her she "needs therapy" to "fix her isolation." Which of the following actions should the therapist take?',
   options: [
-    'Assess the client\'s actual subjective experience of her relational pattern — whether she experiences distress or impairment, what brought her to therapy, and whether the relational pattern is something she wants to change',
-    'Begin treatment to address her social isolation as a clinical issue',
-    'Recommend she join a social skills training group to develop her interpersonal capacity',
-    'Refer her for a personality disorder assessment given the long-standing pattern'
+    'Assess her subjective experience of the pattern — whether it produces distress or impairment, and what she actually wants',
+    'Begin clinical treatment to address her social isolation, which appears to be limiting her overall well-being',
+    'Recommend she join a social-skills training group to develop her interpersonal capacity and broaden her network',
+    'Refer her for a personality disorder assessment given the long-standing and pervasive pattern of social withdrawal'
   ],
   correctIndex: 0,
   rationale: {
@@ -1191,10 +1191,10 @@
   domain: 1, subsection: '1F',
   stem: 'A 40-year-old client is in therapy for grief following her father\'s death six months ago. She also reports significant work performance concerns since the loss. Her employer is asking for a "fitness for duty" evaluation and the client asks if the therapist can do this. Which of the following actions should the therapist take?',
   options: [
-    'Conduct the fitness-for-duty evaluation since you already know her clinically',
-    'Decline to perform the fitness-for-duty evaluation due to the dual-role conflict between treating clinician and forensic evaluator, and provide referrals to qualified independent evaluators',
-    'Provide a treatment summary that effectively serves as the fitness-for-duty evaluation',
-    'Refer the client to her primary care physician for the evaluation'
+    'Conduct the fitness-for-duty evaluation since you already know her clinically and have the clinical history',
+    'Decline due to the dual-role conflict between treating clinician and forensic evaluator, and provide referrals',
+    'Provide a treatment summary that effectively serves the fitness-for-duty evaluation purpose for her employer',
+    'Refer the client to her primary care physician for the evaluation as a neutral medical authority'
   ],
   correctIndex: 1,
   rationale: {
@@ -1216,10 +1216,10 @@
   domain: 1, subsection: '1A',
   stem: 'A 28-year-old client initiates therapy reporting "anxiety." When asked what brings him to therapy now, he says he is "fine" and is here because his partner suggested it. Which of the following actions should the therapist take?',
   options: [
-    'Begin an anxiety assessment using a structured instrument',
-    'Acknowledge the gap between his self-report and his partner\'s suggestion, explore his own perspective on whether therapy fits for him, and proceed only after engagement is established',
-    'Recommend the client and his partner attend couple therapy together',
-    'Inform the client that therapy requires his motivation and ask him to leave if he is not invested'
+    'Begin an anxiety assessment using a structured instrument since the partner identified the concern',
+    'Acknowledge the gap between his self-report and his partner\'s suggestion and explore his own perspective on therapy',
+    'Recommend the client and his partner attend couple therapy together to address the disconnect about therapy itself',
+    'Inform the client that therapy requires the client\'s own motivation and ask him to leave if he is not invested'
   ],
   correctIndex: 1,
   rationale: {
@@ -1260,10 +1260,10 @@
   domain: 1, subsection: '1B',
   stem: 'A 34-year-old client reports feeling "physically off" — chronic fatigue, joint aches, brain fog, and unrefreshing sleep. She has tested negative for thyroid issues, anemia, and Lyme disease. She wonders if "it\'s all in my head." Which of the following actions should the therapist take?',
   options: [
-    'Reassure her that the symptoms are likely stress-related and begin stress-management work',
-    'Validate the reality of her symptoms, assess for the impact on her functioning, integrate psychological support with continued medical workup (e.g., possible fibromyalgia, ME/CFS, autoimmune conditions still being explored)',
-    'Refer her to a psychiatrist for possible somatic symptom disorder',
-    'Recommend cognitive-behavioral therapy for medically unexplained symptoms'
+    'Reassure her that the symptoms are likely stress-related and begin cognitive-behavioral stress management work',
+    'Validate the reality of her symptoms and support continued medical workup for fibromyalgia, ME/CFS, or autoimmune conditions',
+    'Refer her to a psychiatrist for evaluation of possible somatic symptom disorder given the negative medical workup',
+    'Recommend evidence-based cognitive-behavioral therapy designed for medically unexplained physical symptoms'
   ],
   correctIndex: 1,
   rationale: {
@@ -1326,9 +1326,9 @@
   domain: 1, subsection: '1E',
   stem: 'A 35-year-old client begins therapy reporting "anger problems." Over the course of three sessions, she describes a childhood with a parent who was emotionally explosive and unpredictable. She tells the therapist she "doesn\'t remember much" of her childhood between ages 8 and 14. Which of the following actions should the therapist take to evaluate this client?',
   options: [
-    'Recommend hypnosis to recover the missing memories',
-    'Note the autobiographical memory gap, assess current functioning and trauma symptoms, explore her current relationship to her childhood without pushing for recovered memories, and integrate the gap as clinical data',
-    'Begin trauma-focused processing of the unprocessed childhood material',
+    'Use hypnosis or guided imagery to help the client recover the missing childhood memories',
+    'Note the autobiographical memory gap and assess current functioning without pushing for recovered memories',
+    'Begin trauma-focused processing of the unprocessed childhood material now that she has disclosed the family context',
     'Refer her to a specialist in recovered-memory work'
   ],
   correctIndex: 1,
@@ -1386,6 +1386,119 @@
   },
   difficulty: 3,
   tags: ['opioid-dependence', 'pain-management', 'coordination']
+},
+
+// ===== Items migrated from 06-law-ethics.js =====
+
+{
+  id: 'CE-1A-010',
+  domain: 1, subsection: '1A',
+  stem: 'A 32-year-old client has been in therapy for one month. In today\'s session, she tells the therapist she has been "thinking about" the therapist between sessions and has felt "drawn to" them. She is asking if these feelings are normal. Which of the following actions should the therapist take?',
+  options: [
+    'Reassure the client that therapeutic feelings of attachment are common and continue the session',
+    'Acknowledge the disclosure, validate that such feelings can arise in therapy, explore what the feelings mean for her without making the disclosure shameful, and continue the therapeutic work',
+    'Disclose mutual feelings if you are also experiencing them to be authentic',
+    'Refer the client to another therapist to avoid the developing complication'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'Disclosures of therapist-directed feelings are common and clinically rich material when handled well. Acknowledging, validating, exploring meaning, and continuing the work — without shaming the disclosure or reciprocating it — preserves the therapeutic frame and uses the material clinically.',
+    distractors: {
+      0: 'Reassuring without exploration leaves clinically meaningful material unaddressed.',
+      2: 'Therapist self-disclosure of mutual feelings violates boundaries and exploits the therapeutic position.',
+      3: 'Referring out treats the disclosure as a problem to escape rather than as therapeutic material.'
+    }
+  },
+  difficulty: 3,
+  tags: ['erotic-transference', 'boundaries']
+},
+{
+  id: 'CE-1B-014',
+  domain: 1, subsection: '1B',
+  stem: 'A 25-year-old client is in therapy for anxiety. In session, she mentions she has been using "shrooms" (psilocybin) occasionally with friends — about once a month for the past six months — and finds it "really helpful" for her anxiety. She has no other substance use. Which of the following actions should the therapist take?',
+  options: [
+    'Recommend she stop using psilocybin given that it is a federally controlled substance and the medical risks are unknown',
+    'Encourage continued use given her reported anxiety relief and the lack of other substance use',
+    'Assess the pattern, context, and risk; share information about emerging research and current legal status without prescribing or condemning the use',
+    'Refer her to a substance abuse counselor since the controlled-substance use falls outside general therapy scope'
+  ],
+  correctIndex: 2,
+  rationale: {
+    correct: 'Psychedelic use is an emerging area where simple "abstinence" or "approval" frames are inadequate. The clinical task is to assess pattern, context, and risk; explore her perception and the broader picture; and provide information about emerging research and current legal status — respecting her autonomy without either condemning or recommending illegal substance use.',
+    distractors: {
+      0: 'Reflexively recommending she stop without assessment imposes a frame and may not be the clinically optimal response.',
+      1: 'Encouraging continued use of an illegal substance is beyond the LMFT\'s role.',
+      3: 'Substance-abuse referral may not match the pattern (monthly recreational use without other indicators) and frames the use as a disorder it may not yet be.'
+    }
+  },
+  difficulty: 3,
+  tags: ['psychedelics', 'emerging-substance-use']
+},
+{
+  id: 'CE-1C-013',
+  domain: 1, subsection: '1C',
+  stem: 'A 19-year-old college student tells the therapist she is "non-binary" and asks the therapist to use "they/them" pronouns. The therapist is unfamiliar with this terminology and is not sure how to proceed. Which of the following actions should the therapist take?',
+  options: [
+    'Decline to use they/them pronouns since they are grammatically awkward',
+    'Use they/them pronouns as requested, acknowledge unfamiliarity if relevant, and continue exploring her identity and concerns at her pace — committing to your own education outside session as needed',
+    'Refer the client to a therapist who specializes in gender identity since you are unfamiliar with the terminology',
+    'Ask the client to explain what "non-binary" means before agreeing to use the pronouns'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'Respecting a client\'s chosen pronouns is foundational, regardless of the therapist\'s familiarity. The therapist uses the pronouns, acknowledges learning when relevant, continues the clinical work at the client\'s pace, and pursues education on their own time. The client\'s session is not the place for the therapist\'s education.',
+    distractors: {
+      0: 'Declining to use a client\'s chosen pronouns is disaffirming and clinically inappropriate.',
+      2: 'Reflexive specialist referral may communicate that the client is too unusual for the existing therapist, when working competently with the client requires only respect and self-education.',
+      3: 'Asking the client to explain non-binary identity uses session time for therapist education, putting the burden on the client.'
+    }
+  },
+  difficulty: 2,
+  tags: ['gender-identity', 'pronouns', 'cultural-humility']
+},
+{
+  id: 'CE-1D-010',
+  domain: 1, subsection: '1D',
+  stem: 'A 35-year-old client describes a chronic pattern of feeling "unseen" in her marriage of 12 years. She and her husband have two children and "look fine on the outside." She wonders whether "this is just what marriage is" or whether she should expect more. Which of the following actions should the therapist take to evaluate this client?',
+  options: [
+    'Recommend the couple attend couple therapy to address the marital concerns and improve emotional connection',
+    'Assess her emotional experience, attachment patterns, what "unseen" means specifically, and her options as she sees them',
+    'Validate her assessment that this is "what marriage is" and help her find peace with what the marriage offers',
+    'Encourage her to consider divorce or separation given the chronic dissatisfaction and unfulfilled needs'
+  ],
+  correctIndex: 1,
+  rationale: {
+    correct: 'A felt sense of being "unseen" in long-term marriage warrants careful assessment of her emotional experience, what "unseen" specifically means, the attachment patterns at play, her and her husband\'s capacity for connection, and the options as she experiences them — without prescribing couple therapy, acceptance, or divorce.',
+    distractors: {
+      0: 'Recommending couple therapy presupposes the husband\'s engagement and the appropriate intervention before assessment is complete.',
+      2: '"What marriage is" is not a universal truth and validating it dismisses her experience.',
+      3: 'Encouraging divorce prescribes a major outcome based on minimal assessment.'
+    }
+  },
+  difficulty: 3,
+  tags: ['long-term-marriage', 'feeling-unseen']
+},
+{
+  id: 'CE-1F-011',
+  domain: 1, subsection: '1F',
+  stem: 'A therapist has been seeing a 9-year-old client for three months. The parents are increasingly concerned about the child\'s persistent oppositional behavior despite their consistent parenting efforts and the therapy work. The therapist has consulted with colleagues and adjusted approaches. Which of the following actions should the therapist take?',
+  options: [
+    'Refer the family for a comprehensive psychological evaluation to clarify the diagnostic picture and inform treatment',
+    'Continue current treatment for another three months before considering structural alternatives or referral',
+    'Recommend the parents consider stricter discipline approaches and more consistent behavioral consequences',
+    'Refer the child to a residential treatment program for intensive multidisciplinary behavioral intervention'
+  ],
+  correctIndex: 0,
+  rationale: {
+    correct: 'Persistent behavior problems despite adequate intervention warrant comprehensive evaluation to clarify what is actually going on diagnostically. ODD presentation can co-occur with or mask ADHD, learning disorders, anxiety, autism, etc. — and the right intervention depends on the right picture.',
+    distractors: {
+      1: 'Continuing the same approach when it has not worked produces more of the same.',
+      2: '"Stricter discipline" may worsen presentations driven by neurodevelopmental or anxiety conditions.',
+      3: 'Residential treatment is a major intervention not warranted by the stem.'
+    }
+  },
+  difficulty: 2,
+  tags: ['comprehensive-evaluation', 'differential', 'child']
 }
   );
 })(window.LMFT_BANK);

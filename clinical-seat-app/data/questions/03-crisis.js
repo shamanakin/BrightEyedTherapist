@@ -384,10 +384,10 @@
   domain: 3, subsection: '3A',
   stem: 'A 65-year-old client with major depression tells the therapist she has been "thinking about ending her suffering" for months and has stockpiled her own prescription medications. She lives alone and has no children. She declines hospitalization but agrees to "any other plan." Which of the following actions should the therapist take?',
   options: [
-    'Develop a safety plan including means restriction (collaboratively removing the stockpiled medications), increased contact frequency, and clear thresholds for escalation, while continuing to assess whether involuntary hold criteria are met',
-    'Initiate an involuntary hold immediately given the stockpiled means and chronic ideation',
-    'Schedule weekly sessions and trust the client\'s commitment to "any other plan"',
-    'Contact her primary care physician without authorization to coordinate care'
+    'Develop a structured safety plan with means restriction, increased contact frequency, and clear escalation criteria',
+    'Initiate an involuntary hold under W&I 5150 given the stockpiled accessible means and chronic suicidal ideation',
+    'Schedule weekly sessions, trust the client\'s commitment to "any other plan," and document the agreement carefully',
+    'Contact her primary care physician without authorization to coordinate care given the safety concern'
   ],
   correctIndex: 0,
   rationale: {
@@ -428,10 +428,10 @@
   domain: 3, subsection: '3B',
   stem: 'A 22-year-old client of yours was a victim of a violent assault three weeks ago. She has hypervigilance, intrusive memories, sleep disturbance, and avoidance of the area where the assault occurred. She has been functioning at a basic level and is asking what the therapist thinks "this means." Which of the following actions should the therapist take?',
   options: [
-    'Diagnose acute stress disorder and inform the client of the criteria she meets',
-    'Diagnose PTSD and begin trauma-focused processing',
-    'Explain the time-bounded distinction between acute stress reactions (within 1 month) and PTSD (after 1 month), discuss what she is experiencing in those terms, and continue stabilization-phase work',
-    'Reassure her that her symptoms are likely to resolve and not worry about diagnostic labels'
+    'Diagnose acute stress disorder and inform her of the diagnostic criteria she currently meets',
+    'Diagnose PTSD and begin trauma-focused exposure processing of the assault memory',
+    'Explain the time-bounded distinction between acute stress (<1 month) and PTSD (>1 month) and continue stabilization',
+    'Reassure her that her symptoms are likely to resolve on their own and not focus on diagnostic labels'
   ],
   correctIndex: 2,
   rationale: {
@@ -475,10 +475,10 @@
   domain: 3, subsection: '3A',
   stem: 'A client tells the therapist she has been having "passive thoughts" about death — wishing she would not wake up — for the past month, but without active intent or plan. Which of the following actions should the therapist take?',
   options: [
-    'Treat the passive ideation as low risk and continue current treatment without modification',
-    'Initiate involuntary hold evaluation given any death ideation',
-    'Conduct a thorough suicide risk assessment that includes lethality factors (means access, prior attempts, hopelessness, etc.), establish ongoing monitoring, and integrate the disclosure into treatment planning',
-    'Refer the client to a psychiatrist for medication evaluation given the ideation'
+    'Treat the passive ideation as low risk given the absence of intent or plan and continue current treatment',
+    'Initiate involuntary hold evaluation under W&I 5150 given any death-related ideation as a precaution',
+    'Conduct a full suicide risk assessment including means access, prior attempts, and hopelessness, and adjust the treatment plan',
+    'Refer the client to a psychiatrist for antidepressant evaluation given the persistence of the passive death ideation'
   ],
   correctIndex: 2,
   rationale: {
@@ -579,6 +579,54 @@
   },
   difficulty: 3,
   tags: ['survivor-guilt', 'acute-trauma', 'risk-assessment']
+},
+
+// ===== Items migrated from 06-law-ethics.js =====
+
+{
+  id: 'CR-3A-012',
+  domain: 3, subsection: '3A',
+  stem: 'A therapist learns from a 60-year-old client that her 88-year-old mother (who has dementia and lives in an assisted-living facility) recently developed unexplained bruises and seems "afraid" of one of the staff members. The client is the mother\'s designated representative. Which of the following actions should the therapist take?',
+  options: [
+    'Report suspected elder abuse to Adult Protective Services and/or the local Long-Term Care Ombudsman',
+    'Recommend the client speak with the facility administrator',
+    'Wait for more information before reporting',
+    'Encourage the client to remove her mother from the facility'
+  ],
+  correctIndex: 0,
+  rationale: {
+    correct: 'California\'s Elder and Dependent Adult Civil Protection Act (W&I §15630) requires mandated reporters to report suspected abuse of elders. For abuse occurring in a long-term care facility, the Long-Term Care Ombudsman is an appropriate reporting channel alongside or in lieu of APS depending on jurisdiction. The "suspected abuse" threshold is low and reporting is the mandated action.',
+    distractors: {
+      1: 'Recommending the client speak with the facility administrator does not satisfy the mandated reporting obligation.',
+      2: 'Waiting for more information does not satisfy mandated reporting which is triggered by reasonable suspicion.',
+      3: 'Encouraging removal is not within the LMFT\'s role and bypasses the formal reporting process.'
+    }
+  },
+  difficulty: 2,
+  tags: ['elder-abuse', 'facility', 'ombudsman'],
+  lawCitation: 'Cal. Welf. & Inst. Code § 15630; Long-Term Care Ombudsman'
+},
+{
+  id: 'CR-3B-015',
+  domain: 3, subsection: '3B',
+  stem: 'A 28-year-old client comes to therapy three days after fleeing an emotionally and physically abusive relationship. She is staying with a friend, has no immediate plans, and reports feeling "frozen" and unable to make decisions. She has bruises on her arms and a black eye. Which of the following actions should the therapist take?',
+  options: [
+    'Report the assault to law enforcement immediately',
+    'Begin trauma-focused processing of the abuse history',
+    'Address acute stabilization needs (safety, housing, basic functioning), provide information about resources including domestic violence services and legal options, and support her at her own pace in decision-making',
+    'Recommend she return to the partner only long enough to gather her belongings'
+  ],
+  correctIndex: 2,
+  rationale: {
+    correct: 'Acute post-flight from IPV requires stabilization-focused work: safety planning, housing/practical resources, basic functioning, information about DV services and legal options, and supporting her own pace. Adult IPV against a competent adult is not generally mandated reporting in California; the survivor decides whether to report.',
+    distractors: {
+      0: 'Adult IPV between competent adults is not categorically mandated reporting in California. Reporting against the survivor\'s wishes can be dangerous and disempowering.',
+      1: 'Trauma processing at 3 days post-event is contraindicated and bypasses stabilization needs.',
+      3: 'Recommending she return to the partner, even briefly, puts her in danger.'
+    }
+  },
+  difficulty: 3,
+  tags: ['IPV-acute', 'stabilization', 'autonomy']
 }
   );
 })(window.LMFT_BANK);
