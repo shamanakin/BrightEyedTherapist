@@ -1942,7 +1942,7 @@
             shape.setAttribute('d', getShapePath(gender, size));
             g.appendChild(shape);
             if (options.quadrant) {
-                g.appendChild(createQuadrant(gender, options.quadrant));
+                g.appendChild(createQuadrant(gender, options.quadrant, size));
             }
             if (options.deceased) {
                 const [x1, x2] = getDeceasedLines(gender, size);
@@ -2239,8 +2239,8 @@
             }
         }
 
-        function createQuadrant(gender, quadrant) {
-            const s = appState.personSize / 2;
+        function createQuadrant(gender, quadrant, size = appState.personSize) {
+            const s = size / 2;
             const q = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             q.setAttribute('class', 'issue-quadrant');
             let d = '';
