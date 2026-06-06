@@ -20,6 +20,10 @@ Edit `whats-new.json` at the repo root. Add an object to the `entries` array:
 
 **Category** is one of: `"New feature"`, `"Improvement"`, `"Bug fix"`, `"Security"`. These drive the badge color on both the dashboard and the full page.
 
+**Featured (optional, added 2026-06-05):** add `"featured": true` to an entry to pin it into the dashboard's top-3 "Recent Updates" slots. Featured entries surface first (newest first), then everything else by date. The full `whats-new.html` page ignores the flag and stays purely chronological. Keep at most 3 featured at a time — more than 3 and date order decides among them. Curate for *user value*, not recency: the dashboard rows are what an active clinician actually sees.
+
+**Voice rule (added 2026-06-05, per Matthew):** entries are written for non-technical therapists. Lead with what it means for their work, not what changed in the code. Combine related technical items into one functional story. If a sentence wouldn't land with a skilled clinician who's bad with computers, rewrite it.
+
 **Cadence:** one entry per shipped Composer batch (not one per fix). Group related sub-items into a single entry. Users care about what changed for them, not what files were touched.
 
 Deploy `whats-new.json` to production via your normal SCP / rsync flow. Both pages pick it up on next load — there's a cache-buster query string so no manual cache flush is needed.

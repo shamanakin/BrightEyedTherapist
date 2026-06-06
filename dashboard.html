@@ -647,7 +647,11 @@
             if (!container || !list || !entries.length) return;
 
             const sorted = [...entries].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-            const top = sorted.slice(0, RECENT_LIMIT);
+            // Curation: entries flagged "featured" in whats-new.json surface first (newest first),
+            // then everything else by date. Absent the flag, behavior is pure date order.
+            const featured = sorted.filter(e => e.featured === true);
+            const rest = sorted.filter(e => e.featured !== true);
+            const top = featured.concat(rest).slice(0, RECENT_LIMIT);
 
             list.innerHTML = '';
             top.forEach(entry => {

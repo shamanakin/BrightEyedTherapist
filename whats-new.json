@@ -1,6 +1,21 @@
 {
     "entries": [
         {
+            "id": "2026-06-05-easy-start",
+            "date": "2026-06-05",
+            "category": "New feature",
+            "featured": true,
+            "title": "New here? Genogram Genie and Life Map now teach you as you go",
+            "summary": "Open either tool and load a fictional example family or timeline to see what a finished one looks like — click around, explore, you can't break anything. Prefer to dive straight in? A three-step quick start checks itself off as you work, with small tips that appear right when they're useful. Both are always available under Help."
+        },
+        {
+            "id": "2026-06-05-account-polish",
+            "date": "2026-06-05",
+            "category": "Improvement",
+            "title": "Clearer account status and quicker sign-in",
+            "summary": "Your account page now reflects your subscription status accurately, including after a cancellation has run its course. And if you're already signed in, the sign-in page takes you straight to your dashboard."
+        },
+        {
             "id": "2026-05-28-brainspotting-upgrade",
             "date": "2026-05-28",
             "category": "Improvement",
@@ -11,43 +26,45 @@
             "id": "2026-05-27-emdr-context-bridge",
             "date": "2026-05-27",
             "category": "New feature",
-            "title": "Life Map: hand off to EMDR with context",
-            "summary": "Click the EMDR button on a Life Map target and the BLS tool now shows the target's name, negative cognition, and SUDS at the top of the canvas. No more mentally carrying clinical details across tabs."
+            "featured": true,
+            "title": "Life Map: send a target straight to EMDR",
+            "summary": "Click the EMDR button on any Life Map target and the bilateral stimulation screen opens with that target's name, negative cognition, and SUDS displayed at the top — nothing to remember, nothing to retype mid-session."
         },
         {
             "id": "2026-05-27-genogram-symbols",
             "date": "2026-05-27",
             "category": "Improvement",
-            "title": "Genogram: better relationship symbols",
-            "summary": "Hostile relationships now render as a clear zigzag (the standard genogram convention) rather than a flat line — much easier to spot at a glance. Volatile (close + hostile combined), Distant, and Separated are new types. Abuse can be sub-categorized as Physical, Sexual, or Emotional with a small badge."
+            "featured": true,
+            "title": "Genogram: relationship lines that read like the textbook",
+            "summary": "Hostile is now a clear zigzag — the standard convention. New line types for Separated, Distant, and Volatile (close + hostile combined). Abuse lines can carry a small P, S, or E badge for physical, sexual, or emotional. Your genograms read at a glance, the way you were trained to read them."
         },
         {
             "id": "2026-05-27-genogram-privacy",
             "date": "2026-05-27",
             "category": "Improvement",
-            "title": "Genogram: privacy and crash recovery",
-            "summary": "Genograms no longer auto-load on open — the tool always starts blank. If you close the tab unexpectedly, you'll see a Keep / Discard banner the next time you open it. Any genogram autosaved before this change gets a one-time migration prompt so nothing is lost."
+            "title": "Genogram: a blank canvas every time, and nothing lost",
+            "summary": "The tool now always opens blank — no other client's family tree on screen when you open it in session. If a tab closes unexpectedly, you'll get a Keep / Discard prompt the next time you open the tool, so an accidental close doesn't cost you your work."
         },
         {
             "id": "2026-05-27-life-map-data-safety",
             "date": "2026-05-27",
             "category": "Bug fix",
-            "title": "Life Map: won't silently lose your work",
-            "summary": "Clicking outside the target details modal no longer dismisses unsaved edits. A subtle bug that wiped custom negative cognitions on re-open is fixed. Crash recovery now offers a recovery banner if you closed the tab without exporting."
+            "title": "Life Map: your work stays put",
+            "summary": "Clicking outside a target's details no longer discards unsaved edits, a bug that could erase a custom negative cognition is fixed, and if a tab closes before you export, the tool offers your work back when you return."
         },
         {
             "id": "2026-05-27-polish-pass",
             "date": "2026-05-27",
             "category": "Improvement",
-            "title": "Across the suite: UX polish",
-            "summary": "Cleaner empty states with a clear first action. Escape closes any modal. Smoother zoom (hold Cmd or Ctrl while scrolling). People in Genogram now show a grab cursor on hover. Zoom percentage readout in Genogram. Many small fixes throughout."
+            "title": "Small things that feel better everywhere",
+            "summary": "Clearer first-open screens with one obvious next step. Escape closes any window. Gentler zoom — hold Cmd or Ctrl and scroll. Lots of little smoothing throughout the suite."
         },
         {
             "id": "2026-05-19-guided-emdr-reports",
             "date": "2026-05-19",
             "category": "New feature",
-            "title": "Guided EMDR: downloadable session reports",
-            "summary": "Plain-text session reports for charting. All five protocols (Standard, Recent Event, Present Trigger, Flash-Forward, Future Template) are supported."
+            "title": "Guided EMDR: session reports you can chart from",
+            "summary": "Download a plain-text summary of any guided session, ready to paste into your notes. All five protocols supported: Standard, Recent Event, Present Trigger, Flash-Forward, and Future Template."
         }
     ]
 }
