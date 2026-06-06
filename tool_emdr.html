@@ -40,10 +40,98 @@
             padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; color: #fff;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 350px;
         }
+        #emdr-context-strip {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(31, 41, 55, 0.94);
+            backdrop-filter: blur(8px);
+            color: rgba(255, 255, 255, 0.92);
+            padding: 0.65rem 0.85rem 0.65rem 1.1rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 90;
+            max-width: min(640px, calc(100vw - 2rem));
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            display: none;
+            align-items: center;
+            gap: 0.85rem;
+            line-height: 1.35;
+        }
+        #emdr-context-strip.visible { display: flex; }
+        #emdr-context-strip .context-body {
+            min-width: 0;
+            flex: 1;
+        }
+        #emdr-context-strip .context-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+        #emdr-context-strip .context-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.55);
+            flex-shrink: 0;
+        }
+        #emdr-context-strip .context-target {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        #emdr-context-strip .context-detail {
+            margin-top: 0.2rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        #emdr-context-strip .context-nc { font-style: italic; }
+        #emdr-context-strip .context-nc::before { content: '"'; }
+        #emdr-context-strip .context-nc::after { content: '"'; }
+        #emdr-context-strip .context-suds,
+        #emdr-context-strip .context-body-loc {
+            color: rgba(255, 255, 255, 0.65);
+        }
+        #emdr-context-strip .context-close {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 0 0.35rem;
+            line-height: 1;
+            align-self: flex-start;
+            font-family: inherit;
+        }
+        #emdr-context-strip .context-close:hover { color: rgba(255, 255, 255, 0.9); }
     </style>
 </head>
 <body>
 <div id="bls-container" class="bls-container">
+    <div id="emdr-context-strip" role="status" aria-live="polite">
+        <div class="context-body">
+            <div class="context-row">
+                <span class="context-label">Processing</span>
+                <span class="context-target" id="ctx-target-text"></span>
+            </div>
+            <div class="context-detail">
+                <span class="context-nc" id="ctx-nc-text" style="display:none;"></span>
+                <span class="context-suds" id="ctx-suds-text" style="display:none;"></span>
+                <span class="context-body-loc" id="ctx-body-text" style="display:none;"></span>
+            </div>
+        </div>
+        <button class="context-close" id="ctx-close-btn" type="button" aria-label="Dismiss target context">&times;</button>
+    </div>
     <a href="dashboard.html" class="floating-dashboard-btn">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -130,7 +218,52 @@
 <script src="js/emdr/bls-core.js"></script>
 <script src="js/emdr/bls-host.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => { BET.BlsHost.init(); });
+function applyEmdrTargetContext() {
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get('target');
+    if (!target) return;
+
+    const strip = document.getElementById('emdr-context-strip');
+    if (!strip) return;
+
+    const targetEl = document.getElementById('ctx-target-text');
+    targetEl.textContent = target;
+
+    const nc = params.get('nc');
+    const ncEl = document.getElementById('ctx-nc-text');
+    if (nc) {
+        ncEl.textContent = nc;
+        ncEl.style.display = '';
+    }
+
+    const suds = params.get('suds');
+    const sudsEl = document.getElementById('ctx-suds-text');
+    if (suds !== null && suds !== '') {
+        sudsEl.textContent = `SUDS ${suds}`;
+        sudsEl.style.display = '';
+    }
+
+    const body = params.get('body');
+    const bodyEl = document.getElementById('ctx-body-text');
+    if (body) {
+        bodyEl.textContent = `Body: ${body}`;
+        bodyEl.style.display = '';
+    }
+
+    strip.classList.add('visible');
+
+    const closeBtn = document.getElementById('ctx-close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            strip.classList.remove('visible');
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    BET.BlsHost.init();
+    applyEmdrTargetContext();
+});
 </script>
 </body>
 </html>

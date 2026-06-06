@@ -31,6 +31,45 @@
         .bsp-toast.info { background: #374151; border: 1px solid #4b5563; }
         @keyframes bspToastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes bspToastOut { from { opacity: 1; } to { opacity: 0; } }
+        #bsp-draft-banner {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(31, 41, 55, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+            z-index: 200;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: #f3f4f6;
+            display: none;
+            align-items: center;
+            gap: 0.85rem;
+            max-width: calc(100vw - 2rem);
+        }
+        #bsp-draft-banner.visible { display: flex; }
+        #bsp-draft-banner .draft-text {
+            line-height: 1.4;
+        }
+        #bsp-draft-banner button {
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #4b5563;
+            background: #1f2937;
+            color: #f3f4f6;
+            font-size: 0.8rem;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        #bsp-draft-banner button.draft-primary {
+            background: #2C5558;
+            color: #fff;
+            border-color: #2C5558;
+        }
         /* SUDs logging panel */
         .suds-panel { position: fixed; bottom: 5rem; left: 1rem; z-index: 25; background: rgba(31,41,55,0.95); border: 1px solid #374151; border-radius: 12px; padding: 1rem; width: 220px; max-height: 300px; overflow-y: auto; backdrop-filter: blur(8px); }
         .suds-panel.collapsed { width: auto; padding: 0.5rem; }
@@ -579,7 +618,7 @@
 <!-- Check-in Modal -->
 <div id="checkin-modal" class="setup-overlay hidden">
     <div class="setup-card" style="max-width:480px;">
-        <h2>Processing Complete</h2>
+        <h2>Session Review</h2>
         <div id="session-summary" style="text-align:left; margin:1rem 0; padding:1rem; background:rgba(255,255,255,0.05); border-radius:8px; font-size:0.85rem; max-height:250px; overflow-y:auto;"></div>
         <button id="copy-summary-btn" class="btn-secondary mb-3" style="width:100%;">Copy Summary to Clipboard</button>
         <div style="font-size:0.72rem; opacity:0.75; margin-bottom:0.75rem;">Clipboard contents may remain available after copying. Remove identifying details before sharing outside your session.</div>
@@ -689,6 +728,207 @@
     const pointerSize = 50;
     const TRAVEL_PERCENTAGE = 0.90;
 
+    /*************** Preferences ***************/
+    const PREF_KEYS = {
+        speed: 'bet_bsp_speed',
+        color: 'bet_bsp_color',
+        audio: 'bet_bsp_audio',
+        mode:  'bet_bsp_mode'
+    };
+
+    function savePref(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (err) {
+            // localStorage may be unavailable; non-fatal.
+        }
+    }
+
+    function loadPref(key, fallback) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (raw === null) return fallback;
+            return JSON.parse(raw);
+        } catch (err) {
+            return fallback;
+        }
+    }
+
+    function applyStoredPreferences() {
+        const storedSpeed = loadPref(PREF_KEYS.speed, null);
+        if (storedSpeed !== null && SPEED_MAP[storedSpeed]) {
+            currentSpeedIndex = storedSpeed;
+            scanDurationMs = SPEED_MAP[storedSpeed].ms;
+        } else if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            currentSpeedIndex = 1;
+            scanDurationMs = SPEED_MAP[1].ms;
+        }
+
+        const storedColor = loadPref(PREF_KEYS.color, null);
+        if (storedColor && COLORS_MAP[storedColor]) {
+            ballColor = storedColor;
+            pointer.style.backgroundColor = ballColor;
+            pointer.style.boxShadow = `0 0 30px ${ballColor}80`;
+            updateColorBtnStyle();
+        }
+
+        const storedAudio = loadPref(PREF_KEYS.audio, null);
+        if (storedAudio === true) {
+            audioEnabled = true;
+            audioBtn.classList.remove('text-gray-400');
+            audioBtn.classList.add('text-indigo-300');
+            audioOnIcon.classList.remove('hidden');
+            audioOffIcon.classList.add('hidden');
+        }
+
+        const storedMode = loadPref(PREF_KEYS.mode, null);
+        if (storedMode === 'manual' && controlMode !== 'manual') {
+            toggleControlMode();
+        } else if (storedMode === 'scan' && controlMode !== 'scan') {
+            toggleControlMode();
+        }
+    }
+
+    /*************** Draft Recovery (sessionStorage) ***************/
+    const BSP_DRAFT_KEY = 'bet-brainspotting-draft';
+    const BSP_DRAFT_DEBOUNCE_MS = 2000;
+    let _draftPersistTimer = null;
+    let _hasUnsavedContent = false;
+
+    function hasSubstantiveContent() {
+        if (!sessionData) return false;
+        if (Array.isArray(sessionData.sudsLog) && sessionData.sudsLog.length > 0) return true;
+        if (typeof sessionData.notes === 'string' && sessionData.notes.trim().length > 0) return true;
+        if (typeof sessionData.processingTime === 'number' && sessionData.processingTime > 30) return true;
+        return false;
+    }
+
+    function persistDraft() {
+        if (_draftPersistTimer) clearTimeout(_draftPersistTimer);
+        _draftPersistTimer = setTimeout(() => {
+            try {
+                const draft = {
+                    sessionData: sessionData,
+                    currentPhase: currentPhase,
+                    lockedX: lockedX,
+                    lockedY: lockedY,
+                    savedAt: Date.now()
+                };
+                sessionStorage.setItem(BSP_DRAFT_KEY, JSON.stringify(draft));
+            } catch (err) {
+                console.warn('Brainspotting draft persist failed:', err);
+            }
+        }, BSP_DRAFT_DEBOUNCE_MS);
+    }
+
+    function clearDraft() {
+        if (_draftPersistTimer) {
+            clearTimeout(_draftPersistTimer);
+            _draftPersistTimer = null;
+        }
+        try {
+            sessionStorage.removeItem(BSP_DRAFT_KEY);
+        } catch (err) {
+            // sessionStorage may be unavailable; silent.
+        }
+        _hasUnsavedContent = false;
+    }
+
+    function markSessionChanged() {
+        _hasUnsavedContent = hasSubstantiveContent();
+        persistDraft();
+    }
+
+    function maybeOfferDraftRecovery() {
+        let raw;
+        try {
+            raw = sessionStorage.getItem(BSP_DRAFT_KEY);
+        } catch (err) {
+            return;
+        }
+        if (!raw) return;
+
+        let draft;
+        try {
+            draft = JSON.parse(raw);
+        } catch (err) {
+            clearDraft();
+            return;
+        }
+
+        if (!draft || !draft.sessionData) {
+            clearDraft();
+            return;
+        }
+
+        const sd = draft.sessionData;
+        const sudsCount = Array.isArray(sd.sudsLog) ? sd.sudsLog.length : 0;
+        const hasNotes = typeof sd.notes === 'string' && sd.notes.trim().length > 0;
+        const hasTime = typeof sd.processingTime === 'number' && sd.processingTime > 30;
+
+        if (sudsCount === 0 && !hasNotes && !hasTime) {
+            clearDraft();
+            return;
+        }
+
+        showDraftRecoveryBanner(draft, { sudsCount, hasNotes, hasTime });
+    }
+
+    function showDraftRecoveryBanner(draft, summary) {
+        if (document.getElementById('bsp-draft-banner')) return;
+
+        const banner = document.createElement('div');
+        banner.id = 'bsp-draft-banner';
+
+        const bits = [];
+        if (summary.sudsCount > 0) bits.push(`${summary.sudsCount} SUDs ${summary.sudsCount === 1 ? 'entry' : 'entries'}`);
+        if (summary.hasNotes) bits.push('notes');
+        if (summary.hasTime) bits.push('processing time');
+        const summaryText = bits.length ? ` (${bits.join(' · ')})` : '';
+
+        const text = document.createElement('span');
+        text.className = 'draft-text';
+        text.textContent = `Recovered unsaved brainspotting session from this tab${summaryText}.`;
+
+        const keepBtn = document.createElement('button');
+        keepBtn.className = 'draft-primary';
+        keepBtn.textContent = 'Keep';
+
+        const discardBtn = document.createElement('button');
+        discardBtn.textContent = 'Discard';
+
+        banner.appendChild(text);
+        banner.appendChild(keepBtn);
+        banner.appendChild(discardBtn);
+        document.body.appendChild(banner);
+        banner.classList.add('visible');
+
+        keepBtn.addEventListener('click', () => {
+            try {
+                const restored = draft.sessionData || {};
+                sessionData.date = restored.date || sessionData.date;
+                sessionData.type = restored.type || sessionData.type;
+                sessionData.brainspot = restored.brainspot || sessionData.brainspot;
+                sessionData.processingTime = restored.processingTime || 0;
+                sessionData.sudsLog = Array.isArray(restored.sudsLog) ? restored.sudsLog : [];
+                sessionData.notes = typeof restored.notes === 'string' ? restored.notes : '';
+                if (sessionNotesInput) sessionNotesInput.value = sessionData.notes;
+                renderSudsLog();
+                _hasUnsavedContent = hasSubstantiveContent();
+                showToast('Session restored. Continue or export the summary when ready.', 'info');
+            } catch (err) {
+                console.error('Failed to apply recovered draft:', err);
+                showToast('Could not restore draft.', 'error');
+            }
+            banner.remove();
+        });
+
+        discardBtn.addEventListener('click', () => {
+            clearDraft();
+            banner.remove();
+        });
+    }
+
     /*************** Audio (Biolateral) ***************/
     let audioContext = null;
     let stereoPanner = null;
@@ -764,6 +1004,7 @@
 
     function setAudioEnabled(on) {
         audioEnabled = on;
+        savePref(PREF_KEYS.audio, on);
         if (on) {
             audioBtn.classList.remove('text-gray-400');
             audioBtn.classList.add('text-indigo-300');
@@ -812,7 +1053,6 @@
         pointer.style.top = `${yPos}px`;
 
         updateBiolateralAudio(positionFactor);
-        sendSessionUpdate();
 
         animationFrameId = requestAnimationFrame(animateXScan);
     }
@@ -841,7 +1081,6 @@
         pointer.style.top = `${yPos}px`;
 
         updateBiolateralAudio(positionFactor);
-        sendSessionUpdate();
 
         animationFrameId = requestAnimationFrame(animateYScan);
     }
@@ -864,7 +1103,6 @@
         // Update audio based on X position
         const positionFactor = (x + pointerSize / 2) / rect.width;
         updateBiolateralAudio(positionFactor);
-        sendSessionUpdate();
     }
 
     function handleManualClick(e) {
@@ -901,7 +1139,7 @@
         pointer.classList.add('smooth-move');
         
         phaseIndicator.classList.remove('hidden');
-        phaseText.textContent = 'Therapist: watch for activation while the client follows horizontally. Click or SPACE to lock X.';
+        phaseText.textContent = 'Lock the X axis when you see activation. Click or SPACE.';
         
         startBtn.classList.add('hidden');
         xMarker.style.display = 'none';
@@ -932,7 +1170,7 @@
         currentPhase = 'y-scan';
         scanStartTime = 0;
         
-        phaseText.textContent = 'Therapist: continue vertically, then click or SPACE to lock the brainspot.';
+        phaseText.textContent = 'Lock the brainspot at the Y position. Click or SPACE.';
         
         animationFrameId = requestAnimationFrame(animateYScan);
     }
@@ -996,10 +1234,14 @@
     function updateHoldingTimer() {
         if (isPaused) return;
         const elapsed = Math.floor((Date.now() - holdingStartTime) / 1000) - pausedElapsed;
+        const prevElapsed = sessionData.processingTime || 0;
         sessionData.processingTime = elapsed;
         const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
         const secs = (elapsed % 60).toString().padStart(2, '0');
         timerDisplay.textContent = `${mins}:${secs}`;
+        if (Math.floor(elapsed / 10) !== Math.floor(prevElapsed / 10)) {
+            markSessionChanged();
+        }
     }
 
     let pauseStartedAt = 0;
@@ -1028,7 +1270,7 @@
         pointer.classList.add('smooth-move');
         
         phaseIndicator.classList.remove('hidden');
-        phaseText.textContent = 'Therapist: guide the pointer manually, then click to lock the brainspot.';
+        phaseText.textContent = 'Click anywhere to lock the brainspot.';
         
         startBtn.classList.add('hidden');
         
@@ -1279,6 +1521,7 @@
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         stopManualMode();
         await endSharingSession();
+        clearDraft();
         
         // Reset UI
         currentPhase = 'idle';
@@ -1509,6 +1752,7 @@
                 const newSpeed = parseInt(e.currentTarget.dataset.speed);
                 currentSpeedIndex = newSpeed;
                 scanDurationMs = SPEED_MAP[newSpeed].ms;
+                savePref(PREF_KEYS.speed, newSpeed);
                 closeModal();
             });
         });
@@ -1535,6 +1779,7 @@
                 pointer.style.backgroundColor = ballColor;
                 pointer.style.boxShadow = `0 0 30px ${ballColor}80`;
                 updateColorBtnStyle();
+                savePref(PREF_KEYS.color, ballColor);
                 closeModal();
             });
         });
@@ -1564,6 +1809,7 @@
             modeBtn.classList.remove('text-purple-400');
             modeBtn.classList.add('text-green-400');
         }
+        savePref(PREF_KEYS.mode, controlMode);
     }
 
     function openHelpModal() {
@@ -1603,6 +1849,7 @@
     let _bspSessionStart = null;
     document.addEventListener('DOMContentLoaded', () => {
         centerPointer();
+        applyStoredPreferences();
 
         // Start session button
         startBtn.addEventListener('click', () => {
@@ -1636,9 +1883,13 @@
             setupModal.classList.add('hidden');
         });
 
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', (event) => {
             if (currentSessionToken) {
                 endSharingSessionBestEffort();
+            }
+            if (hasSubstantiveContent()) {
+                event.preventDefault();
+                event.returnValue = '';
             }
         });
         window.addEventListener('pagehide', () => {
@@ -1658,8 +1909,10 @@
                     lockXPosition();
                 } else if (currentPhase === 'y-scan') {
                     lockYPosition();
+                } else if (currentPhase === 'holding') {
+                    togglePause();
                 }
-            } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' || 
+            } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' ||
                        e.code === 'ArrowUp' || e.code === 'ArrowDown') {
                 e.preventDefault();
                 handleNudge(e.code);
@@ -1726,12 +1979,6 @@
         settingsModal.addEventListener('click', (e) => {
             if (e.target === settingsModal) closeModal();
         });
-        setupModal.addEventListener('click', (e) => {
-            if (e.target === setupModal) setupModal.classList.add('hidden');
-        });
-        checkinModal.addEventListener('click', (e) => {
-            if (e.target === checkinModal) checkinModal.classList.add('hidden');
-        });
         document.addEventListener('click', (event) => {
             if (window.innerWidth > 900 || !settingsPanel.classList.contains('is-open')) return;
             if (settingsPanel.contains(event.target) || toolsToggleBtn?.contains(event.target)) return;
@@ -1776,7 +2023,6 @@
                 const rect = bsContainer.getBoundingClientRect();
                 pointer.style.left = `${t.clientX - rect.left - pointerSize / 2}px`;
                 pointer.style.top = `${t.clientY - rect.top - pointerSize / 2}px`;
-                sendSessionUpdate();
             }
         }, { passive: false });
 
@@ -1860,8 +2106,11 @@
         if (sessionNotesInput) {
             sessionNotesInput.addEventListener('input', () => {
                 sessionData.notes = sessionNotesInput.value;
+                markSessionChanged();
             });
         }
+
+        maybeOfferDraftRecovery();
     });
 
     /*************** Toast System ***************/
@@ -1890,6 +2139,7 @@
         };
         sessionData.sudsLog.push(entry);
         renderSudsLog();
+        markSessionChanged();
         showToast(`SUDs: ${level} logged`, 'info');
     }
 
