@@ -28,7 +28,8 @@
         .dark #genogram-canvas { background-color: #111827; }
         #genogram-canvas:active { cursor: grabbing; }
 
-        .person-node { cursor: pointer; transition: transform 0.1s; }
+        .person-node { cursor: grab; transition: transform 0.1s; }
+        .person-node:active { cursor: grabbing; }
         .person-node:hover .person-shape { stroke-width: 4; stroke: #2563eb; }
         .person-node.selected .person-shape { stroke-width: 4; stroke: #2563eb; fill: #dbeafe; }
         .dark .person-node.selected .person-shape { fill: #1e3a8a; }
@@ -176,6 +177,272 @@
         .toast.info { background: #374151; }
         @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+        #genogram-empty-state {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 4;
+        }
+        #genogram-empty-state.visible { display: flex; }
+        #genogram-empty-state .empty-card {
+            pointer-events: auto;
+            max-width: 360px;
+            width: min(360px, calc(100vw - 4rem));
+            padding: 1.5rem 1.75rem;
+            text-align: center;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(107,114,128,0.18);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(15,23,42,0.08);
+            backdrop-filter: blur(6px);
+        }
+        .dark #genogram-empty-state .empty-card {
+            background: rgba(31,41,55,0.88);
+            border-color: rgba(156,163,175,0.18);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+            color: #f3f4f6;
+        }
+        #genogram-empty-state .empty-icon {
+            color: #2C5558;
+            opacity: 0.55;
+            margin: 0 auto 0.75rem;
+        }
+        .dark #genogram-empty-state .empty-icon { color: #7CB590; }
+        #genogram-empty-state h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2C5558;
+            margin: 0 0 0.5rem;
+        }
+        .dark #genogram-empty-state h3 { color: #7CB590; }
+        #genogram-empty-state p.lead {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #6b7280;
+            margin: 0 0 0.75rem;
+        }
+        .dark #genogram-empty-state p.lead { color: #9ca3af; }
+        #genogram-empty-state p.hint {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin: 0 0 1.25rem;
+        }
+        .dark #genogram-empty-state p.hint { color: #6b7280; }
+        .empty-state-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        #empty-state-add-btn {
+            background: #2C5558;
+            color: white;
+            padding: 0.55rem 1.5rem;
+            border-radius: 9999px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        #empty-state-add-btn:hover { background: #3A6E72; }
+        #empty-state-example-btn {
+            background: transparent;
+            color: #2C5558;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(44, 85, 88, 0.35);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        #empty-state-example-btn:hover { background: rgba(44, 85, 88, 0.08); }
+        .dark #empty-state-example-btn {
+            color: #7CB590;
+            border-color: rgba(124, 181, 144, 0.35);
+        }
+        .dark #empty-state-example-btn:hover { background: rgba(124, 181, 144, 0.12); }
+        /* Quick-start checklist + JIT hints (Layer 2 onboarding) */
+        .quickstart-card {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            z-index: 25;
+            width: min(280px, calc(100vw - 2.5rem));
+            padding: 1rem 1.1rem 0.9rem;
+            background: rgba(255,255,255,0.94);
+            border: 1px solid rgba(107,114,128,0.18);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(15,23,42,0.1);
+            backdrop-filter: blur(6px);
+            font-family: 'Inter', sans-serif;
+            pointer-events: auto;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .quickstart-card.hidden { display: none; }
+        .quickstart-card.is-fading { opacity: 0; transform: translateY(6px); pointer-events: none; }
+        .dark .quickstart-card {
+            background: rgba(31,41,55,0.92);
+            border-color: rgba(156,163,175,0.18);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+            color: #f3f4f6;
+        }
+        .quickstart-card h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #2C5558;
+            margin: 0 1.5rem 0.65rem 0;
+        }
+        .dark .quickstart-card h4 { color: #7CB590; }
+        .quickstart-dismiss {
+            position: absolute;
+            top: 0.55rem;
+            right: 0.55rem;
+            width: 1.75rem;
+            height: 1.75rem;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 1.25rem;
+            line-height: 1;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .quickstart-dismiss:hover { background: rgba(0,0,0,0.06); color: #6b7280; }
+        .dark .quickstart-dismiss:hover { background: rgba(255,255,255,0.08); color: #d1d5db; }
+        .quickstart-steps {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .quickstart-steps li {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #6b7280;
+        }
+        .dark .quickstart-steps li { color: #9ca3af; }
+        .quickstart-steps li.is-done { color: #374151; }
+        .dark .quickstart-steps li.is-done { color: #e5e7eb; }
+        .quickstart-steps li.is-done .qs-check {
+            background: #2C5558;
+            border-color: #2C5558;
+            color: #fff;
+        }
+        .quickstart-steps li.just-checked .qs-check {
+            animation: qsCheckPop 0.35s ease;
+        }
+        @keyframes qsCheckPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .quickstart-steps li.just-checked .qs-check { animation: none; }
+            .quickstart-card { transition: none; }
+            .quickstart-card.is-fading { transform: none; }
+        }
+        .qs-check {
+            flex-shrink: 0;
+            width: 1.1rem;
+            height: 1.1rem;
+            margin-top: 0.1rem;
+            border-radius: 50%;
+            border: 1.5px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            color: transparent;
+        }
+        .dark .qs-check { border-color: #4b5563; }
+        .quickstart-complete {
+            margin: 0.5rem 0 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #2C5558;
+        }
+        .dark .quickstart-complete { color: #7CB590; }
+        .quickstart-example {
+            margin: 0.65rem 0 0;
+            padding-top: 0.55rem;
+            border-top: 1px solid rgba(107,114,128,0.15);
+            text-align: center;
+        }
+        .quickstart-example button {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.75rem;
+            color: #2C5558;
+            text-decoration: underline;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .dark .quickstart-example button { color: #7CB590; }
+        .help-quickstart-btn {
+            display: block;
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.5rem;
+            background: rgba(124,181,144,0.15);
+            border: 1px solid rgba(124,181,144,0.35);
+            border-radius: 6px;
+            color: #7CB590;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            font-family: inherit;
+        }
+        .help-quickstart-btn:hover { background: rgba(124,181,144,0.25); }
+        .jit-hint {
+            position: fixed;
+            z-index: 26;
+            max-width: 240px;
+            padding: 0.55rem 0.75rem;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            background: #1f2937;
+            color: #f9fafb;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            font-family: 'Inter', sans-serif;
+        }
+        .jit-hint.hidden { display: none; }
+        .jit-hint .jit-dismiss {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.35rem;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+        }
+        .jit-hint .jit-body { padding-right: 1rem; }
+        @media (max-width: 768px) {
+            #genogram-quickstart-card {
+                bottom: 1rem;
+                right: 0.75rem;
+                width: min(260px, calc(100vw - 5rem));
+            }
+        }
         /* Draft recovery / migration banner — matches Life Map pattern */
         #genogram-draft-banner {
             position: fixed;
@@ -380,6 +647,8 @@
             </div>
         </div>
 
+        <div id="zoom-percentage" class="text-xs text-gray-500 dark:text-gray-400 text-center -mt-4 mb-4" aria-live="polite">100%</div>
+
         <div class="grid grid-cols-3 gap-3">
             <div class="relative icon-btn-group">
                 <button id="import-json-btn" class="icon-btn p-3 w-full flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition">
@@ -503,6 +772,7 @@
                         <li>Press <span class="font-mono bg-gray-600 px-1 rounded">Esc</span> to close any open modal.</li>
                         <li>Hold <span class="font-mono bg-gray-600 px-1 rounded">⌘</span> / <span class="font-mono bg-gray-600 px-1 rounded">Ctrl</span> and scroll to zoom over the canvas.</li>
                     </ul>
+                    <button type="button" id="help-quickstart-btn" class="help-quickstart-btn">Quick start</button>
                 </div>
             </div>
             <!-- Fullscreen (least used) -->
@@ -536,6 +806,27 @@
             </g>
         </svg>
 
+        <div id="genogram-empty-state" aria-hidden="true">
+            <div class="empty-card">
+                <svg class="empty-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="5"/>
+                    <circle cx="18.5" cy="5.5" r="2.5"/>
+                    <line x1="8" y1="5.5" x2="16" y2="5.5"/>
+                    <line x1="12" y1="8" x2="12" y2="14"/>
+                    <rect x="6" y="14" width="5" height="5"/>
+                    <circle cx="16" cy="16.5" r="2.5"/>
+                    <line x1="11" y1="14" x2="13.5" y2="14"/>
+                </svg>
+                <h3>Build a Genogram</h3>
+                <p class="lead">Map family relationships, clinical patterns, and emotional dynamics.</p>
+                <p class="hint">Right-click a person for options. Hold space and drag to pan.</p>
+                <div class="empty-state-actions">
+                    <button id="empty-state-add-btn" type="button">Add first person</button>
+                    <button id="empty-state-example-btn" type="button">See an example</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Bottom-right cluster: watermark + feedback -->
         <div class="app-chrome-bottom-right" style="z-index: 5;">
             <span class="app-chrome-watermark">Genogram Genie · Bright Eyed Therapist</span>
@@ -546,6 +837,19 @@
                 Feedback
             </a>
         </div>
+
+        <div id="genogram-quickstart-card" class="quickstart-card hidden" aria-live="polite">
+            <button type="button" class="quickstart-dismiss" id="genogram-quickstart-dismiss" aria-label="Dismiss quick start">×</button>
+            <h4>Quick start</h4>
+            <ol class="quickstart-steps" id="genogram-quickstart-steps">
+                <li data-step="1"><span class="qs-check" aria-hidden="true">✓</span><span>Add your first person — use the button in the sidebar or right-click the canvas.</span></li>
+                <li data-step="2"><span class="qs-check" aria-hidden="true">✓</span><span>Add a second person — right-click someone to add a partner, parent, or child.</span></li>
+                <li data-step="3"><span class="qs-check" aria-hidden="true">✓</span><span>Connect them — right-click a person or use Manage Relationships.</span></li>
+            </ol>
+            <p class="quickstart-complete hidden" id="genogram-quickstart-complete">You're going ✓</p>
+            <p class="quickstart-example hidden" id="genogram-quickstart-example"><button type="button" id="genogram-quickstart-load-example">or load an example</button></p>
+        </div>
+        <div id="genogram-jit-hint" class="jit-hint hidden" role="status"><button type="button" class="jit-dismiss" aria-label="Dismiss hint">×</button><div class="jit-body"></div></div>
     </main>
     </div>
     <div id="sidebar-backdrop"></div>
@@ -824,6 +1128,40 @@
             relationships: [], // STRUCTURAL links: { id, type ('partner' | 'child'), p1, p2, structuralType ('partner' | 'married' | 'divorced') } or { id, type, parents: [id1, id2], child: id }
             emotionalLinks: [], // EMOTIONAL links: { id, p1, p2, quality ('default' | 'close' | 'enmeshed' | 'volatile' | 'cutoff' | 'abuse'), abuseDirection ('p1_to_p2' | 'p2_to_p1' | 'mutual' | null) }
         };
+
+        /** Fictional Rivera family — bundled onboarding example (Layer 1). */
+        const EXAMPLE_GENOGRAM = {
+            people: [
+                { id: 'ex_rosa', name: 'Rosa', gender: 'female', birthYear: 1948, isDeceased: true, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: true, physicalAilment: false }, notes: '', x: 280, y: 80 },
+                { id: 'ex_miguel', name: 'Miguel', gender: 'male', birthYear: 1945, isDeceased: true, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: false, physicalAilment: false }, notes: '', x: 420, y: 80 },
+                { id: 'ex_carmen', name: 'Carmen', gender: 'female', birthYear: 1972, isDeceased: false, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: false, physicalAilment: false }, notes: '', x: 140, y: 260 },
+                { id: 'ex_david', name: 'David', gender: 'male', birthYear: 1970, isDeceased: false, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: false, physicalAilment: false }, notes: '', x: 280, y: 260 },
+                { id: 'ex_elena', name: 'Elena', gender: 'female', birthYear: 1975, isDeceased: false, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: false, physicalAilment: false }, notes: '', x: 480, y: 260 },
+                { id: 'ex_sam', name: 'Sam', gender: 'male', birthYear: 1974, isDeceased: false, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: false, physicalAilment: false }, notes: '', x: 620, y: 260 },
+                { id: 'ex_maya', name: 'Maya', gender: 'female', birthYear: 1998, isDeceased: false, isClient: true, issues: { trauma: false, mentalHealth: true, substanceUse: false, physicalAilment: false }, notes: '', x: 300, y: 440 },
+                { id: 'ex_leo', name: 'Leo', gender: 'male', birthYear: 2001, isDeceased: false, isClient: false, issues: { trauma: false, mentalHealth: false, substanceUse: false, physicalAilment: false }, notes: '', x: 420, y: 440 }
+            ],
+            relationships: [
+                { id: 'ex_rel_rosa_miguel', type: 'partner', p1: 'ex_rosa', p2: 'ex_miguel', structuralType: 'married' },
+                { id: 'ex_rel_carmen_david', type: 'partner', p1: 'ex_carmen', p2: 'ex_david', structuralType: 'divorced' },
+                { id: 'ex_rel_elena_sam', type: 'partner', p1: 'ex_elena', p2: 'ex_sam', structuralType: 'partner' },
+                { id: 'ex_child_carmen', type: 'child', parents: ['ex_rosa', 'ex_miguel'], child: 'ex_carmen' },
+                { id: 'ex_child_elena', type: 'child', parents: ['ex_rosa', 'ex_miguel'], child: 'ex_elena' },
+                { id: 'ex_child_maya', type: 'child', parents: ['ex_carmen', 'ex_david'], child: 'ex_maya' },
+                { id: 'ex_child_leo', type: 'child', parents: ['ex_carmen', 'ex_david'], child: 'ex_leo' }
+            ],
+            emotionalLinks: [
+                { id: 'ex_em_maya_carmen', p1: 'ex_maya', p2: 'ex_carmen', quality: 'close' },
+                { id: 'ex_em_maya_rosa', p1: 'ex_maya', p2: 'ex_rosa', quality: 'close' },
+                { id: 'ex_em_carmen_rosa', p1: 'ex_carmen', p2: 'ex_rosa', quality: 'enmeshed' },
+                { id: 'ex_em_carmen_david', p1: 'ex_carmen', p2: 'ex_david', quality: 'hostile' },
+                { id: 'ex_em_leo_david', p1: 'ex_leo', p2: 'ex_david', quality: 'distant' },
+                { id: 'ex_em_david_maya', p1: 'ex_david', p2: 'ex_maya', quality: 'abuse', abuseType: 'emotional', abuseDirection: 'p1_to_p2' },
+                { id: 'ex_em_elena_sam', p1: 'ex_elena', p2: 'ex_sam', quality: 'volatile', _volatileCombined: true }
+            ]
+        };
+
+        const EXAMPLE_GENOGRAM_TOAST = 'Fictional example loaded — explore freely. Reset / New starts your own.';
         const view = { zoom: 1, panX: 0, panY: 0, isSpacePressed: false, isSpacePanning: false, isMousePanning: false, lastMouseX: 0, lastMouseY: 0 };
         const appState = { isDragging: false, wasDragging: false, dragTarget: null, dragOffsetX: 0, dragOffsetY: 0, contextMenuTargetId: null, contextMenuSvgX: 0, contextMenuSvgY: 0, selectedPersonId: null, snapToGrid: true, gridSize: 20, personSize: 60, isKeyTooltipPinned: false, isHelpTooltipPinned: false };
         let lastPointerClientX = 0;
@@ -1016,6 +1354,33 @@
             return { dx: (-dy / len) * length, dy: (dx / len) * length };
         }
 
+        function scrollToPersonIfOffscreen(person) {
+            if (!person || !canvas) return;
+            const cw = canvas.clientWidth;
+            const ch = canvas.clientHeight;
+            if (cw === 0 || ch === 0) return;
+            const screenX = person.x * view.zoom + view.panX;
+            const screenY = person.y * view.zoom + view.panY;
+            const margin = 80;
+            const offscreen = screenX < margin || screenX > cw - margin || screenY < margin || screenY > ch - margin;
+            if (!offscreen) return;
+            view.panX = cw / 2 - person.x * view.zoom;
+            view.panY = ch / 2 - person.y * view.zoom;
+            render();
+        }
+
+        function updateZoomDisplay() {
+            const el = document.getElementById('zoom-percentage');
+            if (!el) return;
+            el.textContent = `${Math.round(view.zoom * 100)}%`;
+        }
+
+        function updateEmptyState() {
+            const el = document.getElementById('genogram-empty-state');
+            if (!el) return;
+            el.classList.toggle('visible', db.people.length === 0);
+        }
+
         function buildPerpendicularSlash(x1, y1, x2, y2, t, length) {
             const cx = x1 + (x2 - x1) * t;
             const cy = y1 + (y2 - y1) * t;
@@ -1090,6 +1455,290 @@
             return links.map(migrateEmotionalLink);
         }
 
+        // ============================================
+        // QUICK-START CHECKLIST + JIT HINTS (Layer 2)
+        // ============================================
+        const GENOGRAM_QUICKSTART_KEY = 'bet_genogram_quickstart';
+        let quickstartState = loadQuickstartState();
+        let _quickstartForceShow = false;
+        let _quickstartSuppressHints = false;
+        let _qsPrevPeople = 0;
+        let _qsPrevLinks = 0;
+        let _qsCompletionTimer = null;
+        let _jitHintTimer = null;
+        let _quickstartOverlayWatcher = null;
+        let _activeJitHintKey = null;
+
+        function loadQuickstartState() {
+            try {
+                const raw = localStorage.getItem(GENOGRAM_QUICKSTART_KEY);
+                if (!raw) return { checklist: 'active', hints: { firstPerson: false, firstLink: false } };
+                const parsed = JSON.parse(raw);
+                return {
+                    checklist: parsed.checklist || 'active',
+                    hints: {
+                        firstPerson: Boolean(parsed.hints?.firstPerson),
+                        firstLink: Boolean(parsed.hints?.firstLink)
+                    }
+                };
+            } catch (err) {
+                return { checklist: 'active', hints: { firstPerson: false, firstLink: false } };
+            }
+        }
+
+        function saveQuickstartState() {
+            try {
+                localStorage.setItem(GENOGRAM_QUICKSTART_KEY, JSON.stringify(quickstartState));
+            } catch (err) {
+                console.warn('Quick-start state persist failed:', err);
+            }
+        }
+
+        function isToolUsable() {
+            return !document.getElementById('subscription-overlay');
+        }
+
+        function getQuickstartStepStatus() {
+            const linkCount = db.relationships.length + db.emotionalLinks.length;
+            return {
+                step1: db.people.length >= 1,
+                step2: db.people.length >= 2,
+                step3: linkCount >= 1
+            };
+        }
+
+        function completeQuickstartSilently() {
+            if (_qsCompletionTimer) {
+                clearTimeout(_qsCompletionTimer);
+                _qsCompletionTimer = null;
+            }
+            quickstartState.checklist = 'completed';
+            saveQuickstartState();
+            _quickstartForceShow = false;
+            hideQuickstartCard();
+            dismissJitHint();
+        }
+
+        function dismissQuickstartCard() {
+            if (_qsCompletionTimer) {
+                clearTimeout(_qsCompletionTimer);
+                _qsCompletionTimer = null;
+            }
+            quickstartState.checklist = 'dismissed';
+            saveQuickstartState();
+            _quickstartForceShow = false;
+            hideQuickstartCard();
+        }
+
+        function hideQuickstartCard() {
+            const card = document.getElementById('genogram-quickstart-card');
+            if (!card) return;
+            card.classList.add('hidden');
+            card.classList.remove('is-fading');
+        }
+
+        function shouldShowQuickstartCard() {
+            if (!isToolUsable()) return false;
+            if (_quickstartForceShow) return true;
+            if (quickstartState.checklist === 'completed' || quickstartState.checklist === 'dismissed') return false;
+            return quickstartState.checklist === 'active';
+        }
+
+        function updateQuickstartCardUI(steps) {
+            const card = document.getElementById('genogram-quickstart-card');
+            const stepsEl = document.getElementById('genogram-quickstart-steps');
+            const completeEl = document.getElementById('genogram-quickstart-complete');
+            const exampleEl = document.getElementById('genogram-quickstart-example');
+            if (!card || !stepsEl) return;
+
+            const allDone = steps.step1 && steps.step2 && steps.step3;
+
+            if (!shouldShowQuickstartCard() && !(allDone && quickstartState.checklist === 'active')) {
+                hideQuickstartCard();
+                return;
+            }
+
+            if (allDone && quickstartState.checklist === 'active') {
+                stepsEl.classList.add('hidden');
+                completeEl.classList.remove('hidden');
+                exampleEl.classList.add('hidden');
+                card.classList.remove('hidden');
+                if (!_qsCompletionTimer) {
+                    _qsCompletionTimer = setTimeout(() => {
+                        quickstartState.checklist = 'completed';
+                        saveQuickstartState();
+                        _quickstartForceShow = false;
+                        card.classList.add('is-fading');
+                        setTimeout(hideQuickstartCard, 350);
+                        _qsCompletionTimer = null;
+                    }, 3000);
+                }
+                return;
+            }
+
+            stepsEl.classList.remove('hidden');
+            completeEl.classList.add('hidden');
+            exampleEl.classList.toggle('hidden', !(_quickstartForceShow && db.people.length === 0));
+            card.classList.remove('hidden');
+
+            stepsEl.querySelectorAll('li[data-step]').forEach(li => {
+                const key = li.dataset.step;
+                const done = key === '1' ? steps.step1 : key === '2' ? steps.step2 : steps.step3;
+                const wasDone = li.classList.contains('is-done');
+                li.classList.toggle('is-done', done);
+                if (done && !wasDone) {
+                    li.classList.add('just-checked');
+                    setTimeout(() => li.classList.remove('just-checked'), 400);
+                }
+            });
+        }
+
+        function dismissJitHint() {
+            const hint = document.getElementById('genogram-jit-hint');
+            if (!hint) return;
+            hint.classList.add('hidden');
+            if (_jitHintTimer) {
+                clearTimeout(_jitHintTimer);
+                _jitHintTimer = null;
+            }
+            _activeJitHintKey = null;
+        }
+
+        function showJitHint(key, message, anchorPersonId) {
+            if (_quickstartSuppressHints || quickstartState.hints[key]) return;
+            if (_activeJitHintKey) dismissJitHint();
+
+            quickstartState.hints[key] = true;
+            saveQuickstartState();
+
+            const hint = document.getElementById('genogram-jit-hint');
+            if (!hint) return;
+            hint.querySelector('.jit-body').textContent = message;
+            hint.classList.remove('hidden');
+            _activeJitHintKey = key;
+
+            positionGenogramJitHint(anchorPersonId);
+            _jitHintTimer = setTimeout(dismissJitHint, 8000);
+        }
+
+        function positionGenogramJitHint(personId) {
+            const hint = document.getElementById('genogram-jit-hint');
+            if (!hint || hint.classList.contains('hidden')) return;
+
+            let anchorRect = null;
+            if (personId && peopleG) {
+                const node = peopleG.querySelector(`.person-node[data-id="${personId}"]`);
+                if (node) anchorRect = node.getBoundingClientRect();
+            }
+            if (!anchorRect && manageRelationshipsBtn) {
+                anchorRect = manageRelationshipsBtn.getBoundingClientRect();
+            }
+            if (!anchorRect && addPersonBtn) {
+                anchorRect = addPersonBtn.getBoundingClientRect();
+            }
+            if (!anchorRect) {
+                hint.style.left = '1rem';
+                hint.style.top = '5rem';
+                return;
+            }
+
+            const hintW = hint.offsetWidth || 220;
+            const hintH = hint.offsetHeight || 60;
+            let left = anchorRect.left + anchorRect.width / 2 - hintW / 2;
+            let top = anchorRect.bottom + 10;
+            left = Math.max(8, Math.min(left, window.innerWidth - hintW - 8));
+            if (top + hintH > window.innerHeight - 8) {
+                top = anchorRect.top - hintH - 10;
+            }
+            hint.style.left = `${left}px`;
+            hint.style.top = `${top}px`;
+        }
+
+        function syncGenogramQuickstartCounters() {
+            _qsPrevPeople = db.people.length;
+            _qsPrevLinks = db.relationships.length + db.emotionalLinks.length;
+        }
+
+        function evaluateQuickstart() {
+            if (!isToolUsable()) {
+                if (!_quickstartOverlayWatcher) {
+                    _quickstartOverlayWatcher = new MutationObserver(() => {
+                        if (isToolUsable()) {
+                            _quickstartOverlayWatcher.disconnect();
+                            _quickstartOverlayWatcher = null;
+                            evaluateQuickstart();
+                        }
+                    });
+                    _quickstartOverlayWatcher.observe(document.body, { childList: true, subtree: true });
+                }
+                hideQuickstartCard();
+                return;
+            }
+
+            const peopleCount = db.people.length;
+            const linkCount = db.relationships.length + db.emotionalLinks.length;
+            const steps = getQuickstartStepStatus();
+
+            if (!_quickstartSuppressHints) {
+                if (!quickstartState.hints.firstPerson && _qsPrevPeople === 0 && peopleCount >= 1) {
+                    const person = db.people[db.people.length - 1];
+                    showJitHint('firstPerson', 'Right-click anyone for options — relationships, details, set as client.', person?.id);
+                }
+                if (!quickstartState.hints.firstLink && _qsPrevLinks === 0 && linkCount >= 1) {
+                    showJitHint('firstLink', 'You can give any pair an emotional quality — close, distant, hostile and more.', null);
+                }
+            }
+
+            _qsPrevPeople = peopleCount;
+            _qsPrevLinks = linkCount;
+
+            updateQuickstartCardUI(steps);
+
+            if (_activeJitHintKey) {
+                requestAnimationFrame(() => positionGenogramJitHint(db.people[0]?.id));
+            }
+        }
+
+        function openQuickstartFromHelp() {
+            _quickstartForceShow = true;
+            if (helpTooltip) helpTooltip.classList.remove('active');
+            appState.isHelpTooltipPinned = false;
+            evaluateQuickstart();
+        }
+
+        function initQuickstart() {
+            const card = document.getElementById('genogram-quickstart-card');
+            const dismissBtn = document.getElementById('genogram-quickstart-dismiss');
+            const exampleBtn = document.getElementById('genogram-quickstart-load-example');
+            const helpQsBtn = document.getElementById('help-quickstart-btn');
+            const jitHint = document.getElementById('genogram-jit-hint');
+
+            if (dismissBtn) dismissBtn.addEventListener('click', dismissQuickstartCard);
+            if (exampleBtn) exampleBtn.addEventListener('click', () => {
+                _quickstartForceShow = false;
+                loadExampleGenogram();
+            });
+            if (helpQsBtn) helpQsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openQuickstartFromHelp();
+            });
+            if (jitHint) {
+                jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissJitHint);
+                document.addEventListener('click', (e) => {
+                    if (!jitHint.classList.contains('hidden') && !jitHint.contains(e.target)) {
+                        dismissJitHint();
+                    }
+                });
+            }
+            window.addEventListener('resize', () => {
+                if (_activeJitHintKey) positionGenogramJitHint(db.people[0]?.id);
+            });
+
+            _qsPrevPeople = db.people.length;
+            _qsPrevLinks = db.relationships.length + db.emotionalLinks.length;
+            evaluateQuickstart();
+        }
+
         // === RENDER FUNCTIONS ===
         function render() {
             viewportG.setAttribute('transform', `translate(${view.panX}, ${view.panY}) scale(${view.zoom})`);
@@ -1099,6 +1748,8 @@
             db.relationships.forEach(drawRelationship);
             db.emotionalLinks.forEach(drawEmotionalLink);
             db.people.forEach(drawPerson); // drawPerson appends to peopleG
+            updateEmptyState();
+            evaluateQuickstart();
         }
 
         function drawPerson(person) {
@@ -1629,6 +2280,7 @@
             view.panY = e.clientY - (e.clientY - view.panY) * factor;
             view.zoom = newZoom;
             render();
+            updateZoomDisplay();
         }
 
         function onCanvasContextMenu(e) {
@@ -1654,12 +2306,15 @@
             view.panY = centerY - (centerY - view.panY) * actualFactor;
             view.zoom = newZoom;
             render();
+            updateZoomDisplay();
         }
 
         function centerView() {
             if (db.people.length === 0) {
                 view.zoom = 1; view.panX = 0; view.panY = 0;
-                render(); return;
+                render();
+                updateZoomDisplay();
+                return;
             }
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
             db.people.forEach(p => {
@@ -1679,6 +2334,7 @@
             view.panX = (screenWidth / 2) - (contentCenterX * view.zoom);
             view.panY = (screenHeight / 2) - (contentCenterY * view.zoom);
             render();
+            updateZoomDisplay();
         }
 
         // --- Persistence Handlers ---
@@ -1711,6 +2367,7 @@
                 const content = event.target.result;
                 if (db.people.length > 0) {
                     _pendingImportText = content;
+                    _pendingImportOptions = null;
                     showConfirmModal(
                         'import-replace',
                         null,
@@ -1725,24 +2382,52 @@
             e.target.value = null;
         }
 
-        function applyImportedJson(content) {
+        function applyImportedData(newDb, options = {}) {
+            const { successToast = 'Genogram imported successfully', fromExample = false } = options;
+            if (!newDb || !Array.isArray(newDb.people) || !Array.isArray(newDb.relationships)) {
+                showToast('Invalid file format — expected a genogram JSON file.', 'error');
+                return false;
+            }
+            db.people = newDb.people;
+            db.relationships = newDb.relationships;
+            db.emotionalLinks = migrateEmotionalLinks(newDb.emotionalLinks || []);
+            if (fromExample) {
+                _quickstartSuppressHints = true;
+                completeQuickstartSilently();
+            }
+            syncGenogramQuickstartCounters();
+            render();
+            centerView();
+            setDirtyState(false);
+            clearDraft();
+            showToast(successToast, 'success');
+            if (fromExample) _quickstartSuppressHints = false;
+            return true;
+        }
+
+        function applyImportedJson(content, options = {}) {
             try {
-                const newDb = JSON.parse(content);
-                if (newDb && Array.isArray(newDb.people) && Array.isArray(newDb.relationships)) {
-                    db.people = newDb.people;
-                    db.relationships = newDb.relationships;
-                    db.emotionalLinks = migrateEmotionalLinks(newDb.emotionalLinks || []);
-                    render();
-                    centerView();
-                    setDirtyState(false);
-                    clearDraft();
-                    showToast('Genogram imported successfully', 'success');
-                } else {
-                    showToast('Invalid file format — expected a genogram JSON file.', 'error');
-                }
+                const newDb = typeof content === 'string' ? JSON.parse(content) : content;
+                applyImportedData(newDb, options);
             } catch (err) {
                 showToast('Could not read file: ' + err.message, 'error');
             }
+        }
+
+        function loadExampleGenogram() {
+            const exampleOptions = { successToast: EXAMPLE_GENOGRAM_TOAST, fromExample: true };
+            if (db.people.length > 0) {
+                _pendingImportText = JSON.stringify(EXAMPLE_GENOGRAM);
+                _pendingImportOptions = exampleOptions;
+                showConfirmModal(
+                    'import-replace',
+                    null,
+                    'Replace current genogram?',
+                    'Loading the example will replace the genogram currently on the canvas. This cannot be undone. Continue?'
+                );
+                return;
+            }
+            applyImportedData(EXAMPLE_GENOGRAM, exampleOptions);
         }
 
         // --- UI Toggles ---
@@ -1971,6 +2656,7 @@
             hideModal();
             saveToLocalStorage();
             render();
+            if (person) scrollToPersonIfOffscreen(person);
         }
 
         // --- Context Menu ---
@@ -2009,7 +2695,11 @@
                 case 'edit': showModal('edit', personId); break;
                 case 'set-client':
                     db.people.forEach(p => p.isClient = false);
-                    if(person) person.isClient = true;
+                    if (person) {
+                        person.isClient = true;
+                        const displayName = person.name?.trim() || 'This person';
+                        showToast(`${displayName} set as client`, 'success');
+                    }
                     saveToLocalStorage(); render();
                     break;
                 case 'add-partner': 
@@ -2265,8 +2955,10 @@
             } else if (action === 'import-replace') {
                 if (_pendingImportText !== null) {
                     const content = _pendingImportText;
+                    const options = _pendingImportOptions || {};
                     _pendingImportText = null;
-                    applyImportedJson(content);
+                    _pendingImportOptions = null;
+                    applyImportedJson(content, options);
                 }
             }
             hideConfirmModal();
@@ -2283,6 +2975,7 @@
         const GENOGRAM_DRAFT_DEBOUNCE_MS = 2000;
         let _draftPersistTimer = null;
         let _pendingImportText = null;
+        let _pendingImportOptions = null;
         let hasUnsavedChanges = false;
 
         function setDirtyState(isDirty) {
@@ -2411,6 +3104,7 @@
                 if (source === 'legacy') {
                     try { localStorage.removeItem(GENOGRAM_LEGACY_KEY); } catch (e) {}
                 }
+                syncGenogramQuickstartCounters();
                 render();
                 centerView();
                 setDirtyState(true);
@@ -2644,7 +3338,15 @@
 
 
             addPersonBtn.addEventListener('click', () => showModal('add'));
-            manageRelationshipsBtn.addEventListener('click', () => showRelationshipModal());
+            const emptyAddBtn = document.getElementById('empty-state-add-btn');
+            if (emptyAddBtn) {
+                emptyAddBtn.addEventListener('click', () => showModal('add'));
+            }
+            const emptyExampleBtn = document.getElementById('empty-state-example-btn');
+            if (emptyExampleBtn) {
+                emptyExampleBtn.addEventListener('click', loadExampleGenogram);
+            }
+            manageRelationshipsBtn.addEventListener('click', () => showRelationshipModal(appState.selectedPersonId || null));
             resetGenogramBtn.addEventListener('click', () => {
                 showConfirmModal(
                     'reset-genogram', 
@@ -2702,6 +3404,7 @@
             centerView(); // Call centerView directly
             render();
             maybeOfferDraftRecovery();
+            initQuickstart();
         }
 
         // --- Toast Notification System ---
@@ -2740,14 +3443,15 @@
                 // Inline critical styles
                 const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
                 styleEl.textContent = `
+                    :root { --tt-axis: #9ca3af; --tt-text: #1f2937; }
                     .person-shape { fill: #ffffff; stroke: #1f2937; stroke-width: 2; }
                     .issue-quadrant { fill: #374151; opacity: 0.8; }
                     .client-highlight { stroke: #06b6d4 !important; stroke-width: 3; fill: #e0f7fa; }
                     .relationship-line { stroke: #374151; stroke-width: 2; fill: none; }
+                    .relationship-line-partner { stroke-dasharray: 8 4; }
                     .rel-close { stroke: #06b6d4 !important; }
                     .rel-enmeshed { stroke: #a855f7 !important; }
                     .rel-hostile { stroke: #f97316 !important; }
-                    .rel-cutoff { stroke-dasharray: 6,6 !important; }
                     .rel-abuse { stroke: #ef4444 !important; stroke-width: 3 !important; }
                     .deceased-x { stroke: #6b4e34; stroke-width: 3; }
                     text { font-family: Inter, sans-serif; }
@@ -2778,7 +3482,11 @@
                     canvas.toBlob((blob) => {
                         const a = document.createElement('a');
                         a.href = URL.createObjectURL(blob);
-                        a.download = `genogram_${new Date().toISOString().slice(0, 10)}.png`;
+                        const client = db.people.find(p => p.isClient);
+                        const clientSlug = (client && client.name)
+                            ? client.name.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '') || 'Unnamed'
+                            : 'Unnamed';
+                        a.download = `genogram_${clientSlug}_${new Date().toISOString().slice(0, 10)}.png`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);

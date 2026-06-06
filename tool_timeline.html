@@ -325,11 +325,19 @@
         .timeline-empty-state p { font-size: 0.9rem; max-width: 280px; line-height: 1.5; margin-left: auto; margin-right: auto; }
         .empty-state-actions {
             display: flex;
+            flex-direction: column;
             gap: 0.5rem;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
             margin-top: 0.25rem;
+        }
+        .empty-state-actions-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
         .empty-state-cta {
             padding: 0.55rem 1.25rem;
@@ -343,6 +351,23 @@
             font-family: inherit;
         }
         .empty-state-cta:hover { opacity: 0.92; }
+        .empty-state-example-btn {
+            padding: 0.5rem 1.15rem;
+            background: transparent;
+            color: #2C5558;
+            border: 1px solid rgba(44, 85, 88, 0.35);
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 500;
+            font-family: inherit;
+        }
+        .empty-state-example-btn:hover { background: rgba(44, 85, 88, 0.08); }
+        body.tt-dark .empty-state-example-btn {
+            color: #7CB590;
+            border-color: rgba(124, 181, 144, 0.35);
+        }
+        body.tt-dark .empty-state-example-btn:hover { background: rgba(124, 181, 144, 0.12); }
         .empty-state-dismiss {
             width: 36px;
             height: 36px;
@@ -363,6 +388,194 @@
         .empty-state-dismiss:hover { background: var(--tt-border); }
         body.tt-dark .timeline-empty-state { color: #9ca3af; background: rgba(17,24,39,0.84); border-color: rgba(156,163,175,0.18); box-shadow: 0 16px 40px rgba(0,0,0,0.28); }
 
+        /* Quick-start checklist + JIT hints (Layer 2 onboarding) */
+        .quickstart-card {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            z-index: 25;
+            width: min(280px, calc(100vw - 2.5rem));
+            padding: 1rem 1.1rem 0.9rem;
+            background: rgba(255,255,255,0.94);
+            border: 1px solid rgba(107,114,128,0.18);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(15,23,42,0.1);
+            backdrop-filter: blur(6px);
+            font-family: 'Inter', sans-serif;
+            pointer-events: auto;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .quickstart-card.hidden { display: none; }
+        .quickstart-card.is-fading { opacity: 0; transform: translateY(6px); pointer-events: none; }
+        body.tt-dark .quickstart-card {
+            background: rgba(17,24,39,0.92);
+            border-color: rgba(156,163,175,0.18);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+            color: var(--tt-text);
+        }
+        .quickstart-card h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #2C5558;
+            margin: 0 1.5rem 0.65rem 0;
+        }
+        body.tt-dark .quickstart-card h4 { color: #7CB590; }
+        .quickstart-dismiss {
+            position: absolute;
+            top: 0.55rem;
+            right: 0.55rem;
+            width: 1.75rem;
+            height: 1.75rem;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 1.25rem;
+            line-height: 1;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .quickstart-steps {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .quickstart-steps li {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #6b7280;
+        }
+        body.tt-dark .quickstart-steps li { color: #9ca3af; }
+        .quickstart-steps li.is-done { color: var(--tt-text); }
+        .quickstart-steps li.is-done .qs-check {
+            background: #2C5558;
+            border-color: #2C5558;
+            color: #fff;
+        }
+        .quickstart-steps li.just-checked .qs-check { animation: qsCheckPop 0.35s ease; }
+        @keyframes qsCheckPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .quickstart-steps li.just-checked .qs-check { animation: none; }
+            .quickstart-card { transition: none; }
+            .quickstart-card.is-fading { transform: none; }
+        }
+        .qs-check {
+            flex-shrink: 0;
+            width: 1.1rem;
+            height: 1.1rem;
+            margin-top: 0.1rem;
+            border-radius: 50%;
+            border: 1.5px solid var(--tt-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            color: transparent;
+        }
+        .quickstart-complete {
+            margin: 0.5rem 0 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #2C5558;
+        }
+        body.tt-dark .quickstart-complete { color: #7CB590; }
+        .quickstart-example {
+            margin: 0.65rem 0 0;
+            padding-top: 0.55rem;
+            border-top: 1px solid var(--tt-border);
+            text-align: center;
+        }
+        .quickstart-example button {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.75rem;
+            color: #2C5558;
+            text-decoration: underline;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        body.tt-dark .quickstart-example button { color: #7CB590; }
+        .lifemap-help-wrap { position: relative; }
+        .lifemap-help-panel {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 240px;
+            background: #1f2937;
+            color: #f9fafb;
+            font-size: 0.75rem;
+            border-radius: 10px;
+            padding: 0.75rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 60;
+            line-height: 1.45;
+        }
+        .lifemap-help-panel.open { display: block; }
+        .lifemap-help-panel h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.85rem;
+            color: #7CB590;
+            margin: 0 0 0.5rem;
+        }
+        .lifemap-help-panel ul { margin: 0; padding-left: 1.1rem; }
+        .lifemap-help-panel li { margin-bottom: 0.25rem; }
+        .help-quickstart-btn {
+            display: block;
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.5rem;
+            background: rgba(124,181,144,0.15);
+            border: 1px solid rgba(124,181,144,0.35);
+            border-radius: 6px;
+            color: #7CB590;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            font-family: inherit;
+        }
+        .jit-hint {
+            position: fixed;
+            z-index: 26;
+            max-width: 240px;
+            padding: 0.55rem 0.75rem;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            background: #1f2937;
+            color: #f9fafb;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            font-family: 'Inter', sans-serif;
+        }
+        .jit-hint.hidden { display: none; }
+        .jit-hint .jit-dismiss {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.35rem;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+        }
+        .jit-hint .jit-body { padding-right: 1rem; }
+
         /* Mobile-only "Tools" pill in the header — hidden on desktop, opens off-canvas sidebar on narrow viewports */
         .mobile-tools-toggle { display: none; align-items: center; gap: 0.4rem; }
 
@@ -374,6 +587,12 @@
             .panel-content { max-height: calc(52vh - 56px); }
             .timeline-empty-state { margin-top: clamp(2.5rem, 10vh, 5rem); width: min(320px, calc(100vw - 2.5rem)); }
             .mobile-tools-toggle { display: flex; }
+            #lifemap-quickstart-card {
+                bottom: auto;
+                top: 4.5rem;
+                right: 0.75rem;
+                width: min(260px, calc(100vw - 5rem));
+            }
         }
     </style>
 </head>
@@ -391,6 +610,21 @@
                 </div>
             </div>
             <div style="display: flex; gap: 0.5rem;">
+                <div class="lifemap-help-wrap no-print">
+                    <button id="lifemap-help-btn" type="button" onclick="toggleLifemapHelp(event)" style="padding: 0.5rem; border-radius: 8px; background: transparent; border: none; cursor: pointer; color: var(--tt-text);" title="Help">
+                        <i class="fa-solid fa-circle-question"></i>
+                    </button>
+                    <div id="lifemap-help-panel" class="lifemap-help-panel">
+                        <h3>How to Use</h3>
+                        <ul>
+                            <li>Add events from the sidebar — trauma, positive, neutral, or resource.</li>
+                            <li>Click an event to edit details, targets, and SUDS.</li>
+                            <li>Mark trauma events as targets for the Processing Queue.</li>
+                            <li>Hold ⌘/Ctrl and scroll to zoom the timeline.</li>
+                        </ul>
+                        <button type="button" class="help-quickstart-btn" onclick="openLifemapQuickstartFromHelp()">Quick start</button>
+                    </div>
+                </div>
                 <button onclick="toggleTheme()" style="padding: 0.5rem; border-radius: 8px; background: transparent; border: none; cursor: pointer; color: var(--tt-text);" title="Toggle Theme">
                     <i id="theme-icon-sun" class="fa-solid fa-sun text-amber-400"></i>
                     <i id="theme-icon-moon" class="fa-solid fa-moon text-indigo-400" style="display: none;"></i>
@@ -521,6 +755,19 @@
             </div>
         </div>
     </div>
+
+    <div id="lifemap-quickstart-card" class="quickstart-card hidden no-print" aria-live="polite">
+        <button type="button" class="quickstart-dismiss" id="lifemap-quickstart-dismiss" aria-label="Dismiss quick start">×</button>
+        <h4>Quick start</h4>
+        <ol class="quickstart-steps" id="lifemap-quickstart-steps">
+            <li data-step="1"><span class="qs-check" aria-hidden="true">✓</span><span>Add your first event — pick a type in the sidebar.</span></li>
+            <li data-step="2"><span class="qs-check" aria-hidden="true">✓</span><span>Add a different kind of event — try a positive, resource, or neutral.</span></li>
+            <li data-step="3"><span class="qs-check" aria-hidden="true">✓</span><span>Click an event and mark it as a target.</span></li>
+        </ol>
+        <p class="quickstart-complete hidden" id="lifemap-quickstart-complete">You're going ✓</p>
+        <p class="quickstart-example hidden" id="lifemap-quickstart-example"><button type="button" id="lifemap-quickstart-load-example" onclick="loadExampleMap()">or load an example</button></p>
+    </div>
+    <div id="lifemap-jit-hint" class="jit-hint hidden no-print" role="status"><button type="button" class="jit-dismiss" aria-label="Dismiss hint">×</button><div class="jit-body"></div></div>
     
     <!-- Floating Target Card Panel -->
     <div id="target-card-panel" class="hidden no-print">
@@ -788,6 +1035,166 @@
             clientName: '',
             nodes: []
         };
+
+        /** Fictional example client — bundled onboarding example (Layer 1). */
+        const EXAMPLE_LIFEMAP = {
+            schemaVersion: SCHEMA_VERSION,
+            startYear: 1992,
+            endYear: 2026,
+            mapScaleFactor: 30,
+            nextId: 8,
+            clientName: 'Example Client (fictional)',
+            nodes: [
+                {
+                    id: 'ex-node-1',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '1996',
+                    startDate: '1996',
+                    endDate: '1996',
+                    role: 'resource',
+                    title: "Grandma's house — safe place",
+                    notes: '',
+                    emotions: '',
+                    isTouchstone: false,
+                    isTarget: false,
+                    emdrTarget: null,
+                    resource: { type: 'safe_place', anchorWord: 'warm kitchen', accessibility: 8 }
+                },
+                {
+                    id: 'ex-node-2',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '1999',
+                    startDate: '1999',
+                    endDate: '1999',
+                    role: 'positive',
+                    title: 'Met best friend Sam',
+                    notes: '',
+                    emotions: 'joy, belonging',
+                    isTouchstone: false,
+                    isTarget: false,
+                    emdrTarget: null,
+                    resource: null
+                },
+                {
+                    id: 'ex-node-3',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'duration',
+                    date: '',
+                    startDate: '2000',
+                    endDate: '2002',
+                    role: 'trauma',
+                    title: "Parents' high-conflict divorce",
+                    notes: '',
+                    emotions: 'fear, guilt',
+                    isTouchstone: true,
+                    isTarget: true,
+                    emdrTarget: {
+                        image: 'Parents shouting in the kitchen',
+                        negCognition: "It's my fault",
+                        posCognition: "I did the best I could as a child",
+                        sudsInitial: 8,
+                        vocInitial: 3,
+                        bodyLocation: 'stomach',
+                        processingStatus: 'not_started',
+                        sessions: []
+                    },
+                    resource: null
+                },
+                {
+                    id: 'ex-node-4',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '2003',
+                    startDate: '2003',
+                    endDate: '2003',
+                    role: 'trauma',
+                    title: 'Car accident',
+                    notes: '',
+                    emotions: 'terror',
+                    isTouchstone: false,
+                    isTarget: true,
+                    emdrTarget: {
+                        image: 'Skidding on wet pavement',
+                        negCognition: "I'm not safe",
+                        posCognition: 'I can keep myself safe now',
+                        sudsInitial: 7,
+                        vocInitial: 3,
+                        bodyLocation: 'chest',
+                        processingStatus: 'not_started',
+                        sessions: []
+                    },
+                    resource: null
+                },
+                {
+                    id: 'ex-node-5',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '2010',
+                    startDate: '2010',
+                    endDate: '2010',
+                    role: 'neutral',
+                    title: 'Moved to Sacramento',
+                    notes: '',
+                    emotions: '',
+                    isTouchstone: false,
+                    isTarget: false,
+                    emdrTarget: null,
+                    resource: null
+                },
+                {
+                    id: 'ex-node-6',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '2014',
+                    startDate: '2014',
+                    endDate: '2014',
+                    role: 'positive',
+                    title: 'College graduation',
+                    notes: '',
+                    emotions: 'pride',
+                    isTouchstone: false,
+                    isTarget: false,
+                    emdrTarget: null,
+                    resource: null
+                },
+                {
+                    id: 'ex-node-7',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '2019',
+                    startDate: '2019',
+                    endDate: '2019',
+                    role: 'positive',
+                    title: 'Wedding',
+                    notes: '',
+                    emotions: 'love, hope',
+                    isTouchstone: false,
+                    isTarget: false,
+                    emdrTarget: null,
+                    resource: null
+                },
+                {
+                    id: 'ex-node-8',
+                    schemaVersion: SCHEMA_VERSION,
+                    visualType: 'point',
+                    date: '2023',
+                    startDate: '2023',
+                    endDate: '2023',
+                    role: 'resource',
+                    title: 'Started therapy',
+                    notes: '',
+                    emotions: '',
+                    isTouchstone: false,
+                    isTarget: false,
+                    emdrTarget: null,
+                    resource: { type: 'other', anchorWord: 'my therapist', accessibility: 7 }
+                }
+            ]
+        };
+
+        const EXAMPLE_LIFEMAP_TOAST = 'Fictional example loaded — explore freely. Export JSON to save your own.';
         
         let activeNodeId = null;
         let currentViewFilter = 'all';
@@ -1239,7 +1646,41 @@
         }
         
         function openEMDRTool() {
-            window.open('tool_emdr.html', '_blank');
+            let url = 'tool_emdr.html';
+            if (selectedTargetId) {
+                const node = state.nodes.find(n => n.id === selectedTargetId);
+                if (node && node.isTarget) {
+                    const t = node.emdrTarget || {};
+                    const truncate = (str, len) => String(str || '').trim().slice(0, len);
+                    const params = new URLSearchParams();
+
+                    const title = truncate(node.title, 80);
+                    if (title) params.set('target', title);
+
+                    const nc = truncate(t.negCognition, 120);
+                    if (nc) params.set('nc', nc);
+
+                    const image = truncate(t.image, 120);
+                    if (image) params.set('image', image);
+
+                    const body = truncate(t.bodyLocation, 80);
+                    if (body) params.set('body', body);
+
+                    const suds = t.sudsCurrent ?? t.sudsInitial;
+                    if (suds !== undefined && suds !== null && suds !== '') {
+                        params.set('suds', String(suds));
+                    }
+
+                    const voc = t.vocCurrent ?? t.vocInitial;
+                    if (voc !== undefined && voc !== null && voc !== '') {
+                        params.set('voc', String(voc));
+                    }
+
+                    const qs = params.toString();
+                    if (qs) url += '?' + qs;
+                }
+            }
+            window.open(url, '_blank');
         }
         
         function openLogSessionFromPanel() {
@@ -1714,28 +2155,65 @@
             showTimelineToast('Life Map exported.', 'success');
         }
         
+        function applyMapData(rawData, options = {}) {
+            const { successToast = 'Timeline loaded successfully!', fromExample = false } = options;
+            try {
+                let data = migrateMapData(rawData);
+                if (!data || !Array.isArray(data.nodes)) {
+                    showTimelineToast('Could not load file: Invalid format', 'error');
+                    return false;
+                }
+
+                state = data;
+                document.getElementById('start-year').value = state.startYear;
+                document.getElementById('end-year').value = state.endYear;
+                const clientInput = document.getElementById('client-name');
+                if (clientInput) clientInput.value = state.clientName || '';
+
+                if (fromExample) {
+                    _lifemapSuppressHints = true;
+                    completeLifemapQuickstartSilently();
+                }
+                syncLifemapQuickstartCounters();
+
+                renderAllNodes();
+                redrawTimeline();
+                updateProcessingQueue();
+                setDirtyState(false);
+                clearDraft();
+                showTimelineToast(successToast, 'success');
+                if (fromExample) _lifemapSuppressHints = false;
+                return true;
+            } catch (err) {
+                showTimelineToast('Could not load file: ' + (err.message || 'Invalid format'), 'error');
+                console.error(err);
+                return false;
+            }
+        }
+
+        function confirmReplaceMap() {
+            return confirm('Importing will replace the map currently on the canvas. This cannot be undone. Continue?');
+        }
+
+        function loadExampleMap() {
+            const exampleOptions = { successToast: EXAMPLE_LIFEMAP_TOAST, fromExample: true };
+            if (state.nodes.length > 0 && !confirmReplaceMap()) {
+                return;
+            }
+            applyMapData(EXAMPLE_LIFEMAP, exampleOptions);
+        }
+
         function loadMap(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    let data = JSON.parse(e.target.result);
-                    data = migrateMapData(data);
-                    
-                    state = data;
-                    document.getElementById('start-year').value = state.startYear;
-                    document.getElementById('end-year').value = state.endYear;
-                    // Restore client name
-                    const clientInput = document.getElementById('client-name');
-                    if (clientInput) clientInput.value = state.clientName || '';
-                    
-                    renderAllNodes();
-                    redrawTimeline();
-                    updateProcessingQueue();
-                    setDirtyState(false);
-                    clearDraft();
-                    showTimelineToast('Timeline loaded successfully!', 'success');
+                    const data = JSON.parse(e.target.result);
+                    if (state.nodes.length > 0 && !confirmReplaceMap()) {
+                        return;
+                    }
+                    applyMapData(data);
                 } catch (err) {
                     showTimelineToast('Could not load file: ' + (err.message || 'Invalid format'), 'error');
                     console.error(err);
@@ -1827,6 +2305,7 @@
                 document.getElementById('end-year').value = state.endYear;
                 const clientInput = document.getElementById('client-name');
                 if (clientInput) clientInput.value = state.clientName || '';
+                syncLifemapQuickstartCounters();
                 renderAllNodes();
                 redrawTimeline();
                 updateProcessingQueue();
@@ -1938,6 +2417,292 @@
         }
 
         // ============================================
+        // QUICK-START CHECKLIST + JIT HINTS (Layer 2)
+        // ============================================
+        const LIFEMAP_QUICKSTART_KEY = 'bet_lifemap_quickstart';
+        let lifemapQuickstartState = loadLifemapQuickstartState();
+        let _lifemapQuickstartForceShow = false;
+        let _lifemapSuppressHints = false;
+        let _lmQsPrevNodes = 0;
+        let _lmQsPrevTargets = 0;
+        let _lmQsCompletionTimer = null;
+        let _lmJitHintTimer = null;
+        let _lmQuickstartOverlayWatcher = null;
+        let _lmActiveJitHintKey = null;
+        let _lmJitAnchorNodeId = null;
+
+        function loadLifemapQuickstartState() {
+            try {
+                const raw = localStorage.getItem(LIFEMAP_QUICKSTART_KEY);
+                if (!raw) return { checklist: 'active', hints: { firstEvent: false, firstTarget: false } };
+                const parsed = JSON.parse(raw);
+                return {
+                    checklist: parsed.checklist || 'active',
+                    hints: {
+                        firstEvent: Boolean(parsed.hints?.firstEvent),
+                        firstTarget: Boolean(parsed.hints?.firstTarget)
+                    }
+                };
+            } catch (err) {
+                return { checklist: 'active', hints: { firstEvent: false, firstTarget: false } };
+            }
+        }
+
+        function saveLifemapQuickstartState() {
+            try {
+                localStorage.setItem(LIFEMAP_QUICKSTART_KEY, JSON.stringify(lifemapQuickstartState));
+            } catch (err) {
+                console.warn('Life Map quick-start persist failed:', err);
+            }
+        }
+
+        function isLifemapToolUsable() {
+            return !document.getElementById('subscription-overlay');
+        }
+
+        function getLifemapQuickstartStepStatus() {
+            const roles = new Set(state.nodes.map(n => n.role));
+            return {
+                step1: state.nodes.length >= 1,
+                step2: roles.size >= 2,
+                step3: state.nodes.some(n => n.isTarget)
+            };
+        }
+
+        function completeLifemapQuickstartSilently() {
+            if (_lmQsCompletionTimer) {
+                clearTimeout(_lmQsCompletionTimer);
+                _lmQsCompletionTimer = null;
+            }
+            lifemapQuickstartState.checklist = 'completed';
+            saveLifemapQuickstartState();
+            _lifemapQuickstartForceShow = false;
+            hideLifemapQuickstartCard();
+            dismissLifemapJitHint();
+        }
+
+        function dismissLifemapQuickstartCard() {
+            if (_lmQsCompletionTimer) {
+                clearTimeout(_lmQsCompletionTimer);
+                _lmQsCompletionTimer = null;
+            }
+            lifemapQuickstartState.checklist = 'dismissed';
+            saveLifemapQuickstartState();
+            _lifemapQuickstartForceShow = false;
+            hideLifemapQuickstartCard();
+        }
+
+        function hideLifemapQuickstartCard() {
+            const card = document.getElementById('lifemap-quickstart-card');
+            if (!card) return;
+            card.classList.add('hidden');
+            card.classList.remove('is-fading');
+        }
+
+        function shouldShowLifemapQuickstartCard() {
+            if (!isLifemapToolUsable()) return false;
+            if (_lifemapQuickstartForceShow) return true;
+            if (lifemapQuickstartState.checklist === 'completed' || lifemapQuickstartState.checklist === 'dismissed') return false;
+            return lifemapQuickstartState.checklist === 'active';
+        }
+
+        function updateLifemapQuickstartCardUI(steps) {
+            const card = document.getElementById('lifemap-quickstart-card');
+            const stepsEl = document.getElementById('lifemap-quickstart-steps');
+            const completeEl = document.getElementById('lifemap-quickstart-complete');
+            const exampleEl = document.getElementById('lifemap-quickstart-example');
+            if (!card || !stepsEl) return;
+
+            const allDone = steps.step1 && steps.step2 && steps.step3;
+
+            if (!shouldShowLifemapQuickstartCard() && !(allDone && lifemapQuickstartState.checklist === 'active')) {
+                hideLifemapQuickstartCard();
+                return;
+            }
+
+            if (allDone && lifemapQuickstartState.checklist === 'active') {
+                stepsEl.classList.add('hidden');
+                completeEl.classList.remove('hidden');
+                exampleEl.classList.add('hidden');
+                card.classList.remove('hidden');
+                if (!_lmQsCompletionTimer) {
+                    _lmQsCompletionTimer = setTimeout(() => {
+                        lifemapQuickstartState.checklist = 'completed';
+                        saveLifemapQuickstartState();
+                        _lifemapQuickstartForceShow = false;
+                        card.classList.add('is-fading');
+                        setTimeout(hideLifemapQuickstartCard, 350);
+                        _lmQsCompletionTimer = null;
+                    }, 3000);
+                }
+                return;
+            }
+
+            stepsEl.classList.remove('hidden');
+            completeEl.classList.add('hidden');
+            exampleEl.classList.toggle('hidden', !(_lifemapQuickstartForceShow && state.nodes.length === 0));
+            card.classList.remove('hidden');
+
+            stepsEl.querySelectorAll('li[data-step]').forEach(li => {
+                const key = li.dataset.step;
+                const done = key === '1' ? steps.step1 : key === '2' ? steps.step2 : steps.step3;
+                const wasDone = li.classList.contains('is-done');
+                li.classList.toggle('is-done', done);
+                if (done && !wasDone) {
+                    li.classList.add('just-checked');
+                    setTimeout(() => li.classList.remove('just-checked'), 400);
+                }
+            });
+        }
+
+        function dismissLifemapJitHint() {
+            const hint = document.getElementById('lifemap-jit-hint');
+            if (!hint) return;
+            hint.classList.add('hidden');
+            if (_lmJitHintTimer) {
+                clearTimeout(_lmJitHintTimer);
+                _lmJitHintTimer = null;
+            }
+            _lmActiveJitHintKey = null;
+            _lmJitAnchorNodeId = null;
+        }
+
+        function showLifemapJitHint(key, message, nodeId, anchorQueue) {
+            if (_lifemapSuppressHints || lifemapQuickstartState.hints[key]) return;
+            if (_lmActiveJitHintKey) dismissLifemapJitHint();
+
+            lifemapQuickstartState.hints[key] = true;
+            saveLifemapQuickstartState();
+
+            const hint = document.getElementById('lifemap-jit-hint');
+            if (!hint) return;
+            hint.querySelector('.jit-body').textContent = message;
+            hint.classList.remove('hidden');
+            _lmActiveJitHintKey = key;
+            _lmJitAnchorNodeId = nodeId;
+
+            positionLifemapJitHint(nodeId, anchorQueue);
+            _lmJitHintTimer = setTimeout(dismissLifemapJitHint, 8000);
+        }
+
+        function positionLifemapJitHint(nodeId, anchorQueue) {
+            const hint = document.getElementById('lifemap-jit-hint');
+            if (!hint || hint.classList.contains('hidden')) return;
+
+            let anchorRect = null;
+            if (anchorQueue) {
+                const queueEl = document.getElementById('processing-queue');
+                if (queueEl) anchorRect = queueEl.getBoundingClientRect();
+            } else if (nodeId) {
+                const nodeEl = document.getElementById(nodeId);
+                if (nodeEl) anchorRect = nodeEl.getBoundingClientRect();
+            }
+            if (!anchorRect) {
+                hint.style.left = '1rem';
+                hint.style.top = '5rem';
+                return;
+            }
+
+            const hintW = hint.offsetWidth || 220;
+            const hintH = hint.offsetHeight || 60;
+            let left = anchorRect.left + anchorRect.width / 2 - hintW / 2;
+            let top = anchorRect.bottom + 10;
+            left = Math.max(8, Math.min(left, window.innerWidth - hintW - 8));
+            if (top + hintH > window.innerHeight - 8) {
+                top = anchorRect.top - hintH - 10;
+            }
+            hint.style.left = `${left}px`;
+            hint.style.top = `${top}px`;
+        }
+
+        function syncLifemapQuickstartCounters() {
+            _lmQsPrevNodes = state.nodes.length;
+            _lmQsPrevTargets = state.nodes.filter(n => n.isTarget).length;
+        }
+
+        function evaluateLifemapQuickstart() {
+            if (!isLifemapToolUsable()) {
+                if (!_lmQuickstartOverlayWatcher) {
+                    _lmQuickstartOverlayWatcher = new MutationObserver(() => {
+                        if (isLifemapToolUsable()) {
+                            _lmQuickstartOverlayWatcher.disconnect();
+                            _lmQuickstartOverlayWatcher = null;
+                            evaluateLifemapQuickstart();
+                        }
+                    });
+                    _lmQuickstartOverlayWatcher.observe(document.body, { childList: true, subtree: true });
+                }
+                hideLifemapQuickstartCard();
+                return;
+            }
+
+            const nodeCount = state.nodes.length;
+            const targetCount = state.nodes.filter(n => n.isTarget).length;
+            const steps = getLifemapQuickstartStepStatus();
+
+            if (!_lifemapSuppressHints) {
+                if (!lifemapQuickstartState.hints.firstEvent && _lmQsPrevNodes === 0 && nodeCount >= 1) {
+                    const node = state.nodes[state.nodes.length - 1];
+                    showLifemapJitHint('firstEvent', 'Click an event to edit details — targets, SUDS, and cognitions live there.', node?.id, false);
+                }
+                if (!lifemapQuickstartState.hints.firstTarget && _lmQsPrevTargets === 0 && targetCount >= 1) {
+                    showLifemapJitHint('firstTarget', 'Targets queue up here, prioritized for processing.', null, true);
+                }
+            }
+
+            _lmQsPrevNodes = nodeCount;
+            _lmQsPrevTargets = targetCount;
+
+            updateLifemapQuickstartCardUI(steps);
+
+            if (_lmActiveJitHintKey) {
+                requestAnimationFrame(() => positionLifemapJitHint(_lmJitAnchorNodeId, _lmActiveJitHintKey === 'firstTarget'));
+            }
+        }
+
+        function openLifemapQuickstartFromHelp() {
+            _lifemapQuickstartForceShow = true;
+            const panel = document.getElementById('lifemap-help-panel');
+            if (panel) panel.classList.remove('open');
+            evaluateLifemapQuickstart();
+        }
+
+        function toggleLifemapHelp(event) {
+            event.stopPropagation();
+            const panel = document.getElementById('lifemap-help-panel');
+            if (panel) panel.classList.toggle('open');
+        }
+
+        function initLifemapQuickstart() {
+            const dismissBtn = document.getElementById('lifemap-quickstart-dismiss');
+            const jitHint = document.getElementById('lifemap-jit-hint');
+
+            if (dismissBtn) dismissBtn.addEventListener('click', dismissLifemapQuickstartCard);
+            if (jitHint) {
+                jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissLifemapJitHint);
+                document.addEventListener('click', (e) => {
+                    const panel = document.getElementById('lifemap-help-panel');
+                    const helpBtn = document.getElementById('lifemap-help-btn');
+                    if (panel && helpBtn && !panel.contains(e.target) && !helpBtn.contains(e.target)) {
+                        panel.classList.remove('open');
+                    }
+                    if (!jitHint.classList.contains('hidden') && !jitHint.contains(e.target)) {
+                        dismissLifemapJitHint();
+                    }
+                });
+            }
+            window.addEventListener('resize', () => {
+                if (_lmActiveJitHintKey) {
+                    positionLifemapJitHint(_lmJitAnchorNodeId, _lmActiveJitHintKey === 'firstTarget');
+                }
+            });
+
+            _lmQsPrevNodes = state.nodes.length;
+            _lmQsPrevTargets = state.nodes.filter(n => n.isTarget).length;
+            evaluateLifemapQuickstart();
+        }
+
+        // ============================================
         // EMPTY STATE
         // ============================================
         const LIFEMAP_INTRO_DISMISSED_KEY = 'bet-lifemap-intro-dismissed';
@@ -1979,12 +2744,15 @@
                             <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>Resource</span>
                         </div>
                         <div class="empty-state-actions">
-                            <button type="button" class="empty-state-cta" onclick="quickAddNode('trauma','point')">
-                                <i class="fa-solid fa-plus" style="margin-right:0.35rem;"></i>Add your first event
-                            </button>
-                            <button type="button" class="empty-state-dismiss" onclick="dismissEmptyIntro()" aria-label="Close intro" title="Skip intro">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
+                            <div class="empty-state-actions-row">
+                                <button type="button" class="empty-state-cta" onclick="quickAddNode('trauma','point')">
+                                    <i class="fa-solid fa-plus" style="margin-right:0.35rem;"></i>Add your first event
+                                </button>
+                                <button type="button" class="empty-state-dismiss" onclick="dismissEmptyIntro()" aria-label="Close intro" title="Skip intro">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="empty-state-example-btn" onclick="loadExampleMap()">See an example</button>
                         </div>
                     `;
                     mapOverlayLayer.appendChild(emptyEl);
@@ -2012,6 +2780,7 @@
         renderAllNodes = function() {
             _origRenderAllNodes();
             updateEmptyState();
+            evaluateLifemapQuickstart();
         };
 
         const _timelineOpenedAt = Date.now();
@@ -2030,6 +2799,7 @@
             updateEmptyState();
             updateSaveStateHint();
             maybeOfferDraftRecovery();
+            initLifemapQuickstart();
         });
 
         window.addEventListener('beforeunload', (event) => {
