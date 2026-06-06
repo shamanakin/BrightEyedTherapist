@@ -521,10 +521,12 @@
         .lifemap-help-overlay.open { display: flex; }
         .lifemap-help-sheet {
             position: relative;
+            display: flex;
+            flex-direction: column;
             width: 100%;
             max-width: 420px;
             max-height: 85vh;
-            overflow-y: auto;
+            overflow: hidden;
             background: var(--tt-modal-bg);
             color: var(--tt-text);
             border: 1px solid var(--tt-border);
@@ -642,13 +644,23 @@
             font-style: italic;
         }
         body.tt-dark .lifemap-help-sheet .help-footer { color: #9ca3af; }
+        .lifemap-help-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         .lifemap-help-links {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
             margin-top: 0.85rem;
             padding-top: 0.75rem;
             border-top: 1px solid var(--tt-border);
+            pointer-events: auto;
         }
         .lifemap-help-links button {
             flex: 1;
@@ -888,53 +900,55 @@
     <!-- Help modal -->
     <div id="lifemap-help-overlay" class="lifemap-help-overlay no-print" role="dialog" aria-modal="true" aria-labelledby="lifemap-help-title" aria-hidden="true">
         <div id="lifemap-help-sheet" class="lifemap-help-sheet" role="document">
-            <button type="button" class="lifemap-help-close" onclick="closeLifemapHelp()" aria-label="Close help">&times;</button>
+            <button type="button" class="lifemap-help-close" id="lifemap-help-close-btn" aria-label="Close help">&times;</button>
             <h2 id="lifemap-help-title">How to Use Life Map</h2>
-            <div class="help-sheet">
-                <section>
-                    <h4>Start here</h4>
-                    <ol>
-                        <li>Put your client's name or initials at the top of the sidebar.</li>
-                        <li>Add events with the colored buttons — you can drag them on the timeline afterward.</li>
-                        <li>Click any event to add details — body sensations, cognitions, SUDS — or to mark it as a target.</li>
-                        <li>Export JSON before you close: your map lives in this tab only until you save it.</li>
-                    </ol>
-                </section>
-                <section>
-                    <h4>Event types</h4>
-                    <div class="help-event-row">
-                        <span class="help-event-dot" style="background:var(--col-danger);"></span>
-                        <div class="help-event-text"><strong>Trauma (red)</strong><span>Single events, or Duration for sustained periods</span></div>
-                    </div>
-                    <div class="help-event-row">
-                        <span class="help-event-dot" style="background:var(--col-positive);"></span>
-                        <div class="help-event-text"><strong>Positive (green)</strong><span>Strengths, wins, supports</span></div>
-                    </div>
-                    <div class="help-event-row">
-                        <span class="help-event-dot" style="background:var(--col-resource);"></span>
-                        <div class="help-event-text"><strong>Resource (amber)</strong><span>Safe places, anchors, people</span></div>
-                    </div>
-                    <div class="help-event-row">
-                        <span class="help-event-dot" style="background:var(--col-neutral);"></span>
-                        <div class="help-event-text"><strong>Neutral (gray)</strong><span>Context that helps the story read</span></div>
-                    </div>
-                </section>
-                <section>
-                    <h4>Targets &amp; the queue</h4>
-                    <div class="help-text-row">Open a trauma event and check <strong>Processing Target</strong> — it gets a dashed border on the timeline.</div>
-                    <div class="help-text-row">Marked targets appear in the <strong>Processing Queue</strong> in the sidebar, ready for EMDR or session logging.</div>
-                    <div class="help-text-row">Use <strong>Process Next</strong> to jump to the next target in line.</div>
-                </section>
-                <section>
-                    <h4>Keys</h4>
-                    <div class="help-key-row"><span class="help-kbd">⌘/Ctrl + scroll</span><span>Zoom the timeline</span></div>
-                    <div class="help-key-row"><span class="help-kbd">Esc</span><span>Close help or any open panel</span></div>
-                </section>
-                <p class="help-footer">Nothing sent to servers — your map stays in this browser tab until you export JSON.</p>
+            <div class="lifemap-help-body">
+                <div class="help-sheet">
+                    <section>
+                        <h4>Start here</h4>
+                        <ol>
+                            <li>Put your client's name or initials at the top of the sidebar.</li>
+                            <li>Add events with the colored buttons — you can drag them on the timeline afterward.</li>
+                            <li>Click any event to add details — body sensations, cognitions, SUDS — or to mark it as a target.</li>
+                            <li>Export JSON before you close: your map lives in this tab only until you save it.</li>
+                        </ol>
+                    </section>
+                    <section>
+                        <h4>Event types</h4>
+                        <div class="help-event-row">
+                            <span class="help-event-dot" style="background:var(--col-danger);"></span>
+                            <div class="help-event-text"><strong>Trauma (red)</strong><span>Single events, or Duration for sustained periods</span></div>
+                        </div>
+                        <div class="help-event-row">
+                            <span class="help-event-dot" style="background:var(--col-positive);"></span>
+                            <div class="help-event-text"><strong>Positive (green)</strong><span>Strengths, wins, supports</span></div>
+                        </div>
+                        <div class="help-event-row">
+                            <span class="help-event-dot" style="background:var(--col-resource);"></span>
+                            <div class="help-event-text"><strong>Resource (amber)</strong><span>Safe places, anchors, people</span></div>
+                        </div>
+                        <div class="help-event-row">
+                            <span class="help-event-dot" style="background:var(--col-neutral);"></span>
+                            <div class="help-event-text"><strong>Neutral (gray)</strong><span>Context that helps the story read</span></div>
+                        </div>
+                    </section>
+                    <section>
+                        <h4>Targets &amp; the queue</h4>
+                        <div class="help-text-row">Open a trauma event and check <strong>Processing Target</strong> — it gets a dashed border on the timeline.</div>
+                        <div class="help-text-row">Marked targets appear in the <strong>Processing Queue</strong> in the sidebar, ready for EMDR or session logging.</div>
+                        <div class="help-text-row">Use <strong>Process Next</strong> to jump to the next target in line.</div>
+                    </section>
+                    <section>
+                        <h4>Keys</h4>
+                        <div class="help-key-row"><span class="help-kbd">⌘/Ctrl + scroll</span><span>Zoom the timeline</span></div>
+                        <div class="help-key-row"><span class="help-kbd">Esc</span><span>Close help or any open panel</span></div>
+                    </section>
+                    <p class="help-footer">Nothing sent to servers — your map stays in this browser tab until you export JSON.</p>
+                </div>
             </div>
             <div class="lifemap-help-links">
-                <button type="button" class="help-link-primary" onclick="openLifemapQuickstartFromHelp()">Quick start</button>
-                <button type="button" id="lifemap-help-example-btn" class="help-link-secondary" onclick="loadExampleMapFromHelp()">See an example</button>
+                <button type="button" id="lifemap-help-quickstart-btn" class="help-link-primary">Quick start</button>
+                <button type="button" id="lifemap-help-example-btn" class="help-link-secondary">See an example</button>
             </div>
         </div>
     </div>
@@ -2869,6 +2883,18 @@
             loadExampleMap();
         }
 
+        function wireLifemapHelpActions() {
+            const helpQsBtn = document.getElementById('lifemap-help-quickstart-btn');
+            const helpExampleBtn = document.getElementById('lifemap-help-example-btn');
+            const stopAndRun = (fn) => (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fn();
+            };
+            if (helpQsBtn) helpQsBtn.onclick = stopAndRun(openLifemapQuickstartFromHelp);
+            if (helpExampleBtn) helpExampleBtn.onclick = stopAndRun(loadExampleMapFromHelp);
+        }
+
         function toggleLifemapHelp(event) {
             event.stopPropagation();
             const overlay = document.getElementById('lifemap-help-overlay');
@@ -2885,12 +2911,27 @@
             const jitHint = document.getElementById('lifemap-jit-hint');
 
             if (dismissBtn) dismissBtn.addEventListener('click', dismissLifemapQuickstartCard);
+            wireLifemapHelpActions();
             const helpOverlay = document.getElementById('lifemap-help-overlay');
             if (helpOverlay) {
                 helpOverlay.addEventListener('click', (e) => {
                     if (e.target === helpOverlay) closeLifemapHelp();
                 });
+                const helpSheetEl = helpOverlay.querySelector('.lifemap-help-sheet');
+                if (helpSheetEl) {
+                    helpSheetEl.addEventListener('click', (e) => e.stopPropagation());
+                }
             }
+            const helpCloseBtn = document.getElementById('lifemap-help-close-btn');
+            if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeLifemapHelp);
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                const overlay = document.getElementById('lifemap-help-overlay');
+                if (overlay?.classList.contains('open')) {
+                    closeLifemapHelp();
+                    e.preventDefault();
+                }
+            });
             if (jitHint) {
                 jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissLifemapJitHint);
                 document.addEventListener('click', (e) => {

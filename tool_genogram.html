@@ -126,7 +126,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 55;
+            z-index: 120;
             background: rgba(17, 24, 39, 0.55);
             backdrop-filter: blur(2px);
             justify-content: center;
@@ -136,10 +136,12 @@
         .genogram-help-overlay.open { display: flex; }
         .genogram-help-sheet {
             position: relative;
+            display: flex;
+            flex-direction: column;
             width: 100%;
             max-width: 420px;
             max-height: 85vh;
-            overflow-y: auto;
+            overflow: hidden;
             padding: 1.35rem 1.4rem 1.15rem;
             text-align: left;
             background: rgba(255,255,255,0.96);
@@ -221,7 +223,18 @@
         .genogram-help-sheet .help-legend-swatch svg {
             width: 88px;
             height: 36px;
-            overflow: visible;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .genogram-help-sheet .help-legend-swatch,
+        .genogram-help-sheet #genogram-help-legend {
+            pointer-events: none;
+        }
+        .genogram-help-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .genogram-help-sheet .help-legend-label { min-width: 0; flex: 1; line-height: 1.35; }
         .genogram-help-sheet .help-kbd {
@@ -263,9 +276,13 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
             margin-top: 0.85rem;
             padding-top: 0.75rem;
             border-top: 1px solid rgba(107,114,128,0.15);
+            pointer-events: auto;
         }
         .dark .genogram-help-links { border-color: rgba(156,163,175,0.18); }
         .genogram-help-links button {
@@ -1235,28 +1252,30 @@
         <div class="genogram-help-sheet" role="document">
             <button type="button" class="genogram-help-close" id="genogram-help-close-btn" aria-label="Close help">&times;</button>
             <h2 id="genogram-help-title">How to Use Genogram Genie</h2>
-            <div class="help-sheet">
-                <section>
-                    <h4>Start here</h4>
-                    <ol>
-                        <li>Add your first person — sidebar button or right-click the canvas.</li>
-                        <li>Right-click anyone to add a partner, parent, or child.</li>
-                        <li>Use Manage Relationships to set emotional links between people.</li>
-                        <li>Export JSON before you close — your genogram lives in this tab only until you save it.</li>
-                    </ol>
-                </section>
-                <section>
-                    <h4>Reading the map</h4>
-                    <div id="genogram-help-legend"></div>
-                </section>
-                <section>
-                    <h4>Keys</h4>
-                    <div class="help-key-row"><span class="help-kbd">Space + drag</span><span>Pan without selecting people</span></div>
-                    <div class="help-key-row"><span class="help-kbd">Delete</span><span>Remove selected person</span></div>
-                    <div class="help-key-row"><span class="help-kbd">⌘/Ctrl + scroll</span><span>Zoom the canvas</span></div>
-                    <div class="help-key-row"><span class="help-kbd">Esc</span><span>Close help or any open modal</span></div>
-                </section>
-                <p class="help-footer">Nothing sent to servers — your genogram stays in this browser tab until you export JSON.</p>
+            <div class="genogram-help-body">
+                <div class="help-sheet">
+                    <section>
+                        <h4>Start here</h4>
+                        <ol>
+                            <li>Add your first person — sidebar button or right-click the canvas.</li>
+                            <li>Right-click anyone to add a partner, parent, or child.</li>
+                            <li>Use Manage Relationships to set emotional links between people.</li>
+                            <li>Export JSON before you close — your genogram lives in this tab only until you save it.</li>
+                        </ol>
+                    </section>
+                    <section>
+                        <h4>Reading the map</h4>
+                        <div id="genogram-help-legend"></div>
+                    </section>
+                    <section>
+                        <h4>Keys</h4>
+                        <div class="help-key-row"><span class="help-kbd">Space + drag</span><span>Pan without selecting people</span></div>
+                        <div class="help-key-row"><span class="help-kbd">Delete</span><span>Remove selected person</span></div>
+                        <div class="help-key-row"><span class="help-kbd">⌘/Ctrl + scroll</span><span>Zoom the canvas</span></div>
+                        <div class="help-key-row"><span class="help-kbd">Esc</span><span>Close help or any open modal</span></div>
+                    </section>
+                    <p class="help-footer">Nothing sent to servers — your genogram stays in this browser tab until you export JSON.</p>
+                </div>
             </div>
             <div class="genogram-help-links">
                 <button type="button" id="genogram-help-quickstart-btn" class="help-link-primary">Quick start</button>
@@ -1909,6 +1928,21 @@
             loadExampleGenogram();
         }
 
+        function wireGenogramHelpActions() {
+            const helpQsBtn = document.getElementById('genogram-help-quickstart-btn');
+            const helpExampleBtn = document.getElementById('genogram-help-example-btn');
+            const stopAndRun = (fn) => (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fn();
+            };
+            if (helpQsBtn) helpQsBtn.onclick = stopAndRun(openQuickstartFromHelp);
+            if (helpExampleBtn) helpExampleBtn.onclick = stopAndRun(loadExampleGenogramFromHelp);
+        }
+
+        globalThis.openGenogramQuickstartFromHelp = () => openQuickstartFromHelp();
+        globalThis.loadGenogramExampleFromHelp = () => loadExampleGenogramFromHelp();
+
         function createHelpLegendSvg(width, height) {
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
@@ -2128,8 +2162,6 @@
             const card = document.getElementById('genogram-quickstart-card');
             const dismissBtn = document.getElementById('genogram-quickstart-dismiss');
             const exampleBtn = document.getElementById('genogram-quickstart-load-example');
-            const helpQsBtn = document.getElementById('genogram-help-quickstart-btn');
-            const helpExampleBtn = document.getElementById('genogram-help-example-btn');
             const jitHint = document.getElementById('genogram-jit-hint');
 
             if (dismissBtn) dismissBtn.addEventListener('click', dismissQuickstartCard);
@@ -2137,14 +2169,7 @@
                 _quickstartForceShow = false;
                 loadExampleGenogram();
             });
-            if (helpQsBtn) helpQsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openQuickstartFromHelp();
-            });
-            if (helpExampleBtn) helpExampleBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                loadExampleGenogramFromHelp();
-            });
+            wireGenogramHelpActions();
             if (jitHint) {
                 jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissJitHint);
                 document.addEventListener('click', (e) => {
@@ -3744,7 +3769,12 @@
                 genogramHelpModal.addEventListener('click', (e) => {
                     if (e.target === genogramHelpModal) closeGenogramHelpSheet();
                 });
+                const helpSheetEl = genogramHelpModal.querySelector('.genogram-help-sheet');
+                if (helpSheetEl) {
+                    helpSheetEl.addEventListener('click', (e) => e.stopPropagation());
+                }
             }
+            wireGenogramHelpActions();
             // --- END CONTROL LISTENERS ---
 
 
