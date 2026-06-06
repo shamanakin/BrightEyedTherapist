@@ -393,7 +393,7 @@
             position: fixed;
             bottom: 1.25rem;
             right: 1.25rem;
-            z-index: 25;
+            z-index: 130;
             width: min(280px, calc(100vw - 2.5rem));
             padding: 1rem 1.1rem 0.9rem;
             background: rgba(255,255,255,0.94);
@@ -425,6 +425,7 @@
             position: absolute;
             top: 0.55rem;
             right: 0.55rem;
+            z-index: 2;
             width: 1.75rem;
             height: 1.75rem;
             border: none;
@@ -689,7 +690,7 @@
         .lifemap-help-links .help-link-secondary.hidden { display: none; }
         .jit-hint {
             position: fixed;
-            z-index: 26;
+            z-index: 131;
             max-width: 240px;
             padding: 0.55rem 0.75rem;
             font-size: 0.75rem;
@@ -2895,6 +2896,31 @@
             if (helpExampleBtn) helpExampleBtn.onclick = stopAndRun(loadExampleMapFromHelp);
         }
 
+        function wireLifemapQuickstartActions() {
+            const dismissBtn = document.getElementById('lifemap-quickstart-dismiss');
+            const exampleBtn = document.getElementById('lifemap-quickstart-load-example');
+            const jitHint = document.getElementById('lifemap-jit-hint');
+            const stopAndRun = (fn) => (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fn();
+            };
+            if (dismissBtn) dismissBtn.onclick = stopAndRun(dismissLifemapQuickstartCard);
+            if (exampleBtn) exampleBtn.onclick = stopAndRun(() => {
+                _lifemapQuickstartForceShow = false;
+                loadExampleMap();
+            });
+            const jitDismiss = jitHint?.querySelector('.jit-dismiss');
+            if (jitDismiss) jitDismiss.onclick = stopAndRun(dismissLifemapJitHint);
+        }
+
+        function isLifemapOverlayTarget(target) {
+            if (!(target instanceof Element)) return false;
+            return Boolean(target.closest(
+                '#lifemap-quickstart-card, #lifemap-jit-hint, #lifemap-help-overlay, #details-panel-overlay, #log-session-overlay'
+            ));
+        }
+
         function toggleLifemapHelp(event) {
             event.stopPropagation();
             const overlay = document.getElementById('lifemap-help-overlay');
@@ -2907,34 +2933,39 @@
         }
 
         function initLifemapQuickstart() {
-            const dismissBtn = document.getElementById('lifemap-quickstart-dismiss');
-            const jitHint = document.getElementById('lifemap-jit-hint');
-
-            if (dismissBtn) dismissBtn.addEventListener('click', dismissLifemapQuickstartCard);
+            wireLifemapQuickstartActions();
             wireLifemapHelpActions();
             const helpOverlay = document.getElementById('lifemap-help-overlay');
             if (helpOverlay) {
                 helpOverlay.addEventListener('click', (e) => {
                     if (e.target === helpOverlay) closeLifemapHelp();
                 });
-                const helpSheetEl = helpOverlay.querySelector('.lifemap-help-sheet');
-                if (helpSheetEl) {
-                    helpSheetEl.addEventListener('click', (e) => e.stopPropagation());
-                }
             }
             const helpCloseBtn = document.getElementById('lifemap-help-close-btn');
-            if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeLifemapHelp);
+            if (helpCloseBtn) {
+                helpCloseBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeLifemapHelp();
+                });
+            }
             document.addEventListener('keydown', (e) => {
                 if (e.key !== 'Escape') return;
                 const overlay = document.getElementById('lifemap-help-overlay');
                 if (overlay?.classList.contains('open')) {
                     closeLifemapHelp();
                     e.preventDefault();
+                    return;
+                }
+                const qsCard = document.getElementById('lifemap-quickstart-card');
+                if (qsCard && !qsCard.classList.contains('hidden')) {
+                    dismissLifemapQuickstartCard();
+                    e.preventDefault();
                 }
             });
+            const jitHint = document.getElementById('lifemap-jit-hint');
             if (jitHint) {
-                jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissLifemapJitHint);
                 document.addEventListener('click', (e) => {
+                    if (isLifemapOverlayTarget(e.target)) return;
                     if (!jitHint.classList.contains('hidden') && !jitHint.contains(e.target)) {
                         dismissLifemapJitHint();
                     }

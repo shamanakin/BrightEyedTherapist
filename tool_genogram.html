@@ -452,7 +452,7 @@
             position: fixed;
             bottom: 1.25rem;
             right: 1.25rem;
-            z-index: 25;
+            z-index: 130;
             width: min(280px, calc(100vw - 2.5rem));
             padding: 1rem 1.1rem 0.9rem;
             background: rgba(255,255,255,0.94);
@@ -484,6 +484,7 @@
             position: absolute;
             top: 0.55rem;
             right: 0.55rem;
+            z-index: 2;
             width: 1.75rem;
             height: 1.75rem;
             border: none;
@@ -590,7 +591,7 @@
         .help-quickstart-btn:hover { background: rgba(124,181,144,0.25); }
         .jit-hint {
             position: fixed;
-            z-index: 26;
+            z-index: 131;
             max-width: 240px;
             padding: 0.55rem 0.75rem;
             font-size: 0.75rem;
@@ -998,22 +999,22 @@
                 Feedback
             </a>
         </div>
-
-        <div id="genogram-quickstart-card" class="quickstart-card hidden" aria-live="polite">
-            <button type="button" class="quickstart-dismiss" id="genogram-quickstart-dismiss" aria-label="Dismiss quick start">×</button>
-            <h4>Quick start</h4>
-            <ol class="quickstart-steps" id="genogram-quickstart-steps">
-                <li data-step="1"><span class="qs-check" aria-hidden="true">✓</span><span>Add your first person — use the button in the sidebar or right-click the canvas.</span></li>
-                <li data-step="2"><span class="qs-check" aria-hidden="true">✓</span><span>Add a second person — right-click someone to add a partner, parent, or child.</span></li>
-                <li data-step="3"><span class="qs-check" aria-hidden="true">✓</span><span>Connect them — right-click a person or use Manage Relationships.</span></li>
-            </ol>
-            <p class="quickstart-complete hidden" id="genogram-quickstart-complete">You're going ✓</p>
-            <p class="quickstart-example hidden" id="genogram-quickstart-example"><button type="button" id="genogram-quickstart-load-example">or load an example</button></p>
-        </div>
-        <div id="genogram-jit-hint" class="jit-hint hidden" role="status"><button type="button" class="jit-dismiss" aria-label="Dismiss hint">×</button><div class="jit-body"></div></div>
     </main>
     </div>
     <div id="sidebar-backdrop"></div>
+
+    <div id="genogram-quickstart-card" class="quickstart-card hidden" aria-live="polite">
+        <button type="button" class="quickstart-dismiss" id="genogram-quickstart-dismiss" aria-label="Dismiss quick start">×</button>
+        <h4>Quick start</h4>
+        <ol class="quickstart-steps" id="genogram-quickstart-steps">
+            <li data-step="1"><span class="qs-check" aria-hidden="true">✓</span><span>Add your first person — use the button in the sidebar or right-click the canvas.</span></li>
+            <li data-step="2"><span class="qs-check" aria-hidden="true">✓</span><span>Add a second person — right-click someone to add a partner, parent, or child.</span></li>
+            <li data-step="3"><span class="qs-check" aria-hidden="true">✓</span><span>Connect them — right-click a person or use Manage Relationships.</span></li>
+        </ol>
+        <p class="quickstart-complete hidden" id="genogram-quickstart-complete">You're going ✓</p>
+        <p class="quickstart-example hidden" id="genogram-quickstart-example"><button type="button" id="genogram-quickstart-load-example">or load an example</button></p>
+    </div>
+    <div id="genogram-jit-hint" class="jit-hint hidden" role="status"><button type="button" class="jit-dismiss" aria-label="Dismiss hint">×</button><div class="jit-body"></div></div>
 
     <!-- ALL MODALS AND MENUS FROM MY (GEMINI'S) PREVIOUS VERSION -->
     <!-- (Grok's file omitted these, so I am restoring them) -->
@@ -1940,8 +1941,34 @@
             if (helpExampleBtn) helpExampleBtn.onclick = stopAndRun(loadExampleGenogramFromHelp);
         }
 
+        function wireQuickstartActions() {
+            const dismissBtn = document.getElementById('genogram-quickstart-dismiss');
+            const exampleBtn = document.getElementById('genogram-quickstart-load-example');
+            const jitHint = document.getElementById('genogram-jit-hint');
+            const stopAndRun = (fn) => (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fn();
+            };
+            if (dismissBtn) dismissBtn.onclick = stopAndRun(dismissQuickstartCard);
+            if (exampleBtn) exampleBtn.onclick = stopAndRun(() => {
+                _quickstartForceShow = false;
+                loadExampleGenogram();
+            });
+            const jitDismiss = jitHint?.querySelector('.jit-dismiss');
+            if (jitDismiss) jitDismiss.onclick = stopAndRun(dismissJitHint);
+        }
+
+        function isGenogramOverlayTarget(target) {
+            if (!(target instanceof Element)) return false;
+            return Boolean(target.closest(
+                '#genogram-quickstart-card, #genogram-jit-hint, #genogram-help-modal, #genogram-draft-banner, .toast-container'
+            ));
+        }
+
         globalThis.openGenogramQuickstartFromHelp = () => openQuickstartFromHelp();
         globalThis.loadGenogramExampleFromHelp = () => loadExampleGenogramFromHelp();
+        globalThis.dismissGenogramQuickstart = () => dismissQuickstartCard();
 
         function createHelpLegendSvg(width, height) {
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -2159,19 +2186,10 @@
         }
 
         function initQuickstart() {
-            const card = document.getElementById('genogram-quickstart-card');
-            const dismissBtn = document.getElementById('genogram-quickstart-dismiss');
-            const exampleBtn = document.getElementById('genogram-quickstart-load-example');
-            const jitHint = document.getElementById('genogram-jit-hint');
-
-            if (dismissBtn) dismissBtn.addEventListener('click', dismissQuickstartCard);
-            if (exampleBtn) exampleBtn.addEventListener('click', () => {
-                _quickstartForceShow = false;
-                loadExampleGenogram();
-            });
+            wireQuickstartActions();
             wireGenogramHelpActions();
+            const jitHint = document.getElementById('genogram-jit-hint');
             if (jitHint) {
-                jitHint.querySelector('.jit-dismiss')?.addEventListener('click', dismissJitHint);
                 document.addEventListener('click', (e) => {
                     if (!jitHint.classList.contains('hidden') && !jitHint.contains(e.target)) {
                         dismissJitHint();
@@ -2647,6 +2665,7 @@
         }
 
         function onWindowClick(e) {
+            if (isGenogramOverlayTarget(e.target)) return;
             hideContextMenu();
             hideCanvasContextMenu();
             if (e.target === canvas) {
@@ -2668,6 +2687,12 @@
             if (e.key === 'Escape') {
                 if (genogramHelpModal && genogramHelpModal.classList.contains('open')) {
                     closeGenogramHelpSheet();
+                    e.preventDefault();
+                    return;
+                }
+                const qsCard = document.getElementById('genogram-quickstart-card');
+                if (qsCard && !qsCard.classList.contains('hidden')) {
+                    dismissQuickstartCard();
                     e.preventDefault();
                     return;
                 }
@@ -3689,6 +3714,7 @@
             if(canvas) {
                 canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
                 canvas.addEventListener('mousedown', (e) => {
+                    if (isGenogramOverlayTarget(e.target)) return;
                     if (e.button === 2) { e.preventDefault(); e.stopPropagation(); onCanvasContextMenu(e); return; }
                     if (e.button === 0 && view.isSpacePressed) {
                         e.preventDefault();
@@ -3763,18 +3789,18 @@
             });
             const genogramHelpCloseBtn = document.getElementById('genogram-help-close-btn');
             if (genogramHelpCloseBtn) {
-                genogramHelpCloseBtn.addEventListener('click', closeGenogramHelpSheet);
+                genogramHelpCloseBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeGenogramHelpSheet();
+                });
             }
             if (genogramHelpModal) {
                 genogramHelpModal.addEventListener('click', (e) => {
                     if (e.target === genogramHelpModal) closeGenogramHelpSheet();
                 });
-                const helpSheetEl = genogramHelpModal.querySelector('.genogram-help-sheet');
-                if (helpSheetEl) {
-                    helpSheetEl.addEventListener('click', (e) => e.stopPropagation());
-                }
             }
             wireGenogramHelpActions();
+            wireQuickstartActions();
             // --- END CONTROL LISTENERS ---
 
 
