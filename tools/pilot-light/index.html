@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Pilot Light — a private, local-first daily tracker for drive and motivation. Shared via Bright Eyed Therapist.">
+<meta name="theme-color" content="#F7F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101B1D" media="(prefers-color-scheme: dark)">
+<title>Pilot Light · Daily drive tracker</title>
+<link rel="icon" type="image/svg+xml" href="assets/mark.svg">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<a class="skip-link" href="#dayForm">Skip to today’s check-in</a>
+
+<div class="app">
+  <header class="app-header">
+    <div class="brand">
+      <img class="brand-mark" src="assets/mark.svg" alt="" width="40" height="40">
+      <div>
+        <h1 class="brand-name">Pilot Light</h1>
+        <p class="brand-sub">Daily drive &amp; motivation · <span id="sharedByLine">private to this device</span></p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="save-status" id="saveStatus" role="status" aria-live="polite"></span>
+      <button type="button" class="btn btn-quiet" id="btnImport" title="Import a Pilot Light JSON file">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>
+        <span>Import</span>
+      </button>
+      <button type="button" class="btn btn-quiet" id="btnExport" title="Download all your days as JSON">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>
+        <span>Export</span>
+      </button>
+      <button type="button" class="btn btn-primary" id="btnSettings" aria-haspopup="dialog">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        <span>Settings</span>
+      </button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div id="banners" class="banners"></div>
+
+  <nav class="day-nav" aria-label="Choose a day">
+    <button type="button" class="nav-btn" id="btnPrev" aria-label="Previous day">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="day-display">
+      <div class="date-label" id="dateLabel">—</div>
+      <div class="date-meta">
+        <span id="dateMeta"></span>
+        <label class="date-pick">
+          <span class="sr-only">Jump to date</span>
+          <input type="date" id="datePicker">
+        </label>
+      </div>
+    </div>
+    <button type="button" class="nav-btn" id="btnNext" aria-label="Next day">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <button type="button" class="btn btn-chip" id="btnToday">Today</button>
+  </nav>
+
+  <div class="main-grid">
+    <main id="dayForm" class="day-form" tabindex="-1" aria-label="Check-in for the selected day"></main>
+
+    <aside class="sidebar" aria-label="Your drive over time">
+      <section class="card" aria-labelledby="heatHeading">
+        <div class="card-head">
+          <h2 id="heatHeading">Drive heatmap</h2>
+          <span class="card-hint">Last 16 weeks · tap a day</span>
+        </div>
+        <div id="heatmap" class="heatmap"></div>
+        <div class="heat-legend" aria-hidden="true">
+          <span>0</span>
+          <span class="swatches" id="heatLegend"></span>
+          <span>10</span>
+          <span class="legend-gap"></span>
+          <span class="swatch swatch-nodrive"></span><span>logged, no rating</span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="trendHeading">
+        <div class="card-head">
+          <h2 id="trendHeading">Trend</h2>
+          <div class="seg" role="group" aria-label="Trend range">
+            <button type="button" class="seg-btn" data-range="30" aria-pressed="true">30d</button>
+            <button type="button" class="seg-btn" data-range="90" aria-pressed="false">90d</button>
+          </div>
+        </div>
+        <div id="stats" class="stats"></div>
+        <div id="trend" class="trend"></div>
+      </section>
+
+      <section class="card" aria-labelledby="patternsHeading">
+        <div class="card-head">
+          <h2 id="patternsHeading">Patterns</h2>
+          <span class="card-hint">last 60 days</span>
+        </div>
+        <div id="patterns"></div>
+        <div class="card-foot">
+          <button type="button" class="btn btn-quiet btn-sm" id="btnPrint">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>
+            <span>Print / PDF summary</span>
+          </button>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <p><strong>Private by design.</strong> Everything you enter stays in this browser on this device. Pilot Light makes no network requests and has no account. Use Export to back up or move your data.</p>
+    <p><strong>Not medical advice.</strong> This is a self-reflection tool, not a diagnosis or treatment. Talk with a qualified professional about changes to medication or care. Not for emergencies — in the US call or text <strong>988</strong>; elsewhere, contact local emergency services.</p>
+    <p class="foot-brand">
+      <img src="assets/mark.svg" alt="" width="16" height="16">
+      <span>Shared via <a href="https://brighteyedtherapist.com" target="_blank" rel="noopener noreferrer">Bright Eyed Therapist</a></span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span class="kbd-hint">Shortcuts: <kbd>←</kbd> <kbd>→</kbd> days · <kbd>T</kbd> today · <kbd>0</kbd>–<kbd>9</kbd> drive</span>
+    </p>
+  </footer>
+</div>
+
+<dialog id="settingsDialog" class="sheet" aria-labelledby="settingsTitle">
+  <div class="sheet-head">
+    <h2 id="settingsTitle">Settings</h2>
+    <button type="button" class="icon-btn" id="btnCloseSettings" aria-label="Close settings">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body" id="settingsBody"></div>
+</dialog>
+
+<div id="printSummary" class="print-summary" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/core.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

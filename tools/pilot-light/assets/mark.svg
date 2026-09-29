@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Pilot Light">
+  <defs>
+    <linearGradient id="pl-outer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D6EEF2"/>
+      <stop offset="1" stop-color="#7FB8C9"/>
+    </linearGradient>
+    <linearGradient id="pl-core" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBE3D6"/>
+      <stop offset="1" stop-color="#E39A7C"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#2C5558"/>
+  <path fill="url(#pl-outer)" d="M32 9c6.5 9.5 13 16 13 26.5C45 44.6 39.2 52 32 52s-13-7.4-13-16.5c0-7.3 4.6-11.4 7.8-17 1 4.6 3.2 7.2 5.4 8.4C31.6 21 31 15 32 9z"/>
+  <path fill="url(#pl-core)" d="M32 30.5c3.4 4.7 6.2 7.8 6.2 12.1 0 4.5-2.8 7.4-6.2 7.4s-6.2-2.9-6.2-7.4c0-4.3 2.8-7.4 6.2-12.1z"/>
+</svg>

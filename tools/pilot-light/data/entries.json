@@ -1,0 +1,340 @@
+{
+  "format": "pilot-light",
+  "version": 1,
+  "kind": "entries",
+  "exportedAt": "2026-09-28T20:00:00.000Z",
+  "timezone": "America/Los_Angeles",
+  "note": "Example data only (every day has example: true). Safe to import, safe to delete.",
+  "entries": [
+    {
+      "date": "2026-09-22",
+      "drive": 4,
+      "scales": {
+        "energy": 3,
+        "focus": 4,
+        "mood": 5
+      },
+      "sleep": {
+        "quality": 5,
+        "bed": "22:45",
+        "wake": "06:50"
+      },
+      "levers": {
+        "light": false,
+        "caffeine": false,
+        "move": true,
+        "meal": true,
+        "connect": false,
+        "winddown": true
+      },
+      "movement": {
+        "did": true,
+        "kind": "Cardio",
+        "minutes": 25
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "Busy day — ran on autopilot.",
+      "tags": [],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    },
+    {
+      "date": "2026-09-23",
+      "drive": 1,
+      "scales": {
+        "energy": 2,
+        "focus": 0,
+        "mood": 2
+      },
+      "sleep": {
+        "quality": 3,
+        "bed": "00:20",
+        "wake": "07:40"
+      },
+      "levers": {
+        "light": false,
+        "caffeine": true,
+        "move": false,
+        "meal": false,
+        "connect": false,
+        "winddown": false
+      },
+      "movement": {
+        "did": false,
+        "kind": "",
+        "minutes": null
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "",
+      "tags": [],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    },
+    {
+      "date": "2026-09-24",
+      "drive": 6,
+      "scales": {
+        "energy": 7,
+        "focus": 5,
+        "mood": 7
+      },
+      "sleep": {
+        "quality": 4,
+        "bed": "00:20",
+        "wake": "07:40"
+      },
+      "levers": {
+        "light": true,
+        "caffeine": true,
+        "move": true,
+        "meal": true,
+        "connect": true,
+        "winddown": false
+      },
+      "movement": {
+        "did": true,
+        "kind": "Strength",
+        "minutes": 20
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "",
+      "tags": [
+        "work"
+      ],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    },
+    {
+      "date": "2026-09-25",
+      "drive": 6,
+      "scales": {
+        "energy": 6,
+        "focus": 5,
+        "mood": 6
+      },
+      "sleep": {
+        "quality": 6,
+        "bed": "00:20",
+        "wake": "07:40"
+      },
+      "levers": {
+        "light": true,
+        "caffeine": false,
+        "move": true,
+        "meal": false,
+        "connect": true,
+        "winddown": false
+      },
+      "movement": {
+        "did": true,
+        "kind": "Strength",
+        "minutes": 30
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "",
+      "tags": [
+        "travel"
+      ],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    },
+    {
+      "date": "2026-09-26",
+      "drive": 6,
+      "scales": {
+        "energy": 7,
+        "focus": 5,
+        "mood": 6
+      },
+      "sleep": {
+        "quality": 5,
+        "bed": "00:20",
+        "wake": "07:40"
+      },
+      "levers": {
+        "light": true,
+        "caffeine": true,
+        "move": true,
+        "meal": true,
+        "connect": true,
+        "winddown": false
+      },
+      "movement": {
+        "did": true,
+        "kind": "Strength",
+        "minutes": 25
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "",
+      "tags": [
+        "travel"
+      ],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    },
+    {
+      "date": "2026-09-27",
+      "drive": 6,
+      "scales": {
+        "energy": 6,
+        "focus": 5,
+        "mood": 7
+      },
+      "sleep": {
+        "quality": 7,
+        "bed": "22:45",
+        "wake": "06:50"
+      },
+      "levers": {
+        "light": true,
+        "caffeine": false,
+        "move": true,
+        "meal": false,
+        "connect": false,
+        "winddown": true
+      },
+      "movement": {
+        "did": true,
+        "kind": "Strength",
+        "minutes": 40
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "Got the hard task done before lunch.",
+      "tags": [
+        "rest"
+      ],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    },
+    {
+      "date": "2026-09-28",
+      "drive": 3,
+      "scales": {
+        "energy": 2,
+        "focus": 4,
+        "mood": 4
+      },
+      "sleep": {
+        "quality": 3,
+        "bed": "00:20",
+        "wake": "07:40"
+      },
+      "levers": {
+        "light": false,
+        "caffeine": false,
+        "move": true,
+        "meal": true,
+        "connect": false,
+        "winddown": false
+      },
+      "movement": {
+        "did": true,
+        "kind": "Cardio",
+        "minutes": 40
+      },
+      "food": {
+        "quality": null,
+        "firstMeal": "",
+        "note": ""
+      },
+      "body": {
+        "level": null,
+        "where": ""
+      },
+      "meds": {},
+      "medsNote": "",
+      "habits": {},
+      "win": "",
+      "intention": "",
+      "session": "",
+      "notes": "Good call with a friend in the evening.",
+      "tags": [],
+      "updatedAt": "2026-09-28T20:00:00.000Z",
+      "example": true
+    }
+  ]
+}
